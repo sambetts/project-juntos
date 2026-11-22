@@ -33,6 +33,7 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Open or blocked:** B-024 is blocked on F-014 (the register search). F-013 is unanswered. B-027 is new.
 **Saved and checked:** committed B-013 and B-012 as each finished; re-ran `node test_proto.js` (199 passed) and `node test_landing.js` (135 passed); reviewed `git diff` for STATE, BACKLOG and FOUNDER-QUEUE and re-read the two new notes against what I meant to write. LOG.md saved last and checked with `git diff`; the commit is confirmed in the closing report.
 **Next session should start with:** 1. B-027 short DPIA. 2. B-020 pilot materials (privacy notice and consent texts first). 3. B-022 pilot areas or B-021 lawyer shortlist.
+**After the closing report:** Sam closed F-013: "F013 - don't worry about it. As long as I'm not using work cloud & AI resources I should be good. Even then, until this is a business that earns money and requires attention that would conflict with my normal job, it's just something to bear in mind. It's not a black & white rule." Recorded as D-025; R-008 and STATE updated. He then asked about building a working proof of concept and whether we have credits for it (answered in chat: no credits or budget yet, F-002). Checked with `git diff`; committed.
 
 ## 2026-11-22 · Session 10: landing-page draft
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Brand & Marketing (B-007) and the Tester

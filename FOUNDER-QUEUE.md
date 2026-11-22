@@ -53,12 +53,6 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **Recommendation:** A. Every later mode still needs your dated switch.
 **If no answer:** the modes apply as written in AGENTS.md section 3, and Build mode continues.
 
-### F-013 · Your work account on your own machine · by 2026-11-29
-**Why:** in Session 10 the Chief of Staff found that the Windows account running these sessions is your work account (`EUROPE\sambetts`), and that the machine is joined to the employer's Entra ID tenant (`dsregcmd /status`: AzureAdJoined YES, tenant "Microsoft"). Your employer's policy allows this project only outside work devices, accounts and systems (F-001, D-021). The device is yours: **ANSWER (Sam, 2026-11-22, in Claude Code):** "This is my personal device. WOD2 is my own machine, even though I'm logged into work." Being signed in through the employer's tenant may still give its device management (policies, backup, monitoring) reach over the project files.
-**Options:** A) carry on as now · B) use a separate personal Windows account (not joined to the tenant) for this project · C) check with your employer that this is fine
-**Recommendation:** B. It's quick, and it keeps the project clearly off work accounts and systems.
-**If no answer:** sessions carry on here, and the risk stays open in R-008.
-
 ### F-014 · Ten-minute trademark search for Compicasa, then the domains · by 2026-12-06
 **Why:** the public checks found no blocker (`research/2026-11-22-name-clearance.md`): no web use, no company, and .com and .es look free. But the trademark registers (OEPM and TMView) block automated searches, so a person has to run them. The closest sound-alike is Comprarcasa, an estate-agency network.
 **Ask:** run the searches in that note's "Steps" section (about ten minutes), or name a delegate. Paste the results here.
@@ -67,6 +61,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **If no answer:** Compicasa stays a provisional working name; nothing is bought or published.
 
 ## Closed
+
+### F-013 · Your work account on your own machine · closed 2026-11-22
+**Why:** in Session 10 the Chief of Staff found that the Windows account running these sessions is your work account (`EUROPE\sambetts`), and that the machine is joined to the employer's Entra ID tenant (`dsregcmd /status`: AzureAdJoined YES, tenant "Microsoft"). Your employer's policy allows this project only outside work devices, accounts and systems (F-001, D-021). The device is yours: **ANSWER (Sam, 2026-11-22, in Claude Code):** "This is my personal device. WOD2 is my own machine, even though I'm logged into work." Being signed in through the employer's tenant may still give its device management (policies, backup, monitoring) reach over the project files.
+**Options:** A) carry on as now · B) use a separate personal Windows account (not joined to the tenant) for this project · C) check with your employer that this is fine
+**Recommendation:** B. It's quick, and it keeps the project clearly off work accounts and systems.
+**If no answer:** sessions carry on here, and the risk stays open in R-008.
+**ANSWER (Sam, 2026-11-22, in Claude Code):** "F013 - don't worry about it. As long as I'm not using work cloud & AI resources I should be good. Even then, until this is a business that earns money and requires attention that would conflict with my normal job, it's just something to bear in mind. It's not a black & white rule." Recorded as D-025.
 
 ### F-003 · The name (D-007) · closed 2026-11-22
 **Recommendation:** keep Compicasa as the provisional favourite. Before approving or spending, run a clearance search for similar names in the services we'll actually offer (Compricasa, Compracasa, and the rival Casicasa), and a quick comprehension test with Spanish speakers. Brand & Marketing can do a first pass on the public registers now (B-024). Then buy compicasa.es and compicasa.com (€10.99 + €21.99 = €32.98 listed on 2026-11-20; prices and availability can change) and file a trademark for those services.
