@@ -1,0 +1,20 @@
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+
+# Dependencies
+node_modules/
+
+# Secrets: never commit passwords or keys (AGENTS.md section 4)
+.env
+.env.*
+*.pem
+*.key
+
+# Personal data never belongs in this repository (R-020): git history keeps whatever is committed.
+# These folders are ignored only as a safety net.
+private/
+participants/

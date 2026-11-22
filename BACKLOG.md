@@ -1,0 +1,34 @@
+# Backlog
+
+Top = most important. Status: todo · doing · blocked · later · done. "Waiting on" is what stops the work starting; "Gate" is what must be settled before the result is used or released. The Chief of Staff writes this file and keeps the order; owners report status changes to the Chief of Staff.
+
+| ID | Item | Owner | Status | Waiting on | Gate | Output |
+|---|---|---|---|---|---|---|
+| B-013 | Privacy and safety groundwork: data map, lawful basis for each purpose, retention, whether a DPIA is needed, incident handling and a named responder (F-010), and the requirements for pilot tools (EU hosting, processor terms; Sam chooses the tools). Start from Annex A of the lawyer brief and section 10 of the pilot plan. A working document, not a research note | Legal & Compliance | todo | | Before any real users | `research/YYYY-MM-DD-privacy.md` |
+| B-020 | Spanish pilot materials, drafted with made-up data only: sign-up and profile forms, privacy notice and consent drafts, participation terms, the anonymous introduction card, joint-brief template, exit-rules worksheet, non-binding group pledge, code of conduct and safety guidance, message templates. Plus a pseudonymised matching sheet that applies the v0.3 rules without household-type or money filters. In Plan mode the forms are question lists and the matching sheet is a written spec; building them waits for Build mode | Product with Legal & Compliance, Validation and Builder | todo | | B-013, the lawyer's Part A answers and Sam's approval before use | `product/pilot-materials/` |
+| B-022 | Pilot area shortlist for F-004: two or three Madrid areas and price bands, with public data on three- and four-bedroom homes, prices and transport. Use official statistics and press reports of portal price indices (label them Reported); don't open or fetch portal pages | Research with Validation | todo | | | `research/YYYY-MM-DD-pilot-areas.md` |
+| B-021 | Lawyer shortlist for F-006: three to five Madrid firms or practices covering property and data protection (for a sole practitioner, the professional name and public directory link only), ideally with proptech experience; published fees and how to ask for a quote. No contact | Partnerships | todo | | Sam's approval before any contact | `project/partners.md` |
+| B-024 | Preliminary name clearance for Compicasa: identical, similar and sound-alike marks (Compricasa, Compracasa, the rival Casicasa) in the OEPM and EUIPO/TMview registers for the classes our services need; company names in the Registro Mercantil Central; domains and social handles. Public databases only; no filing, buying or contact | Brand & Marketing with Legal & Compliance | todo | | Sam (F-003) before any purchase or filing | `research/YYYY-MM-DD-name-clearance.md` |
+| B-009 | Mortgage reality check: lending to 2–4 unrelated borrowers, joint and several liability, releasing a borrower who leaves, which banks or brokers. Start from B-001: iAhorro says banks are wary; habitacion.com's buyers use personal loans instead | Finance with Research | todo | | Sam's approval before contacting anyone | `research/YYYY-MM-DD-financing.md` |
+| B-006 | Interview guide in Spanish for would-be co-buyers (topics in section 9 of the pilot plan) | Validation | todo | | F-001 and Sam's approval before use | `product/interview-guide.md` |
+| B-016 | Claims register: key facts with link, section, date checked, confidence and the decision they support (start from the review's fact checks and B-001's sources) | Research | todo | | | `research/claims.md` |
+| B-005 | Matching spec v1, written up from the prototype's v0.3 rules | Product | todo | | D-009 | `product/matching-spec-v1.md` |
+| B-018 | Spanish version of the prototype (`lang="es"`) for user tests, plus real-browser, mobile and screen-reader checks | Builder with Tester | todo | Build mode (F-001, then Sam's dated switch) | Before any user test | `prototype/` |
+| B-004 | Affordability evidence for Spain and Madrid from official sources (start with the Banco de España's 2025 annual report, chapter 2) | Research | todo | | | `research/YYYY-MM-DD-affordability.md` |
+| B-008 | Phase 1 budget and caps, with the ledger in `project/budget.md` (first estimate: section 12 of the pilot plan) | Finance | blocked | F-002 | | `project/budget.md` |
+| B-007 | Landing-page draft with waitlist (Spanish), neutral working name, not published | Builder with Brand & Marketing | todo | Build mode (F-001, then Sam's dated switch) | D-007 for branding | `prototype/` |
+| B-010 | Brand starter: positioning line (start from D-017), tone of voice, three Spanish taglines, logo brief | Brand & Marketing | blocked | D-007 | | `research/YYYY-MM-DD-brand-starter.md` |
+| B-011 | Shortlist 10 Madrid agencies (note their listing software) and draft a one-page pitch. No contact | Partnerships | todo | | F-001 and Sam's approval before contact | `project/partners.md` |
+| B-019 | Competitor watch every quarter: habitacion.com's group service, Casicasa's private groups (behind its login, not checked), Yorsio's fees | Research | later | Next due 2027-02-20 | | `research/YYYY-MM-DD-competitor-watch.md` |
+| B-023 | Cold-start test after any change of model, tool or instructions: start a fresh session with the first-session prompt in KICKOFF.md, note where it trips, and fix it | Chief of Staff | later | A first session with a new AI or tool, or a change to the modes, decision rights or session steps | | LOG.md entry |
+| B-012 | Rename the prototype from "Juntos" and re-run its tests | Builder with Tester | blocked | D-007; Build mode | | `prototype/` |
+| B-014 | "Homes" tab: the group adds homes and sees how each fits its brief | Builder | later | D-015, Phase 2 | Source permission | `prototype/` |
+
+## Done
+| ID | Item | Owner | Done | Output |
+|---|---|---|---|---|
+| B-001 | Map rivals' actual flows | Research | 2026-11-20 | `research/2026-11-20-competitors.md` |
+| B-015 | Prototype fixes from the independent review | Builder with Tester | 2026-11-20 | `prototype/` (111 checks pass) |
+| B-003 | Lawyer brief: six Part A questions before the pilot, ten Part B questions (quote only), what we think we know, the pilot's data list and a Spanish cover email | Legal & Compliance | 2026-11-20 | `research/2026-11-20-lawyer-brief.md` |
+| B-002 | Phase 1 pilot plan: gates, journey, safety, measures M1–M3 and decision rules, interviews, time and money, EXP-001 to EXP-003 | Validation | 2026-11-20 | `product/phase1-validation-plan.md` |
+| B-017 | Cold-start test with an Opus model, after tuning the instructions for Opus; fixes applied | Chief of Staff | 2026-11-20 | LOG.md (Session 6) |
