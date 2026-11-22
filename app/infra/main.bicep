@@ -28,6 +28,10 @@ param sqlAdminLogin string
 @description('Invite code needed to create an account (the PoC is closed, D-027).')
 param inviteCode string
 
+@description('Entra External ID sign-in (D-033): the authority URL and the client ID of the app registration, both set by external-id.ps1.')
+param externalIdAuthority string = ''
+param externalIdClientId string = ''
+
 @description('Monthly budget alert for the resource group, in the billing currency.')
 param monthlyBudget int = 5
 
@@ -58,6 +62,8 @@ module app 'resources.bicep' = {
     sqlAdminObjectId: sqlAdminObjectId
     sqlAdminLogin: sqlAdminLogin
     inviteCode: inviteCode
+    externalIdAuthority: externalIdAuthority
+    externalIdClientId: externalIdClientId
     monthlyBudget: monthlyBudget
     budgetStart: budgetStart
   }

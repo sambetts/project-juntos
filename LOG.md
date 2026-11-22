@@ -2,6 +2,33 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 13: release-readiness review, email sign-up and onboarding
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-033, B-034), the CEO (D-034) and Legal & Compliance (draft terms and privacy texts)
+**Mode:** Build (D-023), within D-027 and D-033 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md "Last updated 2026-11-22 after Session 12"; newest LOG entry Session 12. Sam: "Look at the app code. Does it have the funcionality needed for a release? This PoC must be as close to release-ready as possible … The user sign-up for example feels basic." After the review: "yes. External for email via Azure Communication Services (although open to suggestion)"
+**Goals:** 1. Record the decision and put the review into the backlog. 2. B-033 EF Core migrations with a baseline for the live database. 3. B-034 email sign-in through External ID, 18+ and terms checks, onboarding wizard.
+**Needs Sam:** F-016: create the External ID tenant (run or approve `app/infra/external-id.ps1`).
+**Did**
+- Review (in chat, then in BACKLOG): the PoC stops where a real user's journey starts: no messages after a match, no notifications, a basic username sign-up, no migrations, and the household dealbreaker would filter real people (AGENTS.md section 4). New rows B-033 to B-044, in priority order.
+- Recorded D-033 (Sam's words) and D-034 (CEO). Read Sam's "External for email via ACS" as External ID for sign-in and ACS Email for the app's own emails, and said so in the opening brief.
+- B-033: EF Core migrations for Azure SQL (`Initial` = Session 12's schema, `EmailAccounts`), applied at start-up; a one-off baseline marks `Initial` as applied on the live database, which was made without migrations; SQLite keeps creating its schema directly; a test fails if the model has unmigrated changes. `dotnet-ef` tool updated from 9.0.7 to 10.0.15.
+- B-034:
+  - Email accounts. In production, External ID with an ID token only (no client secret). The invite code, the 18+ box and today's terms are checked before the hand-over and travel as a signed 30-minute ticket. Without a ticket, no account is created. Locally, email-and-password accounts with the same checks.
+  - The cookie is now secure-only outside development.
+  - An eight-step onboarding wizard. Matches, likes, previews and new groups answer 409 until it's done, and unfinished accounts are invisible to others.
+  - Draft terms and privacy notice in both languages, marked as drafts. Sam's details aren't in them.
+  - A password meter and a show/hide button.
+  - `app/infra/external-id.ps1` (tenant, app registration, sign-up flow, web app settings); Bicep and `deploy.ps1` keep the External ID settings, and `deploy.ps1 -App` refuses to deploy without them.
+- Tests: 30 .NET tests (11 new) and the browser test (32 checks locally, now through the wizard and the privacy page). The first browser run caught a layout bug (the show-password button squashed the password box on phones), fixed.
+- Not done: creating the tenant. The PUT to `Microsoft.AzureActiveDirectory/ciamDirectories` was stopped by Claude Code's safety check ("Destructive or Unwanted Actions"), so it became F-016. Nothing was created in Azure this session; the live site is unchanged.
+
+**Decided:** D-033 (Sam), D-034 (CEO)
+**Approvals used:** none acted on in Azure. Reads only: the resource provider's state and a name check (compicasa.onmicrosoft.com is free).
+**Learned:** External ID's core offer is free for the first 50,000 monthly active users (Verified, Microsoft Learn pricing page, 2026-11-22); premium add-ons such as SMS bill from the first use. The tenant resource can get stuck in a failed state that blocks deleting its resource group (Reported, Microsoft Q&A), so it gets its own group. Graph's user-flow format was read from Microsoft Learn (`identitycontainer-post-authenticationeventsflows`); it needs both the attributes and the page views. Not checked: ACS Email's price per message (before B-037); the script itself, which can't run until F-016.
+**Open or blocked:** B-034 blocked on F-016; B-033's first live run comes with that deploy.
+**Saved and checked:** `dotnet test` (30 passed) and the browser test (32 passed) against a local run; `az bicep build` clean; both PowerShell scripts parse. Reviewed `git diff` for BACKLOG, FOUNDER-QUEUE, DECISIONS, STATE, `app/README.md` and `app/infra/`, and compared them with what I meant to write. Three commits this session; LOG.md was saved last and checked with `git diff`; the final commit is confirmed in the closing report.
+**Next session should start with:** 1. After F-016: deploy and check the live sign-up. 2. B-042. 3. B-036 messages.
+
 ## 2026-11-22 · Session 12: working PoC with a C# backend, hosted in Azure
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-028, B-029), the CEO (D-028) and Finance (ledger)
 **Mode:** Build (D-023), with Sam's scoped exception for hosting (D-027) · **Copy used:** canonical repository (D-022)

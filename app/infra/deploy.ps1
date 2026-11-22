@@ -35,6 +35,14 @@ if ($Infra) {
     $existing = az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv 2>$null
     if ($existing) { $invite = az webapp config appsettings list -g $rg -n $existing --subscription $Subscription --query "[?name=='Auth__InviteCode'].value | [0]" -o tsv 2>$null }
   }
+  # Keep the External ID settings that external-id.ps1 wrote (D-033).
+  $authority = ''; $clientId = ''
+  $existingWeb = az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv 2>$null
+  if ($existingWeb) {
+    $settings = az webapp config appsettings list -g $rg -n $existingWeb --subscription $Subscription -o json 2>$null | ConvertFrom-Json
+    $authority = ($settings | Where-Object name -eq 'Auth__External__Authority').value
+    $clientId = ($settings | Where-Object name -eq 'Auth__External__ClientId').value
+  }
   if (-not $invite) {
     $chars = 'abcdefghjkmnpqrstuvwxyz23456789'.ToCharArray()
     $invite = -join (1..12 | ForEach-Object { $chars[[System.Security.Cryptography.RandomNumberGenerator]::GetInt32($chars.Length)] })
@@ -43,7 +51,7 @@ if ($Infra) {
 
   $out = Invoke-Az deployment sub create --subscription $Subscription -l $Location -n compicasa-prod `
     --template-file (Join-Path $PSScriptRoot 'main.bicep') `
-    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite `
+    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "externalIdAuthority=$authority" "externalIdClientId=$clientId" `
     --query properties.outputs -o json | ConvertFrom-Json
   $web = $out.webAppName.value; $sqlServer = $out.sqlServer.value; $db = $out.database.value
   Write-Host "Web app: $web  SQL: $sqlServer/$db"
@@ -86,6 +94,9 @@ $sqlText
 if ($App) {
   Write-Host '== App'
   $web = Invoke-Az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv
+  # Production signs people in through External ID only (D-034): local password accounts are for developers.
+  $mode = Invoke-Az webapp config appsettings list -g $rg -n $web --subscription $Subscription --query "[?name=='Auth__Mode'].value | [0]" -o tsv
+  if ($mode -ne 'External') { throw 'The web app is not set up for External ID sign-in yet: run external-id.ps1 first (D-034).' }
   $publish = Join-Path $root 'publish'
   $zip = Join-Path $root 'publish.zip'
   Remove-Item $publish, $zip -Recurse -Force -ErrorAction SilentlyContinue

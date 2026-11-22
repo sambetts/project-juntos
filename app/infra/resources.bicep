@@ -8,6 +8,9 @@ param sqlAdminObjectId string
 param sqlAdminLogin string
 @secure()
 param inviteCode string
+@description('Sign-in through Entra External ID (D-033), set by external-id.ps1. Empty means local accounts, which is for developers only (D-034).')
+param externalIdAuthority string = ''
+param externalIdClientId string = ''
 param monthlyBudget int
 param budgetStart string
 
@@ -116,6 +119,9 @@ resource web 'Microsoft.Web/sites@2023-12-01' = {
         { name: 'Database__Provider', value: 'SqlServer' }
         { name: 'ConnectionStrings__Db', value: 'Server=tcp:${sql.properties.fullyQualifiedDomainName},1433;Database=${dbName};Authentication=Active Directory Managed Identity;Encrypt=True;TrustServerCertificate=False;Connect Timeout=90' }
         { name: 'Auth__InviteCode', value: inviteCode }
+        { name: 'Auth__Mode', value: empty(externalIdClientId) ? 'Local' : 'External' }
+        { name: 'Auth__External__Authority', value: externalIdAuthority }
+        { name: 'Auth__External__ClientId', value: externalIdClientId }
         { name: 'Demo__RefreshDaily', value: 'true' }
       ]
     }
