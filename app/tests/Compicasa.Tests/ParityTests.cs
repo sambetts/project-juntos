@@ -115,6 +115,16 @@ public class ParityTests
     }
 
     [Fact]
+    public void A_list_argument_stays_one_argument()
+    {
+        Assert.Single(new Msg("has", new[] { "dog", "cat" }).Args);
+        Assert.Equal(2, new Msg("owlsLarks", new[] { "a" }, new[] { "b" }).Args.Length);
+        Assert.Equal(2, new Msg("bedsPair", 7, 6).Args.Length);
+        var json = System.Text.Json.JsonSerializer.Serialize(new Msg("noArea", new[] { "north", "east" }), Seeds.Json);
+        Assert.Equal("""{"key":"noArea","args":[["north","east"]]}""", json);
+    }
+
+    [Fact]
     public void Household_type_and_accessibility_needs_never_change_the_score()
     {
         var seeds = Seeds.Profiles();
