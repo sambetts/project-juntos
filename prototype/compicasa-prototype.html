@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Juntos – encuentra con quién comprar casa (prototipo)</title>
+<title>Compicasa – encuentra con quién comprar casa (prototipo)</title>
 <style>
 :root{
   --bg:#f5f6fa;--surface:#ffffff;--surface-2:#eef1f7;--text:#1b2230;--muted:#5b6476;--border:#dfe4ee;
@@ -150,7 +150,7 @@ footer.note{color:var(--muted);font-size:12.5px;padding-block:4px 24px}
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap"><div class="logo" aria-hidden="true">J</div><div class="brand"><h1>Juntos</h1><p id="tagline"></p></div><span class="badge" id="badge"></span><button type="button" class="btn small" id="lang-switch" data-action="lang"></button></div></header>
+<header class="top"><div class="wrap"><div class="logo" aria-hidden="true" id="brandmark">C</div><div class="brand"><h1 id="brandname">Compicasa</h1><p id="tagline"></p></div><span class="badge" id="badge"></span><button type="button" class="btn small" id="lang-switch" data-action="lang"></button></div></header>
 <nav class="tabs" id="steps"><div class="wrap" id="tabs" role="tablist"></div></nav>
 <main class="wrap" id="app" role="tabpanel" aria-labelledby="tab-you"></main>
 <footer class="wrap note" id="footnote"></footer>
@@ -161,6 +161,8 @@ footer.note{color:var(--muted);font-size:12.5px;padding-block:4px 24px}
 'use strict';
 window.addEventListener('error',function(e){document.documentElement.setAttribute('data-error',String(e.message));});
 /* ===== LOGIC START ===== */
+/* The brand lives here only (D-007, provisional); the static <title> and header are a no-script fallback. */
+const BRAND='Compicasa';
 /* Language: 'es' (Spanish, Spain) or 'en'. Every word users see comes from STR or a {en,es} label. */
 let LANG='es';
 function setLang(l){LANG=l==='en'?'en':'es';return LANG;}
@@ -213,7 +215,7 @@ const PET_WORDS={dog:{en:'a dog',es:'un perro'},cat:{en:'a cat',es:'un gato'}};
 const STR={
 en:{
   and:'and',or:'or',you:'you',youName:'You',vs:'vs',
-  title:'Juntos – find the people to buy a home with (prototype)',
+  title:()=>BRAND+' – find the people to buy a home with (prototype)',
   tagline:'Find the people to buy a home with (working name)',
   badge:'Prototype · made-up people · simulated replies · Madrid',
   footnote:'Prototype with made-up people and simulated replies. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.',
@@ -313,7 +315,7 @@ en:{
 },
 es:{
   and:'y',or:'o',you:'tú',youName:'Tú',vs:'frente a',
-  title:'Juntos – encuentra con quién comprar casa (prototipo)',
+  title:()=>BRAND+' – encuentra con quién comprar casa (prototipo)',
   tagline:'Encuentra con quién comprar casa (nombre provisional)',
   badge:'Prototipo · personas inventadas · respuestas simuladas · Madrid',
   footnote:'Prototipo con personas inventadas y respuestas simuladas. Solo cubre la afinidad y el espacio: el dinero, las cuotas de propiedad, el pacto de copropiedad y los anuncios reales llegarán más adelante. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud. Un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
@@ -963,6 +965,8 @@ ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>
 function renderChrome(){
   document.documentElement.setAttribute('lang',LANG);
   document.title=t('title');
+  const bn=document.getElementById('brandname'),bm=document.getElementById('brandmark');
+  if(bn)bn.textContent=BRAND;if(bm)bm.textContent=BRAND.charAt(0);
   const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
   set('tagline',t('tagline'));set('badge',t('badge'));set('footnote',t('footnote'));
   const nav=document.getElementById('steps');if(nav)nav.setAttribute('aria-label',t('steps'));

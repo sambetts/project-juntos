@@ -2,7 +2,7 @@
 // Exits with code 1 if any check fails. Screen checks run in both languages (English and Spanish).
 'use strict';
 const fs=require('fs'),path=require('path');
-const html=fs.readFileSync(path.join(__dirname,'juntos-co-buying-prototype.html'),'utf8');
+const html=fs.readFileSync(path.join(__dirname,'compicasa-prototype.html'),'utf8');
 const script=html.split('<script>')[1].split('</script>')[0];
 const logic=script.split('/* ===== LOGIC START ===== */')[1].split('/* ===== LOGIC END ===== */')[0];
 const L=new Function(logic+'\nreturn {STR,setLang,PROFILES,PRESETS,WEIGHTS,listAnd,listOr,names,hhLabel,hard,score,explain,accepts,likesBack,mutual,othersAccept,groupStatus,bestGroups,topGroup,groupCheck,groupScore,houseBrief,roomPlan,placementTips,agreementTopics,groupMembers};')();
@@ -90,8 +90,8 @@ check('copy: no "añadirle" (leísmo with women)',!/añadirle/.test(html));
 
 /* 6. Screens, in a minimal fake page, in each language */
 class El{constructor(n){this.n=n;this.innerHTML='';this.textContent='';this.attrs={};this.classList={add(){},remove(){}};}addEventListener(){}querySelectorAll(){return [];}setAttribute(k,v){this.attrs[k]=v;}}
-const els={app:new El('app'),tabs:new El('tabs'),bar:new El('bar'),toast:new El('toast'),root:new El('root'),tagline:new El('tagline'),badge:new El('badge'),footnote:new El('footnote'),steps:new El('steps'),sw:new El('lang-switch')};
-const byElId={app:els.app,tabs:els.tabs,tagline:els.tagline,badge:els.badge,footnote:els.footnote,steps:els.steps,'lang-switch':els.sw};
+const els={app:new El('app'),tabs:new El('tabs'),bar:new El('bar'),toast:new El('toast'),root:new El('root'),tagline:new El('tagline'),badge:new El('badge'),footnote:new El('footnote'),steps:new El('steps'),sw:new El('lang-switch'),brandname:new El('brandname')};
+const byElId={app:els.app,tabs:els.tabs,tagline:els.tagline,badge:els.badge,footnote:els.footnote,steps:els.steps,'lang-switch':els.sw,brandname:els.brandname};
 global.window={addEventListener(){},scrollTo(){},scrollY:0};
 global.document={getElementById:id=>byElId[id]||null,querySelector:s=>s==='#actionbar .wrap'?els.bar:(s==='#toast div'?els.toast:null),addEventListener(){},documentElement:els.root,title:''};
 global.localStorage={getItem(){return null;},setItem(){}};
@@ -114,8 +114,8 @@ function smoke(lang,name,s){
 }
 function run(hash,steps){global.location.hash=hash;new Function(script)();steps(global.window.__juntos);}
 const W={
-  en:{simulated:/simulated/,preview:/Preview only/,already:/already in your group/,area:/Useful area, rough/,illustrative:/Illustrative bedroom allocation only/,notAgreement:/not the agreement itself/,broken:/doesn(&#39;|')t work as it stands/,attention:/needs attention/,privacy:[/You(&#39;|')re looking for|They(&#39;|')re looking for/,/They can(&#39;|')t live with pets/,/They(&#39;|')d rather/],switchTo:'es',title:/find the people/},
-  es:{simulated:/se simulan/,preview:/Solo vista previa/,already:/ya está en tu grupo/,area:/Superficie útil, aprox\./,illustrative:/Reparto de dormitorios solo orientativo/,notAgreement:/no el acuerdo en sí/,broken:/no funciona tal como está/,attention:/necesita atención/,privacy:[/No busca compartir/,/No puede vivir con mascotas/,/Prefiere que no fume nadie/],switchTo:'en',title:/encuentra con quién/}
+  en:{simulated:/simulated/,preview:/Preview only/,already:/already in your group/,area:/Useful area, rough/,illustrative:/Illustrative bedroom allocation only/,notAgreement:/not the agreement itself/,broken:/doesn(&#39;|')t work as it stands/,attention:/needs attention/,privacy:[/You(&#39;|')re looking for|They(&#39;|')re looking for/,/They can(&#39;|')t live with pets/,/They(&#39;|')d rather/],switchTo:'es',title:/^Compicasa – find the people/},
+  es:{simulated:/se simulan/,preview:/Solo vista previa/,already:/ya está en tu grupo/,area:/Superficie útil, aprox\./,illustrative:/Reparto de dormitorios solo orientativo/,notAgreement:/no el acuerdo en sí/,broken:/no funciona tal como está/,attention:/necesita atención/,privacy:[/No busca compartir/,/No puede vivir con mascotas/,/Prefiere que no fume nadie/],switchTo:'en',title:/^Compicasa – encuentra con quién/}
 };
 ['en','es'].forEach(lang=>{
   const w=W[lang];
@@ -123,6 +123,7 @@ const W={
     check(lang+': the link hook sets the language',J.lang===lang,J.lang);
     check(lang+': the page language attribute matches',els.root.attrs.lang===lang,els.root.attrs.lang);
     check(lang+': the title is translated',w.title.test(global.document.title),global.document.title);
+    check(lang+': the header shows the name from BRAND',els.brandname.textContent==='Compicasa',els.brandname.textContent);
     check(lang+': the switch offers the other language, marked with its own lang',els.sw.attrs['data-id']===w.switchTo&&els.sw.attrs.lang===w.switchTo,JSON.stringify(els.sw.attrs));
     ['you','matches','home'].forEach(t=>{J.go(t);smoke(lang,'family '+t,els.app.innerHTML);});
     J.go('matches');
@@ -174,6 +175,9 @@ const W={
   });
 });
 run('#preset=family',J=>{check('page: opens in Spanish by default, even in an English-language browser',J.lang==='es'&&els.root.attrs.lang==='es',J.lang+' (navigator: '+(typeof navigator!=='undefined'&&navigator.language)+')');});
+check('name: the provisional name is set once in BRAND (D-007)',(script.match(/Compicasa/g)||[]).length===1);
+check('name: no user-facing "Juntos" left (internal hooks keep the codename)',!/Juntos/.test(html));
+check('name: elsewhere only in the no-script title and header',(html.match(/Compicasa/g)||[]).length===3);
 check('page: the main area is a tab panel',/id="app" role="tabpanel"/.test(html));
 check('page: no "waiting for them" copy',!/waiting for them|esperando su respuesta/.test(html));
 check('page: a profile saved by the older English-only version is not read',!/juntos-prototype-v2/.test(html));

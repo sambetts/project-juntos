@@ -20,12 +20,12 @@ Top = most important. Status: todo · doing · blocked · later · done. "Waitin
 | B-011 | Shortlist 10 Madrid agencies (note their listing software) and draft a one-page pitch. No contact | Partnerships | todo | | Sam's approval before contact | `project/partners.md` |
 | B-019 | Competitor watch every quarter: habitacion.com's group service, Casicasa's private groups (behind its login, not checked), Yorsio's fees; add Viviendea, a group-forming housing platform found in B-026 (Reported, 2018) | Research | later | Next due 2027-02-20 | | `research/YYYY-MM-DD-competitor-watch.md` |
 | B-023 | Cold-start test after any change of model, tool or instructions: start a fresh session with the first-session prompt in KICKOFF.md, note where it trips, and fix it | Chief of Staff | later | A first session with a new AI or tool, or a change to the modes, decision rights or session steps | | LOG.md entry |
-| B-012 | Rename the prototype from "Juntos" to Compicasa (D-007, provisional) and re-run its tests; keep the name in one place so a later change is cheap | Builder with Tester | doing | | | `prototype/` |
 | B-014 | "Homes" tab: the group adds homes and sees how each fits its brief | Builder | later | D-015, Phase 2 | Source permission | `prototype/` |
 
 ## Done
 | ID | Item | Owner | Done | Output |
 |---|---|---|---|---|
+| B-012 | Prototype renamed from "Juntos" to Compicasa (D-007, provisional): the name is set once in `BRAND`; file now `prototype/compicasa-prototype.html`; 199 checks pass (5 new); loads in headless Edge in both languages | Builder with Tester | 2026-11-22 | `prototype/compicasa-prototype.html` |
 | B-013 | Privacy and safety groundwork: data map with lawful basis and retention for nine purposes, sensitive data, DPIA decision (yes, a short one: B-027), requirements for tools, breach and safety incident steps, waitlist requirements; four new questions added to the lawyer brief | Legal & Compliance | 2026-11-22 | `research/2026-11-22-privacy.md` |
 | B-007 | Landing-page draft with waitlist, Spanish and English, under the provisional name Compicasa; not published; the form can't send or store anything; 135 checks (`node test_landing.js`); loaded in headless Edge in both languages. Publishing, a real waitlist and the privacy notice need B-013 and Sam | Builder with Brand & Marketing | 2026-11-22 | `prototype/compicasa-landing-draft.html` |
 | B-026 | Fresh name longlist: 104 names screened in two rounds (.com by registry RDAP, .es by DNS only, web search for existing use); Comprañeros and Sumallaves recommended as challengers to Compicasa | Brand & Marketing | 2026-11-22 | `research/2026-11-22-name-longlist.md` |

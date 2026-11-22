@@ -16,7 +16,7 @@ Only in Build mode or later (AGENTS.md section 3). In Plan mode you can write bu
 - Keep logic and views apart (the LOGIC START and LOGIC END markers) and keep the test hooks working (`product/prototype-notes.md`).
 - Keep the current look unless the backlog item asks for a redesign. If it does, list the styles to avoid as well as the ones to use: without that, models drift to the same generic look.
 - Spanish first, English supported (D-024): every user-facing string goes in both languages, in the string table (`STR`) or as an `{en, es}` label (D-024); the tests check both.
-- Queue: B-012 renames the prototype to Compicasa (D-007, provisional). The landing-page draft (B-007) is done: `prototype/compicasa-landing-draft.html`; it stays unpublished until Sam decides. B-014 (Homes tab) waits for D-015 and Phase 2.
+- Queue: nothing buildable is waiting; B-014 (Homes tab) waits for D-015 and Phase 2. The prototype is `prototype/compicasa-prototype.html`, renamed on 2026-11-22 (B-012), with the name set once in `BRAND`. The landing-page draft (B-007) is done: `prototype/compicasa-landing-draft.html`; it stays unpublished until Sam decides. B-014 (Homes tab) waits for D-015 and Phase 2.
 
 ## Later (Phase 3)
 Propose a stack and hosting with costs; the CEO decides and Sam approves the spend. Security and privacy by design; no real personal data until Legal & Compliance signs off.

@@ -1,7 +1,7 @@
-# Prototype notes: "Juntos" (built 2026-11-18, fixed 2026-11-20, bilingual 2026-11-22)
+# Prototype notes: Compicasa (built 2026-11-18, fixed 2026-11-20, bilingual and renamed 2026-11-22)
 
-- **File:** `prototype/juntos-co-buying-prototype.html`: one file, about 64 KB, with no external resources. Offline behaviour still needs checking on real browsers (B-018).
-- **Name:** "Juntos" is a placeholder and isn't available (juntos.es and juntos.com are taken). Rename it after D-007 (B-012).
+- **File:** `prototype/compicasa-prototype.html` (was `juntos-co-buying-prototype.html` until 2026-11-22): one file, about 92 KB, with no external resources. Offline behaviour still needs checking on real browsers (B-018).
+- **Name:** Compicasa, provisionally (D-007), set once in the `BRAND` constant at the top of the logic block; the static `<title>` and header are a no-script fallback. Renamed from the placeholder "Juntos" on 2026-11-22 (B-012). The internal hooks keep the codename: the test object `window.__juntos` and the storage key `juntos-prototype-v3`, which users don't see.
 - **Status:** a demo with made-up people and simulated replies. The independent review's fixes are done (B-015, 20 Nov).
 
 ## What it does
@@ -49,6 +49,7 @@
   - tab roles
   - copy, and both languages: matching string tables, every label and bio in both, Spanish grammar (y/e, o/u, "Laura y tú"), no words from the other language on any screen, switching language mid-session, and opening in Spanish even in an English-language browser
   - smoke checks of every screen in a simulated page, in English and in Spanish
+  - the name: set once in `BRAND`, shown in the title and header, and no "Juntos" left on screen
 
   Checked in headless Microsoft Edge on 2026-11-22: both languages load with no script errors, and the page `lang` and title follow the language. Not yet covered: phones, a screen reader, other browsers, and a native speaker's review of the Spanish (B-025).
 - **When changing it:** no inline event handlers, no `javascript:` links, no external resources. Keep the dark-mode styles, the page language attribute, both languages and 4.5:1 contrast.
