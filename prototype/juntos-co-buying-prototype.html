@@ -762,10 +762,9 @@ function load(){
   return null;
 }
 function save(){state.lang=LANG;try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
-/* Language: a saved choice first, then the browser's language; a #lang= link overrides both (applyHash) */
+/* Language (D-024): Spanish first. The page opens in Spanish unless the viewer chose English before; a #lang= link overrides both (applyHash) */
 const saved=load();
-function browserLang(){try{const l=(navigator.languages&&navigator.languages[0])||navigator.language||'';return /^es\b/i.test(l)?'es':(/^en\b/i.test(l)?'en':'es');}catch(e){return 'es';}}
-setLang(saved&&saved.lang?saved.lang:browserLang());
+setLang(saved&&saved.lang?saved.lang:'es');
 let state=saved||fresh('family');
 let preview=null; /* a suggested group shown read-only; never saved */
 

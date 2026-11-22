@@ -173,6 +173,7 @@ const W={
     check(lang+' room: the action bar flags the broken group',w.attention.test(els.bar.innerHTML));
   });
 });
+run('#preset=family',J=>{check('page: opens in Spanish by default, even in an English-language browser',J.lang==='es'&&els.root.attrs.lang==='es',J.lang+' (navigator: '+(typeof navigator!=='undefined'&&navigator.language)+')');});
 check('page: the main area is a tab panel',/id="app" role="tabpanel"/.test(html));
 check('page: no "waiting for them" copy',!/waiting for them|esperando su respuesta/.test(html));
 check('page: a profile saved by the older English-only version is not read',!/juntos-prototype-v2/.test(html));

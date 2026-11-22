@@ -49,7 +49,7 @@ The service should find both the people and the homes that fit.
 ## Still open
 - The weights and the size formula are uncalibrated first guesses; tune them after the pilot.
 - The household-type preference remains a demo dealbreaker until D-009.
-- The prototype is bilingual, Spanish and English (B-018, D-024).
+- The prototype is Spanish first, with an English version (B-018, D-024).
 - Which questions predict long-term compatibility between co-owners, as opposed to flatmates?
 - What's the minimum shown before identities are revealed? How do we verify people?
 - How do we weigh money compatibility (budgets, deposits, appetite for risk) lawfully?

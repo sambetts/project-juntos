@@ -37,7 +37,7 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Open or blocked:** B-025 waits on Sam (a phone check, or approval for a Spanish-speaking reviewer). F-012's deletion and every pilot item (F-002 to F-011) remain with Sam.
 **Saved and checked:** after saving, re-ran `node test_proto.js` (193 passed) and reviewed `git diff` for every changed document against what I meant to write, which caught two stale lines in F-001 and F-011, now fixed. LOG.md saved last and checked with `git diff`; the commit is confirmed in the closing report.
 **Next session should start with:** 1. B-007 bilingual landing-page draft, not published and storing nothing. 2. B-013 privacy and safety groundwork. 3. Sam's remaining answers.
-**After the closing report:** Sam answered "F012: done" (F-012 closed) and, on B-025, "I'll worry about it when the time comes" (set to later). Saved and checked with `git diff`; committed.
+**After the closing report:** Sam answered "F012: done" (F-012 closed) and, on B-025, "I'll worry about it when the time comes" (set to later). He asked what names were on the table (answered from `research/2026-11-20-naming-screen.md`; F-003 is still his), then clarified D-024: "Spanish should be prioritised … just there should be support & some consideration for English speakers." The prototype now always opens in Spanish instead of following the browser's language; 194 checks pass, including one that runs in an English-language (en-GB) environment. Saved and checked with `git diff`; committed.
 
 ## 2026-11-22 · Session 7, continued: ready for GitHub as project-juntos
 **Who:** Sam with Microsoft 365 Copilot (as Chief of Staff), still on Sam's work systems, to package the project for its move

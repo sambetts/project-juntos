@@ -9,7 +9,7 @@ Sam cleared F-001 and switched to Build mode on 2026-11-22 (D-023). Agents may b
 None. At the start of a session, list its goals here as a checklist; clear it at the end.
 
 ## In short
-The idea: help compatible strangers buy one home together in Spain, starting with the social side (matching plus a joint "what our home needs" brief). On public evidence, no rival lets strangers form a group before choosing a whole home, but affinity questionnaires, co-ownership shares with a notarised pact, and exit services already exist, so the group-first idea is what we must test. Nothing is public, nothing has been bought and no money has been spent. The project runs on Sam's personal resources, as the private GitHub repository project-juntos (D-021, D-022). Sam's plan (2026-11-21): build a small product and see if it gains interest. The product is bilingual, Spanish and English; project documents stay in English (D-024). The pilot can't run until every gate in section 2 of its plan is met.
+The idea: help compatible strangers buy one home together in Spain, starting with the social side (matching plus a joint "what our home needs" brief). On public evidence, no rival lets strangers form a group before choosing a whole home, but affinity questionnaires, co-ownership shares with a notarised pact, and exit services already exist, so the group-first idea is what we must test. Nothing is public, nothing has been bought and no money has been spent. The project runs on Sam's personal resources, as the private GitHub repository project-juntos (D-021, D-022). Sam's plan (2026-11-21): build a small product and see if it gains interest. The product is Spanish first, because it's for Spain, with English supported for international residents and for Sam; project documents stay in English (D-024). The pilot can't run until every gate in section 2 of its plan is met.
 
 ## Phase
 **Phase 0: explore and set up**, now in Build mode. The gate to Phase 1 is every gate in section 2 of `product/phase1-validation-plan.md`, then Sam's dated go-ahead (`project/roadmap.md`).
@@ -21,7 +21,7 @@ Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief
 | Asset | File | Status |
 |---|---|---|
 | Instructions and kickoff guide | `AGENTS.md`, `.github/agents/`, `KICKOFF.md` | Tuned for Opus; cold-start check in Claude Code on 2026-11-22 found nothing blocking |
-| Prototype ("Juntos", placeholder name) | `prototype/juntos-co-buying-prototype.html` | Bilingual, Spanish (Spain) and English, with a switch in the header (D-024). 193 automated checks pass in both languages (`node test_proto.js`); loads without errors in headless Edge. Still to do before user tests: phones, a screen reader and a native speaker's review of the Spanish (B-025) |
+| Prototype ("Juntos", placeholder name) | `prototype/juntos-co-buying-prototype.html` | Spanish first, with an English version behind a switch in the header (D-024); opens in Spanish. 194 automated checks pass in both languages (`node test_proto.js`); loads without errors in headless Edge. Still to do before user tests: phones, a screen reader and a native speaker's review of the Spanish (B-025) |
 | Prototype notes | `product/prototype-notes.md` | Current: how the languages work, link hooks (`#lang=en`), tests |
 | Lawyer brief (B-003) | `research/2026-11-20-lawyer-brief.md` | Ready to send now F-001 has cleared (F-006): six Part A questions, ten Part B questions (quote only), the pilot's data list and a Spanish cover email |
 | Pilot plan (B-002) | `product/phase1-validation-plan.md` | Draft v0.1 for Sam (F-010): about 20 households, pairs only, run by hand, no money; measures M1–M3; EXP-001 to EXP-003 |
@@ -34,7 +34,7 @@ Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief
 | Budget, experiments, partners | `project/budget.md`, `project/experiments.md`, `project/partners.md` | First pilot estimate in the budget; EXP-001 to EXP-003 planned; no partners yet |
 
 ## Decided
-D-001 Spain only · D-002 groups, not just pairs · D-003 social side first · D-004 link out to listings, no scraping (amendment proposed: D-015) · D-005 prototype first · D-006 AI-run, Sam approves · D-014 Spanish first (amended by D-024) · D-016 canonical copy (now D-022) · D-017 working positioning (internal) · D-019 sessions run on Opus · D-020 operating modes · D-021 personal resources, off work systems · D-013 where the project lives · D-022 private repository project-juntos · D-023 F-001 cleared, Build mode from 2026-11-22 · D-024 bilingual product, English documents
+D-001 Spain only · D-002 groups, not just pairs · D-003 social side first · D-004 link out to listings, no scraping (amendment proposed: D-015) · D-005 prototype first · D-006 AI-run, Sam approves · D-014 Spanish first (amended by D-024) · D-016 canonical copy (now D-022) · D-017 working positioning (internal) · D-019 sessions run on Opus · D-020 operating modes · D-021 personal resources, off work systems · D-013 where the project lives · D-022 private repository project-juntos · D-023 F-001 cleared, Build mode from 2026-11-22 · D-024 Spanish-first product with English supported; English documents
 
 ## Waiting on Sam
 F-002 time and budget · F-003 name · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief (unblocked by F-001) · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes; B-025 (phone and native-speaker checks) is parked until user tests come closer
@@ -50,7 +50,7 @@ F-002 time and budget · F-003 name · F-004 first customer group · F-005 pilot
 - Nothing for this project on Sam's work devices, accounts, systems or tools, or in his working time; no employer confidential information or work; no approaching colleagues or his employer's customers through work (F-001, D-021).
 - Build mode allows building, not publishing: no hosting, deploys, domains, sign-ups, analytics or forms that send data without Sam's dated approval.
 - Real participants' data must never land in this repository (git history keeps it), on work systems or in an AI session without approved terms (R-020). Only pseudonymised IDs and totals belong here.
-- Every user-facing string must exist in both languages (D-024); the tests fail if one is missing or a screen mixes languages. The Spanish hasn't had a native speaker's review yet (B-025).
+- Spanish first: Spanish is the default and the reference wording, and English must also exist for every user-facing string (D-024); the tests fail if one is missing or a screen mixes languages. The Spanish hasn't had a native speaker's review yet (B-025).
 - The pilot's commitment step involves no money. A refundable deposit needs the lawyer's clearance first (D-010; lawyer brief A5).
 - Don't use household type or money to filter real people before D-009 and the lawyer's answers (A3). The prototype's household filter is demo-only, with made-up people.
 - Casicasa is the closest rival in concept; habitacion.com is the benchmark at scale (250 rooms and studios sold, €1.7M raised). Watch whether its group service opens to strangers (B-019).
