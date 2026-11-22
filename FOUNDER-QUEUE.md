@@ -13,6 +13,7 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **If no answer:** the live site keeps the old sign-up.
 
 **ANSWER (Sam, 2026-11-22, in Claude Code):** "You can't create External ID tenants? Creating one from tenant ID 97aa2ef1-f5e5-44d7-87a2-4655816f4806 I did previously with claude for another app", then, asked whether the AI should run `app/infra/external-id.ps1` now: "yes". Option B; recorded under D-033. (97aa2ef1-… is the subscription's own directory.)
+Then, asked whether to deploy the new version and check the live site: "do it all" (Sam, 2026-11-22, in Claude Code). Covers `deploy.ps1 -App` and the live checks, within D-027.
 
 ### F-002 · Time and money for Phase 1 (about six weeks) · by 2026-11-27
 **Options:**
