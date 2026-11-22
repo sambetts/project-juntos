@@ -4,17 +4,6 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-015 · One Azure region for the PoC: how? · by 2026-11-29
-**Why:** you asked for everything in one European region (D-031). On 2026-11-22 no EU region offered both free tiers on your subscription. France Central has the free database but no free web-app quota; West Europe has the free web app but accepts no new databases. For now the web app is in West Europe and the database in France Central, the next region over, at €0. It works, and all 24 browser checks pass.
-**Options:**
-- A) Keep it as it is: €0, two neighbouring regions.
-- B) Ask Microsoft for free web-app (F1) quota in France Central, then I move the web app there: one region, €0. You file it in the Azure portal (Quotas › App Service › France Central › F1 › 1). It's free and often approved quickly, but that isn't guaranteed.
-- C) One region now, not quite free: the database on SQL Basic in a region with F1 (for example Sweden Central), about €4.40 a month before VAT.
-
-**Recommendation:** B, keeping A until it's approved.
-**If no answer:** A stays.
-
-
 ### F-002 · Time and money for Phase 1 (about six weeks) · by 2026-11-27
 **Options:**
 - A) about 2 hours a week (12 hours in total), up to €300
@@ -72,6 +61,17 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **If no answer:** Compicasa stays a provisional working name; nothing is bought or published.
 
 ## Closed
+
+### F-015 · One Azure region for the PoC: how? · closed 2026-11-22
+**Why:** you asked for everything in one European region (D-031). On 2026-11-22 no EU region offered both free tiers on your subscription. France Central has the free database but no free web-app quota; West Europe has the free web app but accepts no new databases. For now the web app is in West Europe and the database in France Central, the next region over, at €0. It works, and all 24 browser checks pass.
+**Options:**
+- A) Keep it as it is: €0, two neighbouring regions.
+- B) Ask Microsoft for free web-app (F1) quota in France Central, then I move the web app there: one region, €0. You file it in the Azure portal (Quotas › App Service › France Central › F1 › 1). It's free and often approved quickly, but that isn't guaranteed.
+- C) One region now, not quite free: the database on SQL Basic in a region with F1 (for example Sweden Central), about €4.40 a month before VAT.
+
+**Recommendation:** B, keeping A until it's approved.
+**If no answer:** A stays.
+**ANSWER (Sam, 2026-11-22, in Claude Code):** "We'll go A for now". Recorded as D-032.
 
 ### F-013 · Your work account on your own machine · closed 2026-11-22
 **Why:** in Session 10 the Chief of Staff found that the Windows account running these sessions is your work account (`EUROPE\sambetts`), and that the machine is joined to the employer's Entra ID tenant (`dsregcmd /status`: AzureAdJoined YES, tenant "Microsoft"). Your employer's policy allows this project only outside work devices, accounts and systems (F-001, D-021). The device is yours: **ANSWER (Sam, 2026-11-22, in Claude Code):** "This is my personal device. WOD2 is my own machine, even though I'm logged into work." Being signed in through the employer's tenant may still give its device management (policies, backup, monitoring) reach over the project files.

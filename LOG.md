@@ -42,6 +42,7 @@ Then Sam: "Move everything to Western Europe or somewhere in europe it's all in 
 - In Sweden Central, Italy North and Poland Central the SQL server was created, but the free database failed with an internal error, repeatedly. A second free database on the France Central server worked, so it isn't a subscription limit.
 - Outcome: the web app on F1 in West Europe, the database stays on the free offer in France Central. The invite code is unchanged. The deploy script now re-creates the database user for a rebuilt web app's new identity and takes `-InviteCode`. I deleted the three empty test servers.
 - All 24 browser checks pass. F-015 added: how to get to one region. Checked with `git diff`; committed.
+Sam answered F-015: "We'll go A for now". Recorded as D-032: the web app stays in West Europe and the database in France Central, at €0. F-015 closed; STATE, backlog and the app README updated. Checked with `git diff`; committed.
 
 ## 2026-11-22 · Session 11: privacy groundwork, rename, name clearance
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Legal & Compliance (B-013), the Builder and Tester (B-012), and Brand & Marketing (B-024)
