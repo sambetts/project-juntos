@@ -4,7 +4,7 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-016 · Create the sign-in tenant for the new sign-up (D-033) · by 2026-11-24
+### F-016 · Create the sign-in tenant for the new sign-up (D-033) · CLOSED 2026-11-22: done, see LOG Session 13
 **Why:** the new email sign-up is built and tested locally (B-034), but goes live only once Microsoft Entra External ID exists. Creating it makes a new directory linked to your subscription, and Claude Code's safety check stopped me doing it, so it's yours to run or approve. Cost: free up to 50,000 monthly users.
 **Ready:** `app/infra/external-id.ps1` (please read it first). It asks you to sign in to the new tenant once.
 **Options:** A) run it yourself: `! pwsh app/infra/external-id.ps1`, then tell me and I'll deploy; B) tell me to run it and approve the prompt; C) not now.
