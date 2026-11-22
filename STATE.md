@@ -42,10 +42,11 @@ D-001 Spain only · D-002 groups, not just pairs · D-003 social side first · D
 F-002 time and budget · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief (unblocked by F-001) · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes · F-014 trademark search, then the domains; B-025 (phone and native-speaker checks) is parked until user tests come closer
 
 ## Next up (Build mode)
-1. B-027 short DPIA and record of processing, made-up examples only (Legal & Compliance).
-2. B-020 Spanish pilot materials with made-up data only, starting with the privacy notice and consent texts from `research/2026-11-22-privacy.md` (Product with Legal & Compliance).
-3. B-022 pilot area shortlist for F-004 (Research with Validation), or B-021 lawyer shortlist for F-006 (Partnerships).
-4. Sam: F-014 (ten-minute register search) and F-011, then the pilot items F-010, F-004, F-005 and F-006.
+1. B-028 working PoC with a backend, local and free, made-up data only (Builder with Tester). Sam asked for it on 2026-11-22.
+2. B-027 short DPIA and record of processing, made-up examples only (Legal & Compliance).
+3. B-020 Spanish pilot materials with made-up data only, starting with the privacy notice and consent texts from `research/2026-11-22-privacy.md` (Product with Legal & Compliance).
+4. B-022 pilot area shortlist for F-004 (Research with Validation), or B-021 lawyer shortlist for F-006 (Partnerships).
+5. Sam: F-014 (ten-minute register search) and F-011, then the pilot items F-010, F-004, F-005 and F-006.
 
 ## Watch out
 - A waitlist or any website run by Sam as an individual may have to show his name and postal address (LSSI art. 10.1); that's a question for the lawyer before anything is published (B-013, A6).
