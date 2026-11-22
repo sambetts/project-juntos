@@ -13,7 +13,32 @@ var provider = cfg["Database:Provider"] ?? "Sqlite";
 var conn = cfg.GetConnectionString("Db") ?? "Data Source=compicasa.db";
 builder.Services.AddDbContext<AppDb>(o =>
 {
-    if (provider == "SqlServer") o.UseSqlServer(conn, s => s.EnableRetryOnFailure(6, TimeSpan.FromSeconds(10), null));
+    if (provider == "SqlServer" && cfg["Database:Credential"] == "AzureCli")
+    {
+        // For running the crawler from a developer's machine (D-035): sign in to Azure SQL with the Azure CLI's
+        // account only, since the default credential chain can pick up another account on the machine.
+        var tenant = cfg["Database:TenantId"];
+        var sql = new Microsoft.Data.SqlClient.SqlConnection(conn)
+        {
+            AccessTokenCallback = async (_, ct) =>
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo(OperatingSystem.IsWindows() ? "cmd.exe" : "az")
+                { RedirectStandardOutput = true, UseShellExecute = false };
+                if (OperatingSystem.IsWindows()) { psi.ArgumentList.Add("/c"); psi.ArgumentList.Add("az"); }
+                foreach (var a in new[] { "account", "get-access-token", "--resource", "https://database.windows.net/", "-o", "json" }) psi.ArgumentList.Add(a);
+                if (!string.IsNullOrEmpty(tenant)) { psi.ArgumentList.Add("--tenant"); psi.ArgumentList.Add(tenant); }
+                using var p = System.Diagnostics.Process.Start(psi)!;
+                var json = await p.StandardOutput.ReadToEndAsync(ct);
+                await p.WaitForExitAsync(ct);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var r = doc.RootElement;
+                return new Microsoft.Data.SqlClient.SqlAuthenticationToken(r.GetProperty("accessToken").GetString()!,
+                    DateTimeOffset.FromUnixTimeSeconds(r.GetProperty("expires_on").GetInt64()));
+            },
+        };
+        o.UseSqlServer(sql, contextOwnsConnection: true, s => s.EnableRetryOnFailure(6, TimeSpan.FromSeconds(10), null));
+    }
+    else if (provider == "SqlServer") o.UseSqlServer(conn, s => s.EnableRetryOnFailure(6, TimeSpan.FromSeconds(10), null));
     else o.UseSqlite(conn);
 });
 
