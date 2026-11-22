@@ -18,7 +18,8 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Learned:** External ID's sign-up and the flow work as set up (Verified, Graph and browser runs, 2026-11-22). Not found: why Sam's own profile fails; searched Microsoft Q&A (one report fixed by a private window, one about addresses used by another identity provider, not our case).
 **Open or blocked:** B-034 waits on Sam's sign-up in a clean window.
 **Saved and checked:** `git diff` reviewed for `i18n.js`, `Accounts.cs`, `e2e.mjs`, BACKLOG, STATE, FOUNDER-QUEUE; LOG saved last; commit confirmed in the closing report.
-**Next session should start with:** 1. Close B-034 after Sam's sign-up. 2. B-042. 3. B-036 messages.
+**Next session should start with:** 1. B-042. 2. B-036 messages. 3. B-045, including (4) Sam's normal-profile error.
+**After the closing report:** Sam: "ok inprivate mode works", then "it's done". Graph shows his External ID account created 2026-11-22 14:09 UTC. B-034 closed; the normal-profile error became B-045 (4). Checked with `git diff`; committed.
 
 ## 2026-11-22 · Session 13: release-readiness review, email sign-up and onboarding
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-033, B-034), the CEO (D-034) and Legal & Compliance (draft terms and privacy texts)
