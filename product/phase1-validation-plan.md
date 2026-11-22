@@ -28,7 +28,7 @@ _Draft v0.1, 2026-11-20 · Validation, with Product and Legal & Compliance (AI) 
 | F-005, D-012 | The measures and decision rules in section 8 | Open | Sam |
 | F-010, D-018 | Sam approves this design | Open | Sam |
 | B-003, F-006 | The lawyer's written answers to Part A (status, data, equal treatment, safety, the pledge, claims) | Brief ready | Sam |
-| B-013 | Privacy and safety groundwork: data map, lawful basis, retention, DPIA decision, incident process, named responder | To do | Legal & Compliance |
+| B-013 | Privacy and safety groundwork: data map, lawful basis, retention, DPIA decision, incident process, named responder | Done 2026-11-22 (`research/2026-11-22-privacy.md`); still needed before go-ahead: a short DPIA (B-027), Sam's choice of tools, the lawyer's review | Legal & Compliance |
 | B-020 | Spanish pilot materials, reviewed by the lawyer where needed and approved by Sam | To do | Product |
 | B-006 | Interview guide in Spanish | To do | Validation |
 | Go-ahead | Sam's dated approval to recruit and collect data (AGENTS.md §4) | Not given | Sam |

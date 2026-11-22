@@ -47,6 +47,7 @@ We're exploring a service, for Spain only, that helps people who can't afford a 
 - Is a DPIA (*EIPD*) required for a hand-run pilot of about 20 households (GDPR art. 35 and the AEPD's list)? Does GDPR art. 22 apply when a person reviews every suggestion and both sides decide?
 - Will you review our privacy notice, consent texts and participation terms (Spanish drafts to follow)? What retention period is defensible?
 - What should we require of the tools we use (EU hosting, processor agreements for forms, email and video calls)? If AI tools help draft suggestions, what must we tell people, including under the EU AI Act?
+- *Added 2026-11-22 (B-013, `research/2026-11-22-privacy.md`):* the pilot seems to meet two criteria on the AEPD's art. 35.4 list (profiling of habits; possible health and financial-situation data), so we plan a short DPIA. Do you agree, and will you review it? Are 12 months for an unused waiting list, and 12 months after the pilot for safety records, defensible? If accessibility needs are health data, is explicit consent (art. 9.2.a) right, or should we drop them?
 
 **A3. Equal treatment (Ley 15/2022, arts. 17 and 20)**
 - Can the pilot be limited to one area, one home price band and a purchase window, which participants choose themselves, given that socioeconomic status is a protected ground? Can we ask people to confirm they expect to be able to fund their share (yes / not sure) without asking for figures?
@@ -71,6 +72,7 @@ We're exploring a service, for Spain only, that helps people who can't afford a 
 - Can recruitment copy say things like "buy a home with compatible people" or "get on the property ladder together"?
 - What do advertising and unfair competition law (Ley 34/1988 and Ley 3/1991) require of such claims?
 - What must a landing page with a waiting list include under the LSSI (Ley 34/2002), including cookies?
+- *Added 2026-11-22 (B-013):* if the founder runs the pilot and waiting list as an individual, must the page show his postal address under LSSI art. 10.1? Does a free waiting list count as an information society service? Does that favour forming an S.L. first (A1)?
 
 ## 4. Part B: questions for later (quote only for now)
 1. **Structure** for two to four unrelated households: shares plus an agreement, an S.L., or separate registered units. Set-up and running costs, lending, tax, who may live there and how easily someone can leave. How do the structures similar companies use compare?

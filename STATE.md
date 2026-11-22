@@ -6,7 +6,10 @@ _Last updated 2026-11-22 after Session 10 (Claude Code, Opus 5.5): the bilingual
 Sam cleared F-001 and switched to Build mode on 2026-11-22 (D-023). Agents may build prototypes, code and unpublished drafts in this repository, using made-up data only. Nothing public, paid or sent, no one contacted and no real personal data collected without Sam (AGENTS.md sections 3 and 4). Pilot mode needs every gate in section 2 of `product/phase1-validation-plan.md` and Sam's dated go-ahead.
 
 ## Session in progress
-None. At the start of a session, list its goals here as a checklist; clear it at the end.
+Session 11 (2026-11-22, Claude Code, Opus 5.5), Sam: "do all the next tasks":
+- [ ] B-013 privacy and safety groundwork → `research/2026-11-22-privacy.md`
+- [ ] B-012 rename the prototype to Compicasa; re-run tests → `prototype/`
+- [ ] B-024 name clearance for Compicasa, public registers only → `research/2026-11-22-name-clearance.md`
 
 ## In short
 The idea: help compatible strangers buy one home together in Spain, starting with the social side (matching plus a joint "what our home needs" brief). On public evidence, no rival lets strangers form a group before choosing a whole home, but affinity questionnaires, co-ownership shares with a notarised pact, and exit services already exist, so the group-first idea is what we must test. Nothing is public, nothing has been bought and no money has been spent. The project runs on Sam's personal resources, as the private GitHub repository project-juntos (D-021, D-022). Sam's plan (2026-11-21): build a small product and see if it gains interest. The product is Spanish first, because it's for Spain, with English supported for international residents and for Sam; project documents stay in English (D-024). The pilot can't run until every gate in section 2 of its plan is met.
