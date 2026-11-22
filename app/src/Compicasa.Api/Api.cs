@@ -188,6 +188,7 @@ public static partial class Api
             int lo = g.M2Min ?? hb.M2Min, hi = g.M2Max ?? hb.M2Max;
             var stopped = HomeSources.Stopped(cfg);
             var q = db.Homes.AsNoTracking().Where(h => h.GoneAt == null && h.Beds >= hb.Beds);
+            if (!DemoHomes.Enabled(cfg)) q = q.Where(h => h.Source != HomeSources.Demo);
             if (hb.Areas.Count > 0) q = q.Where(h => h.Area != null && hb.Areas.Contains(h.Area));
             var candidates = (await q.ToListAsync(http.RequestAborted)).Where(h => !stopped.Contains(h.Source)).Select(h => h.ToListing()).ToList();
             // Up to 200, so the group can filter, sort and chart them in the browser (Session 16 design review).

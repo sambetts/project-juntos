@@ -126,7 +126,7 @@ using (var scope = app.Services.CreateScope())
     var demo = scope.ServiceProvider.GetRequiredService<DemoData>();
     await demo.EnsureSeedsAsync();
     await demo.RefreshIfDueAsync();
-    await DemoHomes.EnsureAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>());
+    await DemoHomes.EnsureAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>(), app.Configuration);
 
     // Crawl one agency by hand and exit (D-035): dotnet run -- crawl tecnocasa [--Crawl:Max=200] [--Crawl:DelaySeconds=3]
     if (args.Length >= 2 && args[0] == "crawl")

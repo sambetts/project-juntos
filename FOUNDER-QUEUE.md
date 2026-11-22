@@ -70,6 +70,10 @@ Then, after his sign-up still failed: "Fix production" (Sam, 2026-11-22, in GitH
 
 ## Closed
 
+### F-019 · Remove made-up homes from the live site · closed 2026-11-22
+**Asked in:** chat after Session 16's deploy. Sam: "So just to check; the house fake data is regened each day? If we have a proper crawler, we probably don't need fake houses". Recommendation given: a setting that turns made-up homes off (on locally and in tests, off live), delete the 90 live rows, keep the "no home fits yet" message.
+**ANSWER (Sam, 2026-11-22, in Claude Code):** "Do it. First though, give me the invite code". Read as approval to build, test and deploy that change, including the app setting and deleting the made-up rows from the live database, within D-027. The invite code was given to Sam in chat only.
+
 ### F-018 · Deploy the design review's explorers (B-049) · closed 2026-11-22
 **Asked in:** the Session 16 closing report ("say 'deploy' and I'll run `deploy.ps1 -App`, then check it on the live site with the real Tecnocasa homes").
 **ANSWER (Sam, 2026-11-22, in Claude Code):** "deploy". Read as approval to deploy B-049 with `deploy.ps1 -App` and run the live checks, within D-027. Not an approval to push.

@@ -396,8 +396,13 @@ public static class DemoHomes
         }
     }
 
-    public static async Task EnsureAsync(AppDb db, TimeProvider clock, CancellationToken ct = default)
+    /// <summary>Made-up homes are on unless "Homes:Demo" is false. Off on the live site, where the crawler fills the index (F-019).</summary>
+    public static bool Enabled(IConfiguration cfg) => !string.Equals(cfg["Homes:Demo"], "false", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Adds the made-up homes if they're on and missing; deletes them if they're off.</summary>
+    public static async Task EnsureAsync(AppDb db, TimeProvider clock, IConfiguration cfg, CancellationToken ct = default)
     {
+        if (!Enabled(cfg)) { await db.Homes.Where(h => h.Source == HomeSources.Demo).ExecuteDeleteAsync(ct); return; }
         if (await db.Homes.AnyAsync(h => h.Source == HomeSources.Demo, ct)) return;
         db.Homes.AddRange(Make(clock.GetUtcNow()));
         await db.SaveChangesAsync(ct);

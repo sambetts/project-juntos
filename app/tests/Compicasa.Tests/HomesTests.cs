@@ -155,6 +155,29 @@ public class HomesTests
     static string Advert(int id) => $"https://www.tecnocasa.es/venta/piso/madrid/getafe/{id}.html";
 
     [Fact]
+    public async Task Made_up_homes_are_added_by_default_and_deleted_when_switched_off()
+    {
+        using var conn = new SqliteConnection("Data Source=:memory:");
+        conn.Open();
+        using var db = new AppDb(new DbContextOptionsBuilder<AppDb>().UseSqlite(conn).Options);
+        db.Database.EnsureCreated();
+        var clock = new FakeTimeProvider(new DateTimeOffset(2026, 11, 22, 10, 0, 0, TimeSpan.Zero));
+        IConfiguration Cfg(string? demo) => new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Homes:Demo"] = demo }).Build();
+
+        await DemoHomes.EnsureAsync(db, clock, Cfg(null));
+        Assert.Equal(90, await db.Homes.CountAsync(h => h.Source == HomeSources.Demo));
+        db.Homes.Add(new Home { Id = "tecnocasa:1", Source = "tecnocasa", Agency = "Tecnocasa", Url = "https://www.tecnocasa.es/venta/piso/madrid/getafe/1.html", FirstSeenAt = clock.GetUtcNow(), LastSeenAt = clock.GetUtcNow(), CheckedAt = clock.GetUtcNow() });
+        await db.SaveChangesAsync();
+
+        // The live site (F-019): made-up homes go, real ones stay.
+        await DemoHomes.EnsureAsync(db, clock, Cfg("false"));
+        Assert.Equal(0, await db.Homes.CountAsync(h => h.Source == HomeSources.Demo));
+        Assert.Equal(1, await db.Homes.CountAsync());
+        Assert.False(DemoHomes.Enabled(Cfg("False")));
+        Assert.True(DemoHomes.Enabled(Cfg("true")));
+    }
+
+    [Fact]
     public async Task A_crawl_stores_new_adverts_skips_unchanged_ones_honours_robots_and_marks_gone_ones()
     {
         using var conn = new SqliteConnection("Data Source=:memory:");

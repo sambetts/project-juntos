@@ -120,6 +120,8 @@ resource web 'Microsoft.Web/sites@2023-12-01' = {
         { name: 'Auth__External__ClientId', value: externalIdClientId }
         { name: 'Demo__RefreshDaily', value: 'true' }
         { name: 'Homes__Stopped', value: homesStopped }
+        // No made-up homes on the live site: the crawler fills the index (F-019).
+        { name: 'Homes__Demo', value: 'false' }
         // The WebJob's schedule (App_Data/jobs/triggered/homes-sync/settings.job) is in Madrid time.
         { name: 'WEBSITE_TIME_ZONE', value: 'Romance Standard Time' }
         // The first crawl reads every advert (about two hours); don't kill it for being quiet.
