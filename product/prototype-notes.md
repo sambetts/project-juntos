@@ -56,3 +56,15 @@
 ## Ideas parked
 - A "Homes" tab where the group adds homes and sees how each fits its brief (B-014; waits for D-015 and Phase 2).
 - Tune the questions and weights after the pilot.
+
+## Landing-page draft (B-007, 2026-11-22)
+- **File:** `prototype/compicasa-landing-draft.html`: one file, no external resources, marked `noindex`. Not published (Sam decides).
+- **What it shows:** a draft banner; the hero line ("Si comprar casa por tu cuenta no te alcanza, hazlo en compañía"); a made-up example of a shared brief; four steps (who with, compatible people, the shared brief and exit talk, buying with a lawyer and notary); "what we are not" (no estate agency, no lending, no legal, tax or financial advice, not flat-sharing); six questions and answers; and a waitlist form.
+- **The waitlist stores and sends nothing:** the form has no action or method, and no field has a `name`, so nothing can be submitted even without JavaScript. The script validates the email and consent, shows a draft thank-you, and keeps no value. No browser storage, not even for the language.
+- **Fields:** email; area and timing (both optional, from fixed lists); consent. Nothing on money, household or protected characteristics (D-009). The privacy notice is marked as still to be written (B-013).
+- **Name:** the provisional name (D-007) is the `BRAND` constant, used everywhere through `{brand}`; the static `<title>` is the only other copy. Renaming takes two edits.
+- **Languages:** Spanish by default; English behind the header switch; `#lang=en` or `#lang=es` forces one. All copy is in `STR.es` and `STR.en`.
+- **Test object:** `window.__landing` (lang, state, setLang, submit, checkForm).
+- **Tests:** `node test_landing.js` in `prototype/`, 135 checks: nothing can be sent or stored; the name in one place; both languages complete and used; Spanish grammar (tú and vosotros, y/e, o/u, ¿ and ¡); no promises about money, mortgages or legal outcomes; minimal fields; email validation; contrast in light and dark mode; every screen in both languages (labels, errors and focus, the thank-you, no email kept, switching language). Seven planted faults were all caught.
+- **Checked in headless Edge on 2026-11-22:** both languages load with no script errors; the title and `lang` follow the language. Not covered: phones, a screen reader, and a native speaker's review of the Spanish (B-025).
+

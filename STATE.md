@@ -1,6 +1,6 @@
 # Current state
 
-_Last updated 2026-11-22 after Session 9 (Claude Code, Opus 5.5): a fresh name longlist; Sam picked Compicasa as the provisional name (D-007). Session 8 before it started Build mode and made the prototype bilingual. By the Chief of Staff. Rewrite this file at the end of every session._
+_Last updated 2026-11-22 after Session 10 (Claude Code, Opus 5.5): the bilingual Compicasa landing-page draft (B-007), and a check of the machine the sessions run on (F-013). Session 9 before it picked Compicasa as the provisional name (D-007). By the Chief of Staff. Rewrite this file at the end of every session._
 
 ## Operating mode: Build, from 2026-11-22
 Sam cleared F-001 and switched to Build mode on 2026-11-22 (D-023). Agents may build prototypes, code and unpublished drafts in this repository, using made-up data only. Nothing public, paid or sent, no one contacted and no real personal data collected without Sam (AGENTS.md sections 3 and 4). Pilot mode needs every gate in section 2 of `product/phase1-validation-plan.md` and Sam's dated go-ahead.
@@ -15,13 +15,14 @@ The idea: help compatible strangers buy one home together in Spain, starting wit
 **Phase 0: explore and set up**, now in Build mode. The gate to Phase 1 is every gate in section 2 of `product/phase1-validation-plan.md`, then Sam's dated go-ahead (`project/roadmap.md`).
 
 ## AI set-up
-Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief of Staff, started with the prompts in `KICKOFF.md`. Session 8 ran in Claude Code on Sam's personal machine, in the repository; GitHub Copilot works too, using the custom agents in `.github/agents/`. Canonical copy: this repository, private on Sam's personal GitHub account (D-022). Sessions commit; Sam pushes. Don't edit other copies.
+Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief of Staff, started with the prompts in `KICKOFF.md`. Sessions 8 to 10 ran in Claude Code in the repository on Sam's own machine ("WOD2"), signed in with his work account and joined to the employer's Entra ID tenant (F-013); GitHub Copilot works too, using the custom agents in `.github/agents/`. Canonical copy: this repository, private on Sam's personal GitHub account (D-022). Sessions commit; Sam pushes. Don't edit other copies.
 
 ## What exists
 | Asset | File | Status |
 |---|---|---|
 | Instructions and kickoff guide | `AGENTS.md`, `.github/agents/`, `KICKOFF.md` | Tuned for Opus; cold-start check in Claude Code on 2026-11-22 found nothing blocking |
 | Prototype ("Juntos", placeholder name) | `prototype/juntos-co-buying-prototype.html` | Spanish first, with an English version behind a switch in the header (D-024); opens in Spanish. 194 automated checks pass in both languages (`node test_proto.js`); loads without errors in headless Edge. Still to do before user tests: phones, a screen reader and a native speaker's review of the Spanish (B-025) |
+| Landing-page draft (B-007) | `prototype/compicasa-landing-draft.html` | Spanish first with English; under the provisional name Compicasa; not published; the waitlist can't send or store anything. 135 checks pass (`node test_landing.js`); loads without errors in headless Edge. Publishing it, or a real waitlist, needs B-013 and Sam |
 | Prototype notes | `product/prototype-notes.md` | Current: how the languages work, link hooks (`#lang=en`), tests |
 | Lawyer brief (B-003) | `research/2026-11-20-lawyer-brief.md` | Ready to send now F-001 has cleared (F-006): six Part A questions, ten Part B questions (quote only), the pilot's data list and a Spanish cover email |
 | Pilot plan (B-002) | `product/phase1-validation-plan.md` | Draft v0.1 for Sam (F-010): about 20 households, pairs only, run by hand, no money; measures M1–M3; EXP-001 to EXP-003 |
@@ -37,16 +38,17 @@ Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief
 D-001 Spain only · D-002 groups, not just pairs · D-003 social side first · D-004 link out to listings, no scraping (amendment proposed: D-015) · D-005 prototype first · D-006 AI-run, Sam approves · D-014 Spanish first (amended by D-024) · D-016 canonical copy (now D-022) · D-017 working positioning (internal) · D-019 sessions run on Opus · D-020 operating modes · D-021 personal resources, off work systems · D-013 where the project lives · D-022 private repository project-juntos · D-023 F-001 cleared, Build mode from 2026-11-22 · D-024 Spanish-first product with English supported; English documents · D-007 Compicasa as the provisional name
 
 ## Waiting on Sam
-F-002 time and budget · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief (unblocked by F-001) · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes; B-025 (phone and native-speaker checks) is parked until user tests come closer
+F-002 time and budget · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief (unblocked by F-001) · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes · F-013 work account on your own machine; B-025 (phone and native-speaker checks) is parked until user tests come closer
 
 ## Next up (Build mode)
-1. B-007 landing-page draft with waitlist, Spanish and English, not published, storing and sending nothing (Builder with Brand & Marketing). The Builder's rule is one prototype per session.
-2. B-013 privacy and safety groundwork (Legal & Compliance): the top backlog item, and a gate for any real users.
-3. B-024 name clearance for Compicasa, public registers only (Brand & Marketing with Legal & Compliance), before Sam is asked to buy the domains; B-012 (rename the prototype) and B-010 (brand starter) are now unblocked.
+1. B-013 privacy and safety groundwork (Legal & Compliance): the top backlog item, and a gate for any real users and for a real waitlist.
+2. B-012 rename the prototype from "Juntos" to Compicasa and re-run its tests (Builder with Tester). One prototype per session.
+3. B-024 name clearance for Compicasa, public registers only (Brand & Marketing with Legal & Compliance), before Sam is asked to buy the domains.
 4. B-020 pilot materials, made-up data only (Product); per D-024, decide whether participant-facing materials need English versions too.
-5. Sam: F-011, then the pilot items F-010, F-004, F-005 and F-006.
+5. Sam: F-013 and F-011, then the pilot items F-010, F-004, F-005 and F-006.
 
 ## Watch out
+- This machine is Sam's own, but the sessions run under his work account on a device joined to the employer's tenant. Keep nothing of the employer's here, and follow F-013 once he answers.
 - F-012 closed 2026-11-22: the work copies are deleted.
 - Nothing for this project on Sam's work devices, accounts, systems or tools, or in his working time; no employer confidential information or work; no approaching colleagues or his employer's customers through work (F-001, D-021).
 - Build mode allows building, not publishing: no hosting, deploys, domains, sign-ups, analytics or forms that send data without Sam's dated approval.

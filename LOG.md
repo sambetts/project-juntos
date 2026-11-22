@@ -2,6 +2,35 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 10: landing-page draft
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Brand & Marketing (B-007) and the Tester
+**Mode:** Build (D-023) · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md "Last updated 2026-11-22 after Session 9"; newest LOG entry Session 9. Sam: "Start a new session for this next task"
+**Goals:** 1. B-007 bilingual landing-page draft with a waitlist that stores and sends nothing. 2. B-013 privacy groundwork, if time allowed (not started).
+**Needs Sam:** F-013 new: you're signed in with your work account on your own machine, which is joined to the employer's tenant. Recommendation: a separate personal Windows account for this project.
+**Did**
+- B-007 (Builder with Brand & Marketing): `prototype/compicasa-landing-draft.html`. It's Spanish first with English behind a switch, under the provisional name Compicasa, held in one constant. It has a draft banner, a hero with a made-up example brief, four steps, "what we are not", six questions and answers, and a waitlist form.
+  - The form asks only for email, an optional area and timing, and consent.
+  - It has no action or method, and no field has a name, so nothing can be submitted even without JavaScript.
+  - The script keeps no value and uses no browser storage. The page is marked `noindex`.
+  - The copy makes no promises about money, mortgages or legal outcomes, and says plainly that we give no legal, tax or financial advice.
+- Tester: `prototype/test_landing.js`, 135 checks, all passing.
+  - Mutation test: seven planted faults were all caught (a form action, a named field, browser storage, an English word on the Spanish page, a mortgage promise, a hard-coded name, "o" before an o sound).
+  - The first run failed on a test bug, since fixed: the named-field check also matched `<meta name>`.
+  - `node test_proto.js` still passes 194.
+  - Headless Edge loaded `#lang=es` and `#lang=en` with no script errors; the title and `lang` followed the language. The 1280 px screenshot looked right. Phones, a screen reader and a native speaker's review remain in B-025.
+- While running Edge, I saw that the Windows account is `EUROPE\sambetts` and that the device is Entra ID joined to the "Microsoft" tenant (`dsregcmd /status`). I stopped work and asked Sam whether this is a work device. Sam: "This is my personal device. WOD2 is my own machine, even though I'm logged into work."
+  - Recorded in F-013 (new) and R-008.
+  - Sessions 8 and 9 logged "personal machine". That's true of the hardware, but they didn't mention the work sign-in. STATE now records both.
+- Updated: `product/prototype-notes.md`, the Builder's queue, BACKLOG (B-007 done), STATE, RISKS (R-008) and FOUNDER-QUEUE (F-013).
+
+**Decided:** none
+**Approvals used:** none. Nothing was published, sent or paid for. Sam's statement about the machine is quoted in F-013; it isn't an approval.
+**Learned:** "personal machine" in earlier entries hid a work sign-in, and only a stray Edge message revealed it. A design question to settle under B-013: a real waitlist needs a privacy notice, a lawful basis and a processor before it can go live.
+**Open or blocked:** B-013 wasn't started (carried over). F-013 waits on Sam. Publishing the landing page or collecting real sign-ups needs B-013 and Sam's approval.
+**Saved and checked:** re-ran both test suites (135 and 194 passed) and reviewed `git diff` for every changed document against what I meant to write. LOG.md saved last and checked with `git diff`; the commit is confirmed in the closing report.
+**Next session should start with:** 1. B-013 privacy and safety groundwork. 2. B-012 rename the prototype to Compicasa. 3. B-024 name clearance.
+
 ## 2026-11-22 · Session 9: name suggestions
 **Who:** Sam with Claude Code (Opus 5.5) on his personal machine, as Chief of Staff, with Brand & Marketing (B-026) and the CEO (D-007 options)
 **Mode:** Build (D-023) · **Copy used:** canonical repository (D-022)

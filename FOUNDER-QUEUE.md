@@ -53,6 +53,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **Recommendation:** A. Every later mode still needs your dated switch.
 **If no answer:** the modes apply as written in AGENTS.md section 3, and Build mode continues.
 
+### F-013 · Your work account on your own machine · by 2026-11-29
+**Why:** in Session 10 the Chief of Staff found that the Windows account running these sessions is your work account (`EUROPE\sambetts`), and that the machine is joined to the employer's Entra ID tenant (`dsregcmd /status`: AzureAdJoined YES, tenant "Microsoft"). Your employer's policy allows this project only outside work devices, accounts and systems (F-001, D-021). The device is yours: **ANSWER (Sam, 2026-11-22, in Claude Code):** "This is my personal device. WOD2 is my own machine, even though I'm logged into work." Being signed in through the employer's tenant may still give its device management (policies, backup, monitoring) reach over the project files.
+**Options:** A) carry on as now · B) use a separate personal Windows account (not joined to the tenant) for this project · C) check with your employer that this is fine
+**Recommendation:** B. It's quick, and it keeps the project clearly off work accounts and systems.
+**If no answer:** sessions carry on here, and the risk stays open in R-008.
+
 ## Closed
 
 ### F-003 · The name (D-007) · closed 2026-11-22

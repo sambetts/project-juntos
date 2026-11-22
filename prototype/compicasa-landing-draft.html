@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex, nofollow">
+<title>Compicasa – encuentra con quién comprar tu vivienda (borrador)</title>
+<style>
+:root{
+  --bg:#f5f6fa;--surface:#ffffff;--surface-2:#eef1f7;--text:#1b2230;--muted:#5b6476;--border:#dfe4ee;
+  --brand:#b3370e;--brand-soft:#fff0e8;--brand-ink:#ffffff;--teal:#0f766e;--teal-soft:#e3f4f1;
+  --good:#18794e;--good-bg:#e7f6ee;--warn:#9a5b00;--warn-bg:#fff4e0;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 6px 20px rgba(16,24,40,.07);--radius:16px;
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0e131b;--surface:#161d28;--surface-2:#1e2735;--text:#e8edf4;--muted:#9ba7b9;--border:#2a3546;
+    --brand:#ff7a45;--brand-soft:#3a2216;--brand-ink:#1b1209;--teal:#4fd1c5;--teal-soft:#123230;
+    --good:#5bd39b;--good-bg:#12302a;--warn:#f3b45f;--warn-bg:#382a14;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;font-size:16px}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--teal)}
+.wrap{max-width:1080px;margin-inline:auto;padding-inline:16px}
+.skip{position:absolute;inset-inline-start:16px;inset-block-start:-60px;background:var(--text);color:var(--bg);padding:8px 12px;border-radius:10px;z-index:30}
+.skip:focus{inset-block-start:12px}
+.draftbar{background:var(--warn-bg);color:var(--warn);font-size:13.5px;font-weight:600}
+.draftbar .wrap{padding-block:8px}
+header.top{background:var(--surface);border-block-end:1px solid var(--border)}
+header.top .wrap{display:flex;align-items:center;gap:12px;padding-block:12px}
+.logo{inline-size:40px;block-size:40px;border-radius:12px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;font-size:20px;flex:none}
+.brandname{font-weight:800;font-size:19px;margin:0}
+.brandline{margin:0;color:var(--muted);font-size:13px}
+.spacer{flex:1}
+.btn{appearance:none;display:inline-block;text-decoration:none;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:11px 18px;border-radius:12px;font-weight:600;cursor:pointer}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.small{padding:7px 12px;font-size:14px}
+section{padding-block:40px}
+section+section{border-block-start:1px solid var(--border)}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.15;margin:0 0 14px;letter-spacing:-.01em}
+h2{font-size:clamp(22px,3.4vw,28px);margin:0 0 8px}
+h3{font-size:17px;margin:0 0 6px}
+.lead{color:var(--muted);font-size:18px;margin:0 0 22px;max-inline-size:60ch}
+.hint{color:var(--muted);font-size:13.5px}
+.hero{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));align-items:center}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.brief h3{display:flex;align-items:center;gap:8px}
+.tagpill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+ul.clean{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:10px}
+ul.clean li{display:flex;gap:10px;align-items:flex-start}
+.tag{font-size:11px;font-weight:700;padding:3px 7px;border-radius:6px;white-space:nowrap;flex:none;margin-block-start:2px}
+.tag.must{background:var(--brand-soft);color:var(--brand)}
+.tag.nice{background:var(--teal-soft);color:var(--teal)}
+.tag.tip{background:var(--surface-2);color:var(--muted)}
+.members{display:flex;gap:8px;margin-block-start:14px;flex-wrap:wrap}
+.member{font-size:13px;background:var(--surface-2);border-radius:999px;padding:5px 12px}
+.grid{display:grid;gap:16px}
+.cols{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+ol.steps{list-style:none;padding:0;margin:20px 0 0;counter-reset:s}
+ol.steps li{counter-increment:s;position:relative;padding-block-start:44px}
+ol.steps li::before{content:counter(s);position:absolute;inset-block-start:16px;inset-inline-start:20px;inline-size:30px;block-size:30px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:800}
+ol.steps li.card{padding-block-start:58px}
+.card p{margin:0}
+.nots{display:grid;gap:10px;margin:18px 0 0;padding:0;list-style:none}
+.nots li{display:flex;gap:10px;align-items:flex-start}
+.nots li::before{content:"";flex:none;inline-size:10px;block-size:10px;border-radius:50%;background:var(--brand);margin-block-start:8px}
+details.faq{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+details.faq+details.faq{margin-block-start:10px}
+details.faq summary{cursor:pointer;font-weight:600}
+details.faq p{margin:10px 0 0;color:var(--muted)}
+.formcard{max-inline-size:560px}
+.field{margin-block-end:16px}
+.field label,.field .label{display:block;font-weight:600;margin-block-end:6px}
+.opt-note{color:var(--muted);font-weight:400}
+input[type=email],select{inline-size:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface)}
+.check{display:flex;gap:10px;align-items:flex-start}
+.check input{accent-color:var(--brand);inline-size:18px;block-size:18px;margin:3px 0 0;flex:none}
+.err{color:var(--warn);font-size:14px;font-weight:600;margin:6px 0 0}
+[aria-invalid="true"]{border-color:var(--warn)}
+.done{background:var(--good-bg);color:var(--good);border-radius:12px;padding:12px 14px;font-weight:600;margin-block-end:16px}
+footer.foot{color:var(--muted);font-size:13.5px;padding-block:24px 40px;border-block-start:1px solid var(--border)}
+footer.foot p{margin:0 0 6px}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+</style>
+</head>
+<body>
+<a class="skip" id="skip" href="#join">Ir al formulario</a>
+<div id="app"><noscript><p class="wrap">Este borrador necesita JavaScript. · This draft needs JavaScript.</p></noscript></div>
+<script>
+/* ===== LOGIC START ===== */
+/* The brand lives here only (D-007, provisional): change it in one place. */
+var BRAND='Compicasa';
+var STR={
+es:{
+  title:'{brand} – encuentra con quién comprar tu vivienda (borrador)',
+  skip:'Ir al formulario',
+  draft:'Borrador para revisión interna. No está publicado, y el formulario no guarda ni envía nada.',
+  tagline:'Encuentra con quién comprar tu vivienda',
+  switchLabel:'English',switchAria:'Read this page in English',
+  heroTitle:'Si comprar casa por tu cuenta no te alcanza, hazlo en compañía.',
+  heroLead:'Te ayudamos a encontrar personas compatibles con quienes comprar una vivienda en España. Antes de elegir casa, acordáis qué necesitáis y cómo podrá salir quien algún día quiera vender.',
+  ctaJoin:'Apúntate a la lista de espera',ctaHow:'Cómo funciona',
+  heroNote:'Apuntarse es gratis y no te compromete a nada.',
+  exTitle:'Vuestra lista común',exTag:'Ejemplo inventado',
+  exRooms:'3 dormitorios y 2 baños',exArea:'Norte de Madrid',sizeTag:'Tamaño',areaTag:'Zona',exMust:'Ascensor',exNice:'Terraza',exExit:'Quién puede salir y cómo, hablado antes de elegir casa',
+  mustTag:'Imprescindible',niceTag:'Deseable',exitTag:'Salida',
+  exMembers:'Hogares del grupo:',exM1:'Ana',exM2:'Luis y Marta',exM3:'Tú',
+  howTitle:'Cómo funciona',howLead:'Primero, con quién. Después, qué casa. Y la salida, desde el principio.',
+  s1t:'Cuéntanos cómo vives',s1d:'Dónde y cuándo quieres comprar, y cómo te gusta convivir: horarios, mascotas, ruido, teletrabajo. No te preguntamos por tu origen, religión, edad ni datos así.',
+  s2t:'Conoce a gente compatible',s2d:'Ves con quién encajas y por qué. Un grupo solo se forma si todas las personas están de acuerdo.',
+  s3t:'Acordad qué casa necesitáis',s3d:'Preparáis juntos una lista común: dormitorios, zona, lo imprescindible y lo deseable. Y habláis desde el principio de qué pasará si alguien quiere salir.',
+  s4t:'Comprad con apoyo profesional',s4d:'Para la compra y el pacto entre copropietarios, os recomendamos contar con un abogado y pasar por notaría.',
+  notTitle:'Lo que no somos',
+  not1:'No somos una inmobiliaria: no vendemos viviendas.',
+  not2:'No concedemos hipotecas ni prometemos financiación.',
+  not3:'No damos asesoramiento legal, fiscal ni financiero.',
+  not4:'No es para compartir piso de alquiler: aquí se compra.',
+  faqTitle:'Preguntas frecuentes',
+  q1:'¿Tengo que conocer ya a las otras personas?',a1:'No. La idea es ayudarte a encontrar a personas compatibles que aún no conoces.',
+  q2:'¿Cuántas personas forman un grupo?',a2:'Entre dos y cuatro hogares. Un hogar puede ser una persona, una pareja o una familia.',
+  q3:'¿Qué pasa si alguien quiere vender su parte?',a3:'Es una de las primeras cosas que os ayudaremos a hablar, antes de elegir casa. Lo que acordéis debe revisarlo un abogado.',
+  q4:'¿Dónde funciona?',a4:'Solo en España, empezando por una zona concreta que aún estamos eligiendo.',
+  q5:'¿Cuánto cuesta?',a5:'Apuntarte a la lista es gratis. Aún no hemos decidido el precio del servicio.',
+  q6:'¿Qué hacéis con mis datos?',a6:'Este borrador no guarda ni envía nada. Antes de abrir la lista de verdad publicaremos un aviso de privacidad.',
+  formTitle:'Apúntate a la lista de espera',formLead:'Te escribiremos cuando abramos en tu zona.',
+  emailLabel:'Correo electrónico',optional:'(opcional)',
+  areaLabel:'¿Dónde te gustaría comprar?',whenLabel:'¿Cuándo te gustaría comprar?',choose:'Elige una opción',
+  areaMadrid:'Madrid (ciudad)',areaRegion:'Resto de la Comunidad de Madrid',areaBcn:'Barcelona',areaVlc:'Valencia',areaOther:'Otra zona de España',
+  when1:'En los próximos 6 meses',when2:'Dentro de 6 a 12 meses',when3:'Dentro de 1 a 2 años',when4:'Solo estoy mirando',
+  consent:'Acepto que me escribáis sobre {brand}. Podré darme de baja cuando quiera.',
+  privacyDraft:'Borrador: el aviso de privacidad aún está por redactar.',
+  submit:'Apuntarme',
+  errEmail:'Escribe un correo electrónico válido.',errConsent:'Marca la casilla para continuar.',
+  done:'¡Gracias! Esto es un borrador: no hemos guardado ni enviado tus datos.',
+  foot1:'{brand} es un nombre provisional. Borrador del 22 de noviembre de 2026.',
+  foot2:'Solo para España. Las personas y los datos de ejemplo son inventados.'
+},
+en:{
+  title:'{brand} – find who to buy your home with (draft)',
+  skip:'Skip to the form',
+  draft:'Draft for internal review. It isn\'t published, and the form saves and sends nothing.',
+  tagline:'Find who to buy your home with',
+  switchLabel:'Español',switchAria:'Leer esta página en español',
+  heroTitle:'If buying on your own is out of reach, buy together.',
+  heroLead:'We help you find compatible people to buy a home with in Spain. Before choosing a home, you agree what you need, and how anyone can leave if they want to sell one day.',
+  ctaJoin:'Join the waiting list',ctaHow:'How it works',
+  heroNote:'Joining is free and commits you to nothing.',
+  exTitle:'Your shared brief',exTag:'Made-up example',
+  exRooms:'3 bedrooms and 2 bathrooms',exArea:'North Madrid',sizeTag:'Size',areaTag:'Area',exMust:'A lift',exNice:'A terrace',exExit:'Who can leave and how, talked through before choosing a home',
+  mustTag:'Must-have',niceTag:'Nice to have',exitTag:'Exit',
+  exMembers:'Households in the group:',exM1:'Ana',exM2:'Luis and Marta',exM3:'You',
+  howTitle:'How it works',howLead:'First, who with. Then, which home. And how to leave, from the start.',
+  s1t:'Tell us how you live',s1d:'Where and when you want to buy, and how you like to live: hours, pets, noise, working from home. We don\'t ask about your origin, religion, age or anything like that.',
+  s2t:'Meet compatible people',s2d:'See who you fit with and why. A group only forms if everyone in it agrees.',
+  s3t:'Agree on the home you need',s3d:'Together you write a shared brief: bedrooms, area, must-haves and nice-to-haves. And you talk from the start about what happens if someone wants to leave.',
+  s4t:'Buy with professional help',s4d:'For the purchase and the co-owners\' agreement, we recommend a lawyer and a notary.',
+  notTitle:'What we are not',
+  not1:'We aren\'t an estate agent: we don\'t sell homes.',
+  not2:'We don\'t lend money or promise you a mortgage.',
+  not3:'We don\'t give legal, tax or financial advice.',
+  not4:'It isn\'t for renting a room in a shared flat: this is about buying.',
+  faqTitle:'Questions',
+  q1:'Do I need to know the other people already?',a1:'No. The idea is to help you find compatible people you haven\'t met yet.',
+  q2:'How many people are in a group?',a2:'Two to four households. A household can be one person, a couple or a family.',
+  q3:'What if someone wants to sell their share?',a3:'It\'s one of the first things we\'ll help you talk through, before choosing a home. A lawyer should review whatever you agree.',
+  q4:'Where does it work?',a4:'In Spain only, starting with one area that we\'re still choosing.',
+  q5:'What does it cost?',a5:'Joining the waiting list is free. We haven\'t set a price for the service yet.',
+  q6:'What happens to my data?',a6:'This draft saves and sends nothing. Before the real list opens, we\'ll publish a privacy notice.',
+  formTitle:'Join the waiting list',formLead:'We\'ll write to you when we open in your area.',
+  emailLabel:'Email',optional:'(optional)',
+  areaLabel:'Where would you like to buy?',whenLabel:'When would you like to buy?',choose:'Choose an option',
+  areaMadrid:'Madrid (city)',areaRegion:'Elsewhere in the Madrid region',areaBcn:'Barcelona',areaVlc:'Valencia',areaOther:'Somewhere else in Spain',
+  when1:'In the next 6 months',when2:'In 6 to 12 months',when3:'In 1 to 2 years',when4:'Just looking',
+  consent:'I agree to hear from {brand} by email. I can unsubscribe at any time.',
+  privacyDraft:'Draft: the privacy notice is still to be written.',
+  submit:'Sign me up',
+  errEmail:'Enter a valid email address.',errConsent:'Tick the box to continue.',
+  done:'Thank you! This is a draft: we haven\'t saved or sent your details.',
+  foot1:'{brand} is a provisional name. Draft of 22 November 2026.',
+  foot2:'Spain only. The example people and details are made up.'
+}};
+var lang='es';
+function setLang(l){lang=(l==='en')?'en':'es';}
+function t(k){var s=STR[lang][k];if(s===undefined)return k;return s.replace(/\{brand\}/g,BRAND);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function validEmail(s){return /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(String(s).trim());}
+/* Returns which fields fail; the values themselves are never kept. */
+function checkForm(email,consent){var e=[];if(!validEmail(email))e.push('email');if(!consent)e.push('consent');return e;}
+/* ===== LOGIC END ===== */
+
+var state={sent:false,errors:[]};
+function opts(keys){return '<option value="">'+esc(t('choose'))+'</option>'+keys.map(function(k){return '<option value="'+k+'">'+esc(t(k))+'</option>';}).join('');}
+function view(){
+  var other=lang==='es'?'en':'es';
+  var errE=state.errors.indexOf('email')>=0,errC=state.errors.indexOf('consent')>=0;
+  return ''
+  +'<div class="draftbar" role="note"><div class="wrap">'+esc(t('draft'))+'</div></div>'
+  +'<header class="top"><div class="wrap">'
+  +  '<div class="logo" aria-hidden="true">'+esc(BRAND.charAt(0))+'</div>'
+  +  '<div><p class="brandname">'+esc(BRAND)+'</p><p class="brandline">'+esc(t('tagline'))+'</p></div>'
+  +  '<span class="spacer"></span>'
+  +  '<button type="button" class="btn small" id="lang-switch" data-id="'+other+'" lang="'+other+'" aria-label="'+esc(t('switchAria'))+'">'+esc(t('switchLabel'))+'</button>'
+  +'</div></header>'
+  +'<main>'
+  +'<section><div class="wrap hero">'
+  +  '<div><h1>'+esc(t('heroTitle'))+'</h1><p class="lead">'+esc(t('heroLead'))+'</p>'
+  +    '<div class="actions"><a class="btn primary" href="#join">'+esc(t('ctaJoin'))+'</a><a class="btn" href="#how">'+esc(t('ctaHow'))+'</a></div>'
+  +    '<p class="hint">'+esc(t('heroNote'))+'</p></div>'
+  +  '<div class="card brief" aria-label="'+esc(t('exTag'))+'"><h3>'+esc(t('exTitle'))+' <span class="tagpill">'+esc(t('exTag'))+'</span></h3>'
+  +    '<ul class="clean">'
+  +      '<li><span class="tag tip">'+esc(t('sizeTag'))+'</span><span>'+esc(t('exRooms'))+'</span></li>'
+  +      '<li><span class="tag tip">'+esc(t('areaTag'))+'</span><span>'+esc(t('exArea'))+'</span></li>'
+  +      '<li><span class="tag must">'+esc(t('mustTag'))+'</span><span>'+esc(t('exMust'))+'</span></li>'
+  +      '<li><span class="tag nice">'+esc(t('niceTag'))+'</span><span>'+esc(t('exNice'))+'</span></li>'
+  +      '<li><span class="tag tip">'+esc(t('exitTag'))+'</span><span>'+esc(t('exExit'))+'</span></li>'
+  +    '</ul>'
+  +    '<p class="hint" style="margin-block-start:14px">'+esc(t('exMembers'))+'</p>'
+  +    '<div class="members"><span class="member">'+esc(t('exM1'))+'</span><span class="member">'+esc(t('exM2'))+'</span><span class="member">'+esc(t('exM3'))+'</span></div>'
+  +  '</div>'
+  +'</div></section>'
+  +'<section id="how" tabindex="-1"><div class="wrap"><h2>'+esc(t('howTitle'))+'</h2><p class="lead">'+esc(t('howLead'))+'</p>'
+  +  '<ol class="steps grid cols">'+[1,2,3,4].map(function(i){return '<li class="card"><h3>'+esc(t('s'+i+'t'))+'</h3><p>'+esc(t('s'+i+'d'))+'</p></li>';}).join('')+'</ol>'
+  +'</div></section>'
+  +'<section><div class="wrap"><h2>'+esc(t('notTitle'))+'</h2>'
+  +  '<ul class="nots">'+[1,2,3,4].map(function(i){return '<li>'+esc(t('not'+i))+'</li>';}).join('')+'</ul>'
+  +'</div></section>'
+  +'<section><div class="wrap"><h2>'+esc(t('faqTitle'))+'</h2><div style="margin-block-start:16px">'
+  +  [1,2,3,4,5,6].map(function(i){return '<details class="faq"><summary>'+esc(t('q'+i))+'</summary><p>'+esc(t('a'+i))+'</p></details>';}).join('')
+  +'</div></div></section>'
+  +'<section id="join" tabindex="-1"><div class="wrap"><div class="card formcard">'
+  +  '<h2>'+esc(t('formTitle'))+'</h2><p class="hint" style="margin:0 0 18px">'+esc(t('formLead'))+'</p>'
+  +  '<div id="status" role="status" tabindex="-1">'+(state.sent?'<p class="done">'+esc(t('done'))+'</p>':'')+'</div>'
+  +  '<form id="waitlist" novalidate>'
+  +    '<div class="field"><label for="f-email">'+esc(t('emailLabel'))+'</label>'
+  +      '<input type="email" id="f-email" autocomplete="email" required'+(errE?' aria-invalid="true" aria-describedby="e-email"':'')+'>'
+  +      (errE?'<p class="err" id="e-email">'+esc(t('errEmail'))+'</p>':'')+'</div>'
+  +    '<div class="field"><label for="f-area">'+esc(t('areaLabel'))+' <span class="opt-note">'+esc(t('optional'))+'</span></label>'
+  +      '<select id="f-area">'+opts(['areaMadrid','areaRegion','areaBcn','areaVlc','areaOther'])+'</select></div>'
+  +    '<div class="field"><label for="f-when">'+esc(t('whenLabel'))+' <span class="opt-note">'+esc(t('optional'))+'</span></label>'
+  +      '<select id="f-when">'+opts(['when1','when2','when3','when4'])+'</select></div>'
+  +    '<div class="field"><div class="check"><input type="checkbox" id="f-consent" required'+(errC?' aria-invalid="true" aria-describedby="e-consent"':'')+'>'
+  +      '<label for="f-consent" style="font-weight:400;margin:0">'+esc(t('consent'))+'</label></div>'
+  +      (errC?'<p class="err" id="e-consent">'+esc(t('errConsent'))+'</p>':'')
+  +      '<p class="hint" style="margin:8px 0 0">'+esc(t('privacyDraft'))+'</p></div>'
+  +    '<button type="submit" class="btn primary">'+esc(t('submit'))+'</button>'
+  +  '</form>'
+  +'</div></div></section>'
+  +'</main>'
+  +'<footer class="foot"><div class="wrap"><p>'+esc(t('foot1'))+'</p><p>'+esc(t('foot2'))+'</p></div></footer>';
+}
+function render(){
+  document.documentElement.setAttribute('lang',lang);
+  document.title=t('title');
+  var sk=document.getElementById('skip');if(sk)sk.textContent=t('skip');
+  document.getElementById('app').innerHTML=view();
+}
+function focusId(id){var el=document.getElementById(id);if(el&&el.focus)el.focus();}
+/* Validates, then throws the values away: nothing is stored, logged or sent. */
+function submitForm(email,consent){
+  state.errors=checkForm(email,consent);
+  state.sent=state.errors.length===0;
+  render();
+  if(state.sent)focusId('status');else focusId(state.errors[0]==='email'?'f-email':'f-consent');
+  return state.sent;
+}
+function switchLang(l){setLang(l);state.errors=[];render();focusId('lang-switch');}
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest&&e.target.closest('#lang-switch');
+  if(b)switchLang(b.getAttribute('data-id'));
+});
+document.addEventListener('submit',function(e){
+  e.preventDefault();
+  var em=document.getElementById('f-email'),c=document.getElementById('f-consent');
+  submitForm(em?em.value:'',c?c.checked:false);
+});
+(function init(){
+  var m=/(?:^#|&)lang=(en|es)(?:&|$)/.exec(location.hash||'');
+  setLang(m?m[1]:'es');
+  render();
+})();
+window.__landing={get lang(){return lang;},state:state,setLang:switchLang,submit:submitForm,checkForm:checkForm,BRAND:BRAND};
+</script>
+</body>
+</html>
