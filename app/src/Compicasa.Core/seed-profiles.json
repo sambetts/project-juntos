@@ -1,0 +1,655 @@
+[
+ {
+  "id": "marta",
+  "name": "Marta & Javi",
+  "household": "family",
+  "adults": 2,
+  "kids": 2,
+  "bedrooms": 3,
+  "privateBath": true,
+  "cars": 1,
+  "pets": [],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "outside",
+  "sleep": 3,
+  "tidy": 4,
+  "social": 2,
+  "guests": 3,
+  "meals": 4,
+  "wfh": false,
+  "horizon": "10+",
+  "areas": [
+   "north",
+   "city"
+  ],
+  "types": [
+   "house"
+  ],
+  "needs": {
+   "parking": "must",
+   "garden": "must",
+   "schools": "must",
+   "pool": "nice"
+  },
+  "open": [
+   "family",
+   "singleParent",
+   "couple"
+  ],
+  "maxHouseholds": 2,
+  "pickiness": 65,
+  "color": "#b3370e",
+  "bio": {
+   "en": "Teacher and engineer with two kids. We want a garden and good schools, and would happily split a big chalet with another family.",
+   "es": "Somos maestra e ingeniero, con dos hijos. Queremos jardín y buenos colegios, y compartiríamos encantados un chalet grande con otra familia."
+  }
+ },
+ {
+  "id": "laura",
+  "name": "Laura",
+  "household": "singleParent",
+  "adults": 1,
+  "kids": 1,
+  "bedrooms": 2,
+  "privateBath": false,
+  "cars": 1,
+  "pets": [
+   "cat"
+  ],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "none",
+  "sleep": 2,
+  "tidy": 4,
+  "social": 2,
+  "guests": 1,
+  "meals": 3,
+  "wfh": true,
+  "horizon": "10+",
+  "areas": [
+   "north",
+   "city",
+   "centre"
+  ],
+  "types": [
+   "flat",
+   "house"
+  ],
+  "needs": {
+   "schools": "must",
+   "transport": "must",
+   "garden": "nice",
+   "quiet": "nice"
+  },
+  "open": [
+   "single",
+   "couple",
+   "family",
+   "singleParent"
+  ],
+  "maxHouseholds": 3,
+  "pickiness": 62,
+  "color": "#0f766e",
+  "bio": {
+   "en": "Single mum with one son. I work from home as a translator. A calm house and early nights.",
+   "es": "Madre sola con un hijo. Trabajo desde casa como traductora. Una casa tranquila y a dormir temprano."
+  }
+ },
+ {
+  "id": "diego",
+  "name": "Diego",
+  "household": "single",
+  "adults": 1,
+  "kids": 0,
+  "bedrooms": 1,
+  "privateBath": false,
+  "cars": 0,
+  "pets": [],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "outside",
+  "sleep": 5,
+  "tidy": 3,
+  "social": 2,
+  "guests": 2,
+  "meals": 2,
+  "wfh": false,
+  "horizon": "5-9",
+  "areas": [
+   "centre",
+   "city",
+   "south"
+  ],
+  "types": [
+   "flat",
+   "house"
+  ],
+  "needs": {
+   "transport": "must"
+  },
+  "open": [
+   "single",
+   "couple",
+   "family",
+   "singleParent"
+  ],
+  "maxHouseholds": 4,
+  "pickiness": 60,
+  "color": "#7048e8",
+  "bio": {
+   "en": "Night-shift nurse at La Paz, so I sleep during the day. Quiet and easy-going. I just need a room near the Metro.",
+   "es": "Enfermero del turno de noche en La Paz, así que duermo de día. Tranquilo y fácil de llevar. Solo necesito una habitación cerca del Metro."
+  }
+ },
+ {
+  "id": "lucia",
+  "name": "Lucía",
+  "household": "single",
+  "adults": 1,
+  "kids": 0,
+  "bedrooms": 1,
+  "privateBath": true,
+  "cars": 0,
+  "pets": [],
+  "acceptsPets": false,
+  "smoking": "no",
+  "acceptsSmoking": "none",
+  "sleep": 2,
+  "tidy": 5,
+  "social": 3,
+  "guests": 2,
+  "meals": 4,
+  "wfh": true,
+  "horizon": "5-9",
+  "areas": [
+   "centre",
+   "city"
+  ],
+  "types": [
+   "flat"
+  ],
+  "needs": {
+   "lift": "must",
+   "transport": "must",
+   "terrace": "nice"
+  },
+  "open": [
+   "single",
+   "couple"
+  ],
+  "maxHouseholds": 3,
+  "pickiness": 66,
+  "color": "#c2255c",
+  "bio": {
+   "en": "Product designer, remote three days a week. I love cooking for housemates. Prefers a home without pets.",
+   "es": "Diseñadora de producto, teletrabajo tres días a la semana. Me encanta cocinar para la gente con la que vivo. Prefiero una casa sin mascotas."
+  }
+ },
+ {
+  "id": "sofia",
+  "name": "Sofía & Pablo",
+  "household": "couple",
+  "adults": 2,
+  "kids": 0,
+  "bedrooms": 2,
+  "privateBath": true,
+  "cars": 1,
+  "pets": [
+   "dog"
+  ],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "outside",
+  "sleep": 3,
+  "tidy": 3,
+  "social": 4,
+  "guests": 4,
+  "meals": 4,
+  "wfh": true,
+  "horizon": "5-9",
+  "areas": [
+   "north",
+   "east",
+   "city"
+  ],
+  "types": [
+   "house"
+  ],
+  "needs": {
+   "garden": "must",
+   "parking": "must",
+   "pool": "nice",
+   "terrace": "nice"
+  },
+  "open": [
+   "couple",
+   "single",
+   "family"
+  ],
+  "maxHouseholds": 3,
+  "pickiness": 64,
+  "color": "#1971c2",
+  "bio": {
+   "en": "Architect and chef with a very friendly labrador. Big Sunday lunches and friends over often. Our second bedroom is a studio.",
+   "es": "Arquitecta y cocinero, con un labrador muy cariñoso. Grandes comidas los domingos y amigos en casa a menudo. Nuestro segundo dormitorio es un estudio."
+  }
+ },
+ {
+  "id": "tom",
+  "name": "Tom",
+  "household": "single",
+  "adults": 1,
+  "kids": 0,
+  "bedrooms": 1,
+  "privateBath": true,
+  "cars": 0,
+  "pets": [],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "outside",
+  "sleep": 3,
+  "tidy": 3,
+  "social": 3,
+  "guests": 3,
+  "meals": 3,
+  "wfh": true,
+  "horizon": "5-9",
+  "areas": [
+   "centre",
+   "city"
+  ],
+  "types": [
+   "flat",
+   "house"
+  ],
+  "needs": {
+   "transport": "must",
+   "terrace": "nice",
+   "storage": "nice"
+  },
+  "open": [
+   "single",
+   "couple",
+   "family",
+   "singleParent"
+  ],
+  "maxHouseholds": 4,
+  "pickiness": 58,
+  "color": "#2a7a38",
+  "bio": {
+   "en": "Software engineer, four years in Madrid. Five-a-side at weekends, otherwise low-key.",
+   "es": "Ingeniero de software, cuatro años en Madrid. Fútbol sala los fines de semana; por lo demás, vida tranquila."
+  }
+ },
+ {
+  "id": "carmen",
+  "name": "Carmen",
+  "household": "singleParent",
+  "adults": 1,
+  "kids": 1,
+  "bedrooms": 2,
+  "privateBath": true,
+  "cars": 1,
+  "pets": [],
+  "acceptsPets": true,
+  "smoking": "outside",
+  "acceptsSmoking": "outside",
+  "sleep": 2,
+  "tidy": 4,
+  "social": 2,
+  "guests": 2,
+  "meals": 2,
+  "wfh": false,
+  "horizon": "10+",
+  "areas": [
+   "south",
+   "city"
+  ],
+  "types": [
+   "flat",
+   "house"
+  ],
+  "needs": {
+   "parking": "must",
+   "quiet": "must",
+   "lift": "nice"
+  },
+  "open": [
+   "single",
+   "couple",
+   "family",
+   "singleParent"
+  ],
+  "maxHouseholds": 2,
+  "pickiness": 63,
+  "color": "#a85500",
+  "bio": {
+   "en": "Nurse manager, living with my daughter. We want stability and a quiet street. I smoke, outside only.",
+   "es": "Supervisora de enfermería; vivo con mi hija. Buscamos estabilidad y una calle tranquila. Fumo, solo fuera."
+  }
+ },
+ {
+  "id": "raul",
+  "name": "Raúl",
+  "household": "single",
+  "adults": 1,
+  "kids": 0,
+  "bedrooms": 1,
+  "privateBath": false,
+  "cars": 0,
+  "pets": [],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "any",
+  "sleep": 5,
+  "tidy": 2,
+  "social": 5,
+  "guests": 5,
+  "meals": 3,
+  "wfh": false,
+  "horizon": "2-4",
+  "areas": [
+   "centre"
+  ],
+  "types": [
+   "flat"
+  ],
+  "needs": {
+   "transport": "must"
+  },
+  "open": [
+   "single",
+   "couple"
+  ],
+  "maxHouseholds": 4,
+  "pickiness": 55,
+  "color": "#5f3dc4",
+  "bio": {
+   "en": "Session guitarist (I practise with headphones, promise). Night owl, friends round a lot.",
+   "es": "Guitarrista de sesión (ensayo con cascos, lo prometo). Noctámbulo, con amigos en casa a menudo."
+  }
+ },
+ {
+  "id": "ana",
+  "name": "Ana & Bea",
+  "household": "couple",
+  "adults": 2,
+  "kids": 0,
+  "bedrooms": 1,
+  "privateBath": true,
+  "cars": 0,
+  "pets": [
+   "cat"
+  ],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "none",
+  "sleep": 2,
+  "tidy": 4,
+  "social": 3,
+  "guests": 3,
+  "meals": 4,
+  "wfh": false,
+  "horizon": "10+",
+  "areas": [
+   "centre",
+   "city"
+  ],
+  "types": [
+   "flat"
+  ],
+  "needs": {
+   "lift": "must",
+   "terrace": "must",
+   "transport": "must"
+  },
+  "open": [
+   "single",
+   "couple"
+  ],
+  "maxHouseholds": 3,
+  "pickiness": 65,
+  "color": "#0b7285",
+  "bio": {
+   "en": "Physio and civil servant. Plant people with one elderly cat. Looking for a long-term home with a terrace.",
+   "es": "Fisio y funcionaria. Nos encantan las plantas y tenemos un gato mayor. Buscamos una casa para muchos años, con terraza."
+  }
+ },
+ {
+  "id": "andres",
+  "name": "Andrés",
+  "household": "singleParent",
+  "adults": 1,
+  "kids": 2,
+  "bedrooms": 2,
+  "privateBath": false,
+  "cars": 1,
+  "pets": [],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "outside",
+  "sleep": 2,
+  "tidy": 3,
+  "social": 2,
+  "guests": 2,
+  "meals": 2,
+  "wfh": false,
+  "horizon": "5-9",
+  "areas": [
+   "south",
+   "east",
+   "city"
+  ],
+  "types": [
+   "flat",
+   "house"
+  ],
+  "needs": {
+   "parking": "must",
+   "garden": "nice",
+   "schools": "nice"
+  },
+  "open": [
+   "single",
+   "couple",
+   "family",
+   "singleParent"
+  ],
+  "maxHouseholds": 3,
+  "pickiness": 60,
+  "color": "#a61e4d",
+  "bio": {
+   "en": "Logistics manager. My two kids stay every other weekend, so I need a second bedroom and some outdoor space.",
+   "es": "Responsable de logística. Mis dos hijos están conmigo fines de semana alternos, así que necesito un segundo dormitorio y algo de espacio exterior."
+  }
+ },
+ {
+  "id": "irene",
+  "name": "Irene",
+  "household": "single",
+  "adults": 1,
+  "kids": 0,
+  "bedrooms": 1,
+  "privateBath": false,
+  "cars": 0,
+  "pets": [
+   "dog"
+  ],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "outside",
+  "sleep": 3,
+  "tidy": 3,
+  "social": 4,
+  "guests": 3,
+  "meals": 5,
+  "wfh": true,
+  "horizon": "5-9",
+  "areas": [
+   "city",
+   "north",
+   "east"
+  ],
+  "types": [
+   "flat",
+   "house"
+  ],
+  "needs": {
+   "transport": "must",
+   "garden": "nice"
+  },
+  "open": [
+   "single",
+   "couple",
+   "family",
+   "singleParent"
+  ],
+  "maxHouseholds": 4,
+  "pickiness": 58,
+  "color": "#364fc7",
+  "bio": {
+   "en": "Freelance illustrator with a small, calm dog called Lola. I will cook paella for the whole house.",
+   "es": "Ilustradora autónoma, con una perrita pequeña y tranquila que se llama Lola. Haré paella para toda la casa."
+  }
+ },
+ {
+  "id": "elena",
+  "name": "Elena & Javier",
+  "household": "family",
+  "adults": 2,
+  "kids": 1,
+  "bedrooms": 2,
+  "privateBath": true,
+  "cars": 2,
+  "pets": [],
+  "acceptsPets": false,
+  "smoking": "no",
+  "acceptsSmoking": "none",
+  "sleep": 1,
+  "tidy": 4,
+  "social": 2,
+  "guests": 2,
+  "meals": 2,
+  "wfh": true,
+  "horizon": "10+",
+  "areas": [
+   "north",
+   "east"
+  ],
+  "types": [
+   "house"
+  ],
+  "needs": {
+   "parking": "must",
+   "garden": "must",
+   "schools": "nice",
+   "pool": "nice",
+   "stepfree": "nice"
+  },
+  "open": [
+   "family",
+   "couple",
+   "singleParent"
+  ],
+  "maxHouseholds": 2,
+  "pickiness": 66,
+  "color": "#087f5b",
+  "bio": {
+   "en": "New parents. We want a chalet with a garden and room for two cars. Up early, in bed early.",
+   "es": "Acabamos de ser padres. Queremos un chalet con jardín y sitio para dos coches. Madrugamos y nos acostamos temprano."
+  }
+ },
+ {
+  "id": "nuria",
+  "name": "Nuria",
+  "household": "single",
+  "adults": 1,
+  "kids": 0,
+  "bedrooms": 1,
+  "privateBath": true,
+  "cars": 0,
+  "pets": [],
+  "acceptsPets": true,
+  "smoking": "no",
+  "acceptsSmoking": "none",
+  "sleep": 1,
+  "tidy": 5,
+  "social": 1,
+  "guests": 1,
+  "meals": 2,
+  "wfh": false,
+  "horizon": "10+",
+  "areas": [
+   "centre",
+   "city"
+  ],
+  "types": [
+   "flat"
+  ],
+  "needs": {
+   "lift": "must",
+   "stepfree": "must",
+   "transport": "must",
+   "quiet": "must"
+  },
+  "open": [
+   "single",
+   "couple"
+  ],
+  "maxHouseholds": 3,
+  "pickiness": 75,
+  "color": "#9c36b5",
+  "bio": {
+   "en": "Former teacher. Early riser, reading, choir on Thursdays. Looking for calm, considerate housemates for the long run.",
+   "es": "Maestra jubilada. Madrugo, leo y canto en un coro los jueves. Busco gente tranquila y considerada con quien convivir muchos años."
+  }
+ },
+ {
+  "id": "karim",
+  "name": "Karim",
+  "household": "single",
+  "adults": 1,
+  "kids": 0,
+  "bedrooms": 1,
+  "privateBath": false,
+  "cars": 1,
+  "pets": [],
+  "acceptsPets": true,
+  "smoking": "outside",
+  "acceptsSmoking": "outside",
+  "sleep": 3,
+  "tidy": 4,
+  "social": 3,
+  "guests": 2,
+  "meals": 3,
+  "wfh": false,
+  "horizon": "5-9",
+  "areas": [
+   "south",
+   "east",
+   "city"
+  ],
+  "types": [
+   "flat",
+   "house"
+  ],
+  "needs": {
+   "parking": "must",
+   "storage": "nice"
+  },
+  "open": [
+   "single",
+   "couple",
+   "family",
+   "singleParent"
+  ],
+  "maxHouseholds": 4,
+  "pickiness": 58,
+  "color": "#495057",
+  "bio": {
+   "en": "Electrician, happy to fix things around the house. I smoke, outside only. Weekend mountain biker, so bike storage is a plus.",
+   "es": "Electricista: encantado de arreglar cosas de la casa. Fumo, solo fuera. Bici de montaña los fines de semana, así que un sitio para guardarla es un plus."
+  }
+ }
+]

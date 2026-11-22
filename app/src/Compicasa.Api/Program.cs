@@ -1,0 +1,117 @@
+using System.Threading.RateLimiting;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Compicasa.Api;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(args);
+var cfg = builder.Configuration;
+
+// Database: SQLite on a developer's machine and in tests; Azure SQL in Azure, signed in with the app's
+// managed identity (connection string "Authentication=Active Directory Default"), so no password exists.
+var provider = cfg["Database:Provider"] ?? "Sqlite";
+var conn = cfg.GetConnectionString("Db") ?? "Data Source=compicasa.db";
+builder.Services.AddDbContext<AppDb>(o =>
+{
+    if (provider == "SqlServer") o.UseSqlServer(conn, s => s.EnableRetryOnFailure(6, TimeSpan.FromSeconds(10), null));
+    else o.UseSqlite(conn);
+});
+
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<DemoData>();
+if (cfg.GetValue("Demo:RefreshDaily", true)) builder.Services.AddHostedService<DemoRefreshWorker>();
+
+builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(o =>
+{
+    o.Cookie.Name = "compicasa";
+    o.Cookie.HttpOnly = true;
+    o.Cookie.SameSite = SameSiteMode.Strict;
+    o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    o.ExpireTimeSpan = TimeSpan.FromDays(14);
+    o.SlidingExpiration = true;
+    // An API answers 401/403; it doesn't redirect to a log-in page.
+    o.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
+    o.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = 403; return Task.CompletedTask; };
+});
+builder.Services.AddAuthorization();
+
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = 429;
+    o.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = cfg.GetValue("Auth:AttemptsPerMinute", 10), Window = TimeSpan.FromMinutes(1) }));
+});
+
+// App Service sits behind a proxy: take the client address and scheme from it.
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.KnownIPNetworks.Clear();
+    o.KnownProxies.Clear();
+});
+
+if (!string.IsNullOrEmpty(cfg["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+    builder.Services.AddOpenTelemetry().UseAzureMonitor();
+
+var app = builder.Build();
+
+app.UseForwardedHeaders();
+if (!app.Environment.IsDevelopment()) app.UseHsts();
+
+app.Use(async (ctx, next) =>
+{
+    var h = ctx.Response.Headers;
+    h["X-Content-Type-Options"] = "nosniff";
+    h["Referrer-Policy"] = "no-referrer";
+    h["X-Frame-Options"] = "DENY";
+    h["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    // Made-up data, closed PoC (D-027): keep it out of search engines.
+    h["X-Robots-Tag"] = "noindex, nofollow";
+    h["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
+    // Changing requests must carry our header: a cross-site form can't add one, so this blocks CSRF.
+    if (ctx.Request.Path.StartsWithSegments("/api") && !HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)
+        && ctx.Request.Headers[Api.CsrfHeader] != "1")
+    {
+        ctx.Response.StatusCode = 403;
+        await ctx.Response.WriteAsJsonAsync(new { error = "csrf" });
+        return;
+    }
+    await next();
+});
+
+app.UseDefaultFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var name = ctx.File.Name;
+        ctx.Context.Response.Headers.CacheControl = name is "index.html" or "sw.js" or "manifest.webmanifest" ? "no-cache" : "public, max-age=3600";
+    },
+});
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapGet("/healthz", () => Results.Text("ok"));
+app.MapGet("/healthz/ready", async (AppDb db, CancellationToken ct) =>
+    await db.Database.CanConnectAsync(ct) ? Results.Text("ready") : Results.StatusCode(503));
+Api.Map(app);
+app.MapFallbackToFile("index.html");
+
+// Create the schema, load the 14 made-up profiles and today's generated batch before taking traffic.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDb>();
+    await db.Database.EnsureCreatedAsync();
+    var demo = scope.ServiceProvider.GetRequiredService<DemoData>();
+    await demo.EnsureSeedsAsync();
+    await demo.RefreshIfDueAsync();
+}
+
+app.Run();
+
+public partial class Program;

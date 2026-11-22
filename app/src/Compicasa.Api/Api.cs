@@ -1,0 +1,245 @@
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using Compicasa.Core;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
+namespace Compicasa.Api;
+
+public sealed record SignupRequest(string? Username, string? Password, string? Name, string? InviteCode);
+public sealed record LoginRequest(string? Username, string? Password);
+public sealed record ReactionRequest(string? Kind);
+public sealed record IdsRequest(List<string>? Ids);
+public sealed record RespondRequest(bool Accept);
+public sealed record SizeRequest(int Min, int Max);
+
+public static partial class Api
+{
+    public const string CsrfHeader = "X-Compicasa";
+    static readonly PasswordHasher<Account> Hasher = new();
+
+    [GeneratedRegex("^[a-z0-9._-]{3,32}$")]
+    private static partial Regex UsernameRule();
+
+    static IResult Error(string code, int status = 400, IEnumerable<Msg>? issues = null) =>
+        Results.Json(new { error = code, issues }, statusCode: status);
+
+    static string? UserId(ClaimsPrincipal u) => u.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    static async Task<Account?> CurrentAsync(HttpContext http, AppDb db)
+    {
+        var id = UserId(http.User);
+        return id is null ? null : await db.Accounts.FirstOrDefaultAsync(a => a.Id == id && a.Kind == AccountKind.User, http.RequestAborted);
+    }
+
+    static async Task SignInAsync(HttpContext http, Account a)
+    {
+        var id = new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, a.Id), new Claim(ClaimTypes.Name, a.Username ?? "")], CookieAuthenticationDefaults.AuthenticationScheme);
+        await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id), new AuthenticationProperties { IsPersistent = true });
+    }
+
+    static object Me(Account a) => new { id = a.Id, username = a.Username, name = a.ReadProfile().Name };
+
+    public static void Map(WebApplication app)
+    {
+        var api = app.MapGroup("/api");
+        var auth = api.MapGroup("/auth").RequireRateLimiting("auth");
+
+        auth.MapPost("/signup", async (SignupRequest r, HttpContext http, AppDb db, IConfiguration cfg, TimeProvider clock) =>
+        {
+            var code = cfg["Auth:InviteCode"];
+            if (string.IsNullOrWhiteSpace(code)) return Error("signupClosed", 403);
+            if (r.InviteCode is null || !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(r.InviteCode.Trim()), Encoding.UTF8.GetBytes(code)))
+                return Error("badInvite", 403);
+            var username = (r.Username ?? "").Trim().ToLowerInvariant();
+            if (!UsernameRule().IsMatch(username)) return Error("badUsername");
+            if ((r.Password ?? "").Length < 10 || r.Password!.Length > 200) return Error("badPassword");
+            var name = (r.Name ?? "").Trim();
+            if (name.Length is < 1 or > 40) return Error("badName");
+            if (await db.Accounts.AnyAsync(a => a.Username == username)) return Error("usernameTaken", 409);
+            var a = new Account
+            {
+                Id = "u-" + Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(8)),
+                Kind = AccountKind.User,
+                Username = username,
+                CreatedAt = clock.GetUtcNow(),
+            };
+            a.PasswordHash = Hasher.HashPassword(a, r.Password);
+            a.WriteProfile(ProfileRules.Default(a.Id, name));
+            db.Accounts.Add(a);
+            await db.SaveChangesAsync();
+            await SignInAsync(http, a);
+            return Results.Ok(Me(a));
+        });
+
+        auth.MapPost("/login", async (LoginRequest r, HttpContext http, AppDb db) =>
+        {
+            var username = (r.Username ?? "").Trim().ToLowerInvariant();
+            var a = await db.Accounts.FirstOrDefaultAsync(x => x.Username == username && x.Kind == AccountKind.User);
+            if (a?.PasswordHash is null || Hasher.VerifyHashedPassword(a, a.PasswordHash, r.Password ?? "") == PasswordVerificationResult.Failed)
+                return Error("badLogin", 401);
+            await SignInAsync(http, a);
+            return Results.Ok(Me(a));
+        });
+
+        auth.MapPost("/logout", async (HttpContext http) =>
+        {
+            await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Results.NoContent();
+        });
+
+        var me = api.MapGroup("").RequireAuthorization();
+
+        me.MapGet("/me", async (HttpContext http, AppDb db) =>
+            await CurrentAsync(http, db) is { } a ? Results.Ok(Me(a)) : Results.Unauthorized());
+
+        me.MapDelete("/me", async (HttpContext http, AppDb db) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            await db.Reactions.Where(x => x.FromId == a.Id || x.ToId == a.Id).ExecuteDeleteAsync();
+            var created = await db.Groups.Where(g => g.CreatedById == a.Id).Select(g => g.Id).ToListAsync();
+            await db.GroupMembers.Where(m => created.Contains(m.GroupId) || m.AccountId == a.Id).ExecuteDeleteAsync();
+            await db.Groups.Where(g => created.Contains(g.Id)).ExecuteDeleteAsync();
+            await db.Accounts.Where(x => x.Id == a.Id).ExecuteDeleteAsync();
+            await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Results.NoContent();
+        });
+
+        me.MapGet("/profile", async (HttpContext http, AppDb db) =>
+            await CurrentAsync(http, db) is { } a ? Results.Ok(a.ReadProfile()) : Results.Unauthorized());
+
+        me.MapPut("/profile", async (Profile input, HttpContext http, AppDb db) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var (p, problem) = ProfileRules.Clean(input, a.ReadProfile());
+            if (problem is not null) return Error(problem);
+            a.WriteProfile(p!);
+            await db.SaveChangesAsync();
+            return Results.Ok(p);
+        });
+
+        me.MapGet("/matches", async (HttpContext http, AppDb db) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            return Results.Ok(Views.Matches(c));
+        });
+
+        me.MapPut("/reactions/{id}", async (string id, ReactionRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            if (id == a.Id || !await db.Accounts.AnyAsync(x => x.Id == id)) return Error("unknownPerson", 404);
+            var existing = await db.Reactions.FindAsync(a.Id, id);
+            if (r.Kind is ReactionKind.Like or ReactionKind.Pass)
+            {
+                if (existing is null) db.Reactions.Add(existing = new Reaction { FromId = a.Id, ToId = id });
+                existing.Kind = r.Kind;
+                existing.At = clock.GetUtcNow();
+            }
+            else if (r.Kind is "none") { if (existing is not null) db.Reactions.Remove(existing); }
+            else return Error("badReaction");
+            await db.SaveChangesAsync();
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            return Results.Ok(new { mutual = c.Mutual(id), isDemo = c.IsDemo(id) });
+        });
+
+        me.MapPost("/preview", async (IdsRequest r, HttpContext http, AppDb db) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            var ids = r.Ids ?? [];
+            var st = c.GroupStatus(ids);
+            if (!st.Ok) return Error("groupInvalid", 422, st.Issues);
+            return Results.Ok(Views.Home(c, ids, null));
+        });
+
+        me.MapPost("/groups", async (IdsRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            var ids = r.Ids ?? [];
+            var st = c.GroupStatus(ids);
+            if (!st.Ok) return Error("groupInvalid", 422, st.Issues);
+            var now = clock.GetUtcNow();
+            var g = new Group { Id = Guid.NewGuid(), CreatedById = a.Id, CreatedAt = now };
+            g.Members.Add(new GroupMember { AccountId = a.Id, Position = 0, Status = MemberStatus.Accepted, RespondedAt = now });
+            var everyone = new List<Profile> { c.Me };
+            everyone.AddRange(ids.Select(id => c.Get(id)!));
+            for (var i = 0; i < ids.Count; i++)
+            {
+                var m = new GroupMember { AccountId = ids[i], Position = i + 1, Status = MemberStatus.Pending };
+                if (c.IsDemo(ids[i]))
+                {
+                    // Made-up people answer at once, by their own rule, about everyone else in the group.
+                    var p = c.Get(ids[i])!;
+                    m.Status = everyone.Where(o => o.Id != p.Id).All(o => Matching.Accepts(p, o)) ? MemberStatus.Accepted : MemberStatus.Declined;
+                    m.RespondedAt = now;
+                }
+                g.Members.Add(m);
+            }
+            db.Groups.Add(g);
+            await db.SaveChangesAsync();
+            return Results.Ok(Views.Home(c, ids, g));
+        });
+
+        me.MapGet("/groups", async (HttpContext http, AppDb db) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            var groups = await db.Groups.AsNoTracking().Include(g => g.Members)
+                .Where(g => g.Members.Any(m => m.AccountId == a.Id && m.Status != MemberStatus.Left)).ToListAsync();
+            return Results.Ok(groups.OrderByDescending(g => g.CreatedAt.UtcTicks).Select(g => Views.GroupSummary(c, g)));
+        });
+
+        me.MapGet("/groups/{id:guid}", async (Guid id, HttpContext http, AppDb db) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var g = await db.Groups.AsNoTracking().Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
+            if (g is null || !g.Members.Any(m => m.AccountId == a.Id && m.Status != MemberStatus.Left)) return Error("notFound", 404);
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            return Results.Ok(Views.Home(c, Views.OthersInOrder(g, a.Id), g));
+        });
+
+        me.MapPost("/groups/{id:guid}/respond", async (Guid id, RespondRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var g = await db.Groups.Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
+            var m = g?.Members.FirstOrDefault(x => x.AccountId == a.Id);
+            if (g is null || m is null || m.Status == MemberStatus.Left) return Error("notFound", 404);
+            if (m.Status != MemberStatus.Pending) return Error("alreadyAnswered", 409);
+            m.Status = r.Accept ? MemberStatus.Accepted : MemberStatus.Declined;
+            m.RespondedAt = clock.GetUtcNow();
+            await db.SaveChangesAsync();
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            return Results.Ok(Views.Home(c, Views.OthersInOrder(g, a.Id), g));
+        });
+
+        me.MapPost("/groups/{id:guid}/leave", async (Guid id, HttpContext http, AppDb db, TimeProvider clock) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var g = await db.Groups.Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
+            var m = g?.Members.FirstOrDefault(x => x.AccountId == a.Id);
+            if (g is null || m is null) return Error("notFound", 404);
+            m.Status = MemberStatus.Left;
+            m.RespondedAt = clock.GetUtcNow();
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        });
+
+        me.MapPut("/groups/{id:guid}/size", async (Guid id, SizeRequest r, HttpContext http, AppDb db) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var g = await db.Groups.Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
+            if (g is null || !g.Members.Any(m => m.AccountId == a.Id && m.Status == MemberStatus.Accepted)) return Error("notFound", 404);
+            int lo = Math.Min(r.Min, r.Max), hi = Math.Max(r.Min, r.Max);
+            if (lo < 20 || hi > 900) return Error("badSize");
+            g.M2Min = lo; g.M2Max = hi;
+            await db.SaveChangesAsync();
+            return Results.Ok(new { min = lo, max = hi });
+        });
+    }
+}

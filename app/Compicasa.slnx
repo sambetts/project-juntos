@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Compicasa.Api/Compicasa.Api.csproj" />
+    <Project Path="src/Compicasa.Core/Compicasa.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Compicasa.Tests/Compicasa.Tests.csproj" />
+  </Folder>
+</Solution>
