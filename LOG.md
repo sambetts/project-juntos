@@ -2,6 +2,24 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 14: the sign-up error
+**Who:** Sam with GitHub Copilot CLI (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-034)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 13. Sam: "Fix production", with a screenshot: External ID's "Create account" page saying "We couldn't find an account with this email address" for his email.
+**Goals:** 1. Find why Sam's sign-up fails. 2. Fix what's ours, deploy, check live.
+**Needs Sam:** one more test sign-up, in an InPrivate window.
+**Did**
+- Read the tenant with Graph (as the tenant admin): the sign-up flow is linked to "Compicasa web", sign-up is allowed, email with password is on, and no account or deleted account exists for Sam's email.
+- Reproduced in Edge driven by Playwright with fresh profiles, on the same authorize address: example.com, an unused outlook.com address and Sam's own address all reached "Enter code" (GetCredentialType `IfExistsResult: 0`), headless and visible. Sam received the code (not used). So the tenant and the app are fine; the error comes from something in Sam's own Edge profile (Assumption: an earlier sign-in kept by that profile; not confirmed).
+- Correction to Session 13: External ID does honour `prompt=create` (Sam's screenshot and our runs both open on "Create account"). Session 13 compared the pages' raw HTML, which is the same for both because the page is built by script. The live tip told people to tap "No account? Create one", a link that page doesn't have: now it says to type the email on "Create account" and tap Next (both languages), and the comment in `Accounts.cs` and the browser check follow.
+- Deployed with `deploy.ps1 -App` (30 tests passed first); the live browser test passes 15 of 15. The Azure CLI's default was set back to the subscription.
+
+**Decided:** none. **Approvals used:** "Fix production" (Sam, 2026-11-22), recorded under F-016.
+**Learned:** External ID's sign-up and the flow work as set up (Verified, Graph and browser runs, 2026-11-22). Not found: why Sam's own profile fails; searched Microsoft Q&A (one report fixed by a private window, one about addresses used by another identity provider, not our case).
+**Open or blocked:** B-034 waits on Sam's sign-up in a clean window.
+**Saved and checked:** `git diff` reviewed for `i18n.js`, `Accounts.cs`, `e2e.mjs`, BACKLOG, STATE, FOUNDER-QUEUE; LOG saved last; commit confirmed in the closing report.
+**Next session should start with:** 1. Close B-034 after Sam's sign-up. 2. B-042. 3. B-036 messages.
+
 ## 2026-11-22 · Session 13: release-readiness review, email sign-up and onboarding
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-033, B-034), the CEO (D-034) and Legal & Compliance (draft terms and privacy texts)
 **Mode:** Build (D-023), within D-027 and D-033 · **Copy used:** canonical repository (D-022)

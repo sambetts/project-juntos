@@ -104,7 +104,7 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
     await tick('a-adult');
     await submitAndExpect(/condiciones de uso/, 'the terms box is required');
     await tick('a-terms');
-    if (external) ok(/Cree una/.test(await js(`document.getElementById('ext-tip')?.textContent||''`)), 'sign-up tells people to tap “Create one” at External ID');
+    if (external) ok(/Crear cuenta/.test(await js(`document.getElementById('ext-tip')?.textContent||''`)), 'sign-up explains External ID’s “Create account” page');
     await shot(tag + '-1b-signup-es');
     await click('#auth-form button[type=submit]');
   } else if (external) {

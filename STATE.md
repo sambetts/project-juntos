@@ -1,6 +1,6 @@
 # Current state
 
-_Last updated 2026-11-22 after Session 13 (Claude Code, Opus 5.5): release-readiness review; email sign-up through Entra External ID, the onboarding wizard and migrations are live. By the Chief of Staff. Rewrite this file at the end of every session._
+_Last updated 2026-11-22 after Session 14 (GitHub Copilot CLI, Opus 5.5): sign-up error investigated; External ID works, the live sign-up tip corrected. By the Chief of Staff. Rewrite this file at the end of every session._
 
 ## Operating mode: Build, from 2026-11-22
 Sam cleared F-001 and switched to Build mode on 2026-11-22 (D-023). Agents may build prototypes, code and unpublished drafts in this repository, using made-up data only. Nothing public, paid or sent, no one contacted and no real personal data collected without Sam (AGENTS.md sections 3 and 4). **One scoped exception (D-027):** the PoC runs in Sam's Azure subscription as if in production, closed by an invite code, with made-up people; the AI administers it through the Azure CLI. Real users, a domain, app stores or promoting it still need Sam. Pilot mode needs every gate in section 2 of `product/phase1-validation-plan.md` and Sam's dated go-ahead.
@@ -40,13 +40,15 @@ D-001 Spain only · D-002 groups, not just pairs · D-003 social side first · D
 F-002 time and budget · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes · F-014 trademark search, then the domains. Also: one test sign-up with his own email (B-034). Not a queue item, but his: who else, if anyone, gets the PoC's invite code (anyone but Sam is a real user: D-027).
 
 ## Next up (Build mode)
-1. Close B-034 once Sam has signed up once with his own email; fix anything he hits. B-045 small follow-ups.
+1. Close B-034 once Sam has signed up once with his own email (in a clean InPrivate window: his normal Edge profile shows "We couldn't find an account", a fresh one doesn't); fix anything he hits. If his normal profile keeps failing, find out why before real users arrive. B-045 small follow-ups.
 2. B-042 switch off the household dealbreaker for real accounts (before anyone but Sam signs up).
 3. B-036 messages, then B-037 notifications (ACS Email), B-038 group lifecycle, B-035 front page, B-044 demo polish: the release-readiness items, in that order.
 4. Still open from before: B-027 DPIA, B-030 GitHub Actions, B-020 pilot texts (the draft terms and privacy notice in the app are placeholders for these).
 
 ## Watch out
 - Production must sign people in through External ID only (D-034): `deploy.ps1 -App` refuses until `Auth__Mode` is External. Local password accounts are for developers and tests.
+- External ID honours `prompt=create`: sign-up opens on its "Create account" page (Verified in a fresh Edge, Session 14). Session 13's note that it was ignored was wrong.
+- Reading the External ID tenant with Graph: `az login --tenant c89b050e-… --allow-no-subscriptions` as the tenant admin, then `az account set --subscription 81209232-…` afterwards.
 - Session 12's username accounts can no longer sign in (made-up data). Signing in to the new tenant changed the Azure CLI's default account; it was set back to the subscription, but check `az account show` if a command fails with a token error. The External ID sign-in record isn't removed when someone deletes their account yet (B-039).
 - After changing the data model, add a migration (`dotnet ef migrations add <Name>` in `app/src/Compicasa.Api`); a test fails otherwise. Locally, delete `compicasa.db`.
 - The live PoC is reachable by anyone with its address; only the invite code stops sign-ups. Don't share the code beyond Sam without his decision, and never put it in the repository.
