@@ -10,8 +10,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Compicasa.Api;
 
-public sealed record SignupRequest(string? Username, string? Password, string? Name, string? InviteCode);
-public sealed record LoginRequest(string? Username, string? Password);
 public sealed record ReactionRequest(string? Kind);
 public sealed record IdsRequest(List<string>? Ids);
 public sealed record RespondRequest(bool Accept);
@@ -20,11 +18,6 @@ public sealed record SizeRequest(int Min, int Max);
 public static partial class Api
 {
     public const string CsrfHeader = "X-Compicasa";
-    static readonly PasswordHasher<Account> Hasher = new();
-
-    [GeneratedRegex("^[a-z0-9._-]{3,32}$")]
-    private static partial Regex UsernameRule();
-
     static IResult Error(string code, int status = 400, IEnumerable<Msg>? issues = null) =>
         Results.Json(new { error = code, issues }, statusCode: status);
 
@@ -36,66 +29,21 @@ public static partial class Api
         return id is null ? null : await db.Accounts.FirstOrDefaultAsync(a => a.Id == id && a.Kind == AccountKind.User, http.RequestAborted);
     }
 
-    static async Task SignInAsync(HttpContext http, Account a)
+    /// <summary>The signed-in person, if they've finished onboarding; otherwise the error to send.</summary>
+    static async Task<(Account? Account, IResult? Error)> OnboardedAsync(HttpContext http, AppDb db)
     {
-        var id = new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, a.Id), new Claim(ClaimTypes.Name, a.Username ?? "")], CookieAuthenticationDefaults.AuthenticationScheme);
-        await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id), new AuthenticationProperties { IsPersistent = true });
+        var a = await CurrentAsync(http, db);
+        if (a is null) return (null, Results.Unauthorized());
+        return a.OnboardedAt is null ? (null, Error("onboardingNeeded", 409)) : (a, null);
     }
-
-    static object Me(Account a) => new { id = a.Id, username = a.Username, name = a.ReadProfile().Name };
 
     public static void Map(WebApplication app)
     {
         var api = app.MapGroup("/api");
-        var auth = api.MapGroup("/auth").RequireRateLimiting("auth");
-
-        auth.MapPost("/signup", async (SignupRequest r, HttpContext http, AppDb db, IConfiguration cfg, TimeProvider clock) =>
-        {
-            var code = cfg["Auth:InviteCode"];
-            if (string.IsNullOrWhiteSpace(code)) return Error("signupClosed", 403);
-            if (r.InviteCode is null || !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(r.InviteCode.Trim()), Encoding.UTF8.GetBytes(code)))
-                return Error("badInvite", 403);
-            var username = (r.Username ?? "").Trim().ToLowerInvariant();
-            if (!UsernameRule().IsMatch(username)) return Error("badUsername");
-            if ((r.Password ?? "").Length < 10 || r.Password!.Length > 200) return Error("badPassword");
-            var name = (r.Name ?? "").Trim();
-            if (name.Length is < 1 or > 40) return Error("badName");
-            if (await db.Accounts.AnyAsync(a => a.Username == username)) return Error("usernameTaken", 409);
-            var a = new Account
-            {
-                Id = "u-" + Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(8)),
-                Kind = AccountKind.User,
-                Username = username,
-                CreatedAt = clock.GetUtcNow(),
-            };
-            a.PasswordHash = Hasher.HashPassword(a, r.Password);
-            a.WriteProfile(ProfileRules.Default(a.Id, name));
-            db.Accounts.Add(a);
-            await db.SaveChangesAsync();
-            await SignInAsync(http, a);
-            return Results.Ok(Me(a));
-        });
-
-        auth.MapPost("/login", async (LoginRequest r, HttpContext http, AppDb db) =>
-        {
-            var username = (r.Username ?? "").Trim().ToLowerInvariant();
-            var a = await db.Accounts.FirstOrDefaultAsync(x => x.Username == username && x.Kind == AccountKind.User);
-            if (a?.PasswordHash is null || Hasher.VerifyHashedPassword(a, a.PasswordHash, r.Password ?? "") == PasswordVerificationResult.Failed)
-                return Error("badLogin", 401);
-            await SignInAsync(http, a);
-            return Results.Ok(Me(a));
-        });
-
-        auth.MapPost("/logout", async (HttpContext http) =>
-        {
-            await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Results.NoContent();
-        });
-
         var me = api.MapGroup("").RequireAuthorization();
 
         me.MapGet("/me", async (HttpContext http, AppDb db) =>
-            await CurrentAsync(http, db) is { } a ? Results.Ok(Me(a)) : Results.Unauthorized());
+            await CurrentAsync(http, db) is { } a ? Results.Ok(Accounts.Me(a)) : Results.Unauthorized());
 
         me.MapDelete("/me", async (HttpContext http, AppDb db) =>
         {
@@ -107,6 +55,18 @@ public static partial class Api
             await db.Accounts.Where(x => x.Id == a.Id).ExecuteDeleteAsync();
             await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Results.NoContent();
+        });
+
+        // The end of the onboarding wizard: from now on they see matches and others can see them.
+        me.MapPost("/me/onboarded", async (HttpContext http, AppDb db, TimeProvider clock) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var p = a.ReadProfile();
+            if (p.Name.Trim().Length == 0) return Error("badName");
+            if (p.Areas.Count == 0 || p.Types.Count == 0) return Error("profileIncomplete");
+            a.OnboardedAt ??= clock.GetUtcNow();
+            await db.SaveChangesAsync();
+            return Results.Ok(Accounts.Me(a));
         });
 
         me.MapGet("/profile", async (HttpContext http, AppDb db) =>
@@ -124,15 +84,15 @@ public static partial class Api
 
         me.MapGet("/matches", async (HttpContext http, AppDb db) =>
         {
-            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             return Results.Ok(Views.Matches(c));
         });
 
         me.MapPut("/reactions/{id}", async (string id, ReactionRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
         {
-            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
-            if (id == a.Id || !await db.Accounts.AnyAsync(x => x.Id == id)) return Error("unknownPerson", 404);
+            var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
+            if (id == a.Id || !await db.Accounts.AnyAsync(x => x.Id == id && (x.Kind != AccountKind.User || x.OnboardedAt != null))) return Error("unknownPerson", 404);
             var existing = await db.Reactions.FindAsync(a.Id, id);
             if (r.Kind is ReactionKind.Like or ReactionKind.Pass)
             {
@@ -149,7 +109,7 @@ public static partial class Api
 
         me.MapPost("/preview", async (IdsRequest r, HttpContext http, AppDb db) =>
         {
-            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             var ids = r.Ids ?? [];
             var st = c.GroupStatus(ids);
@@ -159,7 +119,7 @@ public static partial class Api
 
         me.MapPost("/groups", async (IdsRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
         {
-            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             var ids = r.Ids ?? [];
             var st = c.GroupStatus(ids);

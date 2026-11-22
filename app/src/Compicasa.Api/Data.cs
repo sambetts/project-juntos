@@ -18,13 +18,27 @@ public sealed class Account
 {
     public string Id { get; set; } = "";
     public string Kind { get; set; } = AccountKind.User;
-    /// <summary>Lower-case log-in name; null for made-up profiles.</summary>
+    /// <summary>Session 12's log-in name; no longer used for new accounts (D-033). Null for made-up profiles.</summary>
     public string? Username { get; set; }
+    /// <summary>Lower-case email address, used to sign in. Null for made-up profiles.</summary>
+    public string? Email { get; set; }
+    /// <summary>The person's object ID in the Entra External ID tenant, if they sign in there (D-033).</summary>
+    public string? ExternalId { get; set; }
+    /// <summary>Only for local accounts (developers and tests); External ID keeps its own.</summary>
     public string? PasswordHash { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+    /// <summary>When the person confirmed they are 18 or over.</summary>
+    public DateTimeOffset? AdultConfirmedAt { get; set; }
+    /// <summary>Which version of the terms and privacy notice they accepted, and when.</summary>
+    public string? TermsVersion { get; set; }
+    public DateTimeOffset? TermsAcceptedAt { get; set; }
+    /// <summary>When they finished the onboarding wizard. Until then nobody else sees them, and they see no one.</summary>
+    public DateTimeOffset? OnboardedAt { get; set; }
     public string ProfileJson { get; set; } = "{}";
 
     public bool IsDemo => Kind != AccountKind.User;
+    /// <summary>Visible to other people: made-up profiles always; real people once onboarded.</summary>
+    public bool IsListed => IsDemo || OnboardedAt is not null;
 
     public Profile ReadProfile()
     {
@@ -103,9 +117,15 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
             e.Property(x => x.Kind).HasMaxLength(12);
             e.Property(x => x.Username).HasMaxLength(32);
             e.HasIndex(x => x.Username).IsUnique();
+            e.Property(x => x.Email).HasMaxLength(254);
+            e.HasIndex(x => x.Email).IsUnique();
+            e.Property(x => x.ExternalId).HasMaxLength(64);
+            e.HasIndex(x => x.ExternalId).IsUnique();
+            e.Property(x => x.TermsVersion).HasMaxLength(32);
             e.HasIndex(x => x.Kind);
             e.Property(x => x.PasswordHash).HasMaxLength(200);
             e.Ignore(x => x.IsDemo);
+            e.Ignore(x => x.IsListed);
         });
         b.Entity<Reaction>(e =>
         {

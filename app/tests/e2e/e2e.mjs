@@ -2,6 +2,9 @@
 // it drives the browser through the DevTools protocol using Node's built-in WebSocket.
 // Usage: node app/tests/e2e/e2e.mjs <base-url> <invite-code> [screenshot-dir]
 // Runs at phone size (390 x 844) and desktop size, in Spanish and English. Exit code 1 if any check fails.
+// With local accounts (a developer's machine) it runs the whole journey: sign-up, onboarding wizard, matches, groups.
+// With Entra External ID (the live site, D-033) it checks the sign-up checks and the hand-over to External ID,
+// because signing up there needs a real inbox; the rest of the journey is covered by the local run.
 import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync, existsSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -41,7 +44,7 @@ ws.addEventListener('message', ev => {
   const m = JSON.parse(ev.data);
   if (m.id && waiting.has(m.id)) { waiting.get(m.id)(m); waiting.delete(m.id); }
   if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.text + ' ' + (m.params.exceptionDetails.exception?.description || ''));
-  if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error' && !/favicon|status of 40[13]/.test(m.params.entry.text + m.params.entry.url)) errors.push(m.params.entry.text);
+  if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error' && !/favicon|status of 40[013]/.test(m.params.entry.text + m.params.entry.url)) errors.push(m.params.entry.text);
 });
 const send = (method, params = {}) => new Promise(r => { const id = ++seq; waiting.set(id, r); ws.send(JSON.stringify({ id, method, params })); });
 const js = async expr => { const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); if (r.result?.exceptionDetails) throw new Error(expr + ': ' + r.result.exceptionDetails.text); return r.result?.result?.value; };
@@ -61,12 +64,23 @@ await send('Runtime.enable'); await send('Log.enable'); await send('Page.enable'
 const EN_ONLY = /\b(Sign in|Your profile|Matches|Like|Pass|households|Proof of concept)\b/;
 const ES_ONLY = /\b(Entrar|Tu perfil|Personas afines|Me interesa|Pasar|hogares|Prueba de concepto)\b/;
 
-const user = 'e2e' + Date.now().toString(36);
+const user = 'e2e.' + Date.now().toString(36) + '@example.com';
+const config = await (await fetch(base + '/api/config')).json();
+const external = config.auth === 'external';
+const fill = (id, v) => js(`(()=>{const el=document.getElementById(${JSON.stringify(id)});el.value=${JSON.stringify(v)};el.dispatchEvent(new Event('input',{bubbles:true}));return true;})()`);
+const tick = id => js(`(()=>{const el=document.getElementById(${JSON.stringify(id)});el.checked=true;return true;})()`);
+const authError = () => js(`document.getElementById('auth-error')?.textContent||''`);
+async function submitAndExpect(re, label) {
+  await js(`document.getElementById('auth-error').textContent=''`);
+  await click('#auth-form button[type=submit]');
+  await until(`document.getElementById('auth-error')?.textContent.length>0`, label);
+  ok(re.test(await authError()), label + ' (in Spanish): ' + await authError());
+}
 for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false, 'desktop']]) {
   await size(w, h, mobile);
   await send('Network.clearBrowserCookies');
   await send('Page.navigate', { url: base + '/' });
-  await until(`!!document.querySelector('#auth-form')`, tag + ' sign-in form');
+  await until(`!!document.querySelector('[data-action="auth-mode"]')`, tag + ' sign-in screen');
   ok(await js('document.documentElement.lang') === 'es', tag + ': opens in Spanish');
   ok(!EN_ONLY.test(await text()), tag + ': no English on the Spanish sign-in screen');
   ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), tag + ': no sideways scrolling on sign-in');
@@ -74,25 +88,59 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
 
   // Sign up (phone) or sign in (desktop, same account).
   const signup = tag === 'phone';
-  if (signup) { await click('[data-action="auth-mode"][data-id="signup"]'); await until(`!!document.querySelector('#a-invite')`, 'sign-up form'); }
-  const fill = (id, v) => js(`(()=>{const el=document.getElementById(${JSON.stringify(id)});el.value=${JSON.stringify(v)};return true;})()`);
-  await fill('a-user', user); await fill('a-pass', 'e2e-long-password');
   if (signup) {
-    await fill('a-name', 'Prueba'); await fill('a-invite', 'wrong-code');
+    await click('[data-action="auth-mode"][data-id="signup"]');
+    await until(`!!document.querySelector('#a-terms')`, 'sign-up form');
+    if (!external) {
+      await fill('a-email', user); await fill('a-pass', 'e2e long password 2026'); await fill('a-name', 'Prueba');
+      ok(await js(`+document.getElementById('pw-meter').getAttribute('data-level')`) >= 2, 'password meter rates a long phrase');
+    }
+    if (config.invite) {
+      await fill('a-invite', 'wrong-code');
+      await submitAndExpect(/invitación/, 'wrong invite shows an error');
+      await fill('a-invite', invite);
+    }
+    await submitAndExpect(/18 años/, 'the 18+ box is required');
+    await tick('a-adult');
+    await submitAndExpect(/condiciones de uso/, 'the terms box is required');
+    await tick('a-terms');
+    await shot(tag + '-1b-signup-es');
     await click('#auth-form button[type=submit]');
-    await until(`document.getElementById('auth-error')?.textContent.length>0`, 'wrong invite shows an error');
-    ok(/invitación/.test(await js(`document.getElementById('auth-error').textContent`)), 'wrong invite error is in Spanish');
-    await fill('a-invite', invite);
+  } else if (external) {
+    await click('[data-action="ext-signin"]');
+  } else {
+    await fill('a-email', user); await fill('a-pass', 'e2e long password 2026');
+    await click('#auth-form button[type=submit]');
   }
-  await click('#auth-form button[type=submit]');
-  await until(`!!document.querySelector('#tabs [data-tab]')`, tag + ' signed in');
+
+  if (external) {
+    // The hand-over: the browser should now be at Entra External ID's sign-in page.
+    await until(`/ciamlogin\.com$/.test(location.hostname)`, tag + ' hands over to Entra External ID', 30000);
+    await shot(tag + '-2-external-id');
+    continue;
+  }
 
   if (signup) {
-    // Profile: load the room example; it saves itself.
-    await until(`!!document.querySelector('[data-action="preset"][data-id="room"]')`, 'profile view');
+    // The onboarding wizard: eight steps, matches locked until the end.
+    await until(`!!document.querySelector('.wizard')`, 'onboarding wizard starts');
+    ok(await js(`!document.querySelector('#tabs [data-tab]')`), 'no tabs until onboarding is done');
+    ok(/Paso 1 de 8/.test(await text()), 'wizard shows its progress');
+    ok(await js(`document.getElementById('f-name').value`) === 'Prueba', 'wizard starts from the name given at sign-up');
+    await shot(tag + '-2-wizard-1-es');
+    await click('[data-action="wiz-next"]');
+    await until(`/Paso 2 de 8/.test(document.body.innerText)`, 'wizard step 2');
     await click('[data-action="preset"][data-id="room"]');
-    await until(`document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'profile saved');
-    await shot(tag + '-2-profile-es');
+    await until(`document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'example saved');
+    ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), 'no sideways scrolling in the wizard');
+    for (let n = 3; n <= 8; n++) {
+      await click('[data-action="wiz-next"]');
+      await until(`/Paso ${n} de 8/.test(document.body.innerText)`, 'wizard step ' + n);
+    }
+    await shot(tag + '-2-wizard-8-es');
+    await click('[data-action="wiz-finish"]');
+    await until(`!!document.querySelector('#tabs [data-tab]')`, tag + ' onboarding finished');
+  } else {
+    await until(`!!document.querySelector('#tabs [data-tab]')`, tag + ' signed in');
   }
 
   // Matches
@@ -137,6 +185,13 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   await click('#lang-switch');
 }
 
+// The draft legal pages open from the footer, signed in or not.
+await send('Page.navigate', { url: base + '/#privacy' });
+await until(`!!document.querySelector('.legal')`, 'privacy notice opens');
+ok(/Borrador/.test(await text()) && /aepd\.es/.test(await text()), 'privacy notice is a marked draft, in Spanish');
+await click('[data-action="legal-back"]');
+await until(`!document.querySelector('.legal')`, 'back from the privacy notice');
+
 // Install basics for phones: manifest, icons and service worker.
 const man = await (await fetch(base + '/manifest.webmanifest')).json();
 ok(man.display === 'standalone' && man.icons.some(i => i.sizes === '512x512'), 'installable manifest');
@@ -144,7 +199,7 @@ ok((await fetch(base + '/icons/apple-touch-icon.png')).ok, 'iOS icon served');
 ok(await js(`navigator.serviceWorker.getRegistration().then(r=>!!r)`), 'service worker registered');
 
 // Tidy up: delete the test account through the API, as a user would.
-await js(`window.__compicasa.api('DELETE','/api/me').then(()=>true)`);
+if (!external) await js(`window.__compicasa.api('DELETE','/api/me').then(()=>true)`);
 
 ok(errors.length === 0, 'no script errors: ' + errors.join(' | '));
 console.log(`e2e: ${pass} passed, ${fail} failed`);

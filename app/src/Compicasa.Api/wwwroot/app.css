@@ -153,3 +153,26 @@ textarea{resize:vertical}
 .actionbar .wrap{flex-wrap:wrap;padding-block-end:max(12px,env(safe-area-inset-bottom))}
 header.top .wrap{padding-block-start:max(14px,env(safe-area-inset-top))}
 @media (max-width:640px){.actionbar .btn{padding:9px 12px}.wrap{padding-inline:16px}}
+/* Session 13 (B-034): sign-up checks, password field, onboarding wizard, legal pages */
+input[type=email],input[type=text]{inline-size:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);font:inherit;color:inherit}
+.pw{display:flex;gap:8px;align-items:center}
+.pw input{flex:1;min-inline-size:0}
+.auth form .pw .btn{inline-size:auto;flex:none}
+.meter{block-size:6px;border-radius:999px;background:var(--ring-track);margin-block:8px 4px;overflow:hidden}
+.meter span{display:block;block-size:100%;inline-size:0;border-radius:inherit;transition:inline-size .2s}
+.meter[data-level="0"] span{inline-size:8%;background:var(--warn)}
+.meter[data-level="1"] span{inline-size:35%;background:var(--warn)}
+.meter[data-level="2"] span{inline-size:68%;background:var(--teal)}
+.meter[data-level="3"] span{inline-size:100%;background:var(--good)}
+.consent{display:grid;gap:10px}
+.check{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.check input{accent-color:var(--brand);inline-size:20px;block-size:20px;margin:1px 0 0;flex:none}
+.check a,footer.note a{color:var(--brand)}
+.btn.wide{inline-size:100%}
+.wizard{max-inline-size:720px;margin-inline:auto}
+.progress{block-size:8px;border-radius:999px;background:var(--ring-track);overflow:hidden;margin-block:6px 18px}
+.progress span{display:block;block-size:100%;background:var(--brand);border-radius:inherit}
+.wizard .facts{margin-block-start:8px}
+.legal{max-inline-size:760px;margin-inline:auto}
+.legal ol{padding-inline-start:20px;display:grid;gap:10px}
+footer.note p{margin:0 0 6px}

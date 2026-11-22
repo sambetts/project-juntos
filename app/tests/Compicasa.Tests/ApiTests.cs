@@ -33,6 +33,17 @@ public sealed class AppFactory : WebApplicationFactory<Program>
         return c;
     }
 
+    /// <summary>Signs up with email and password (local mode), the 18+ box and today's terms; then finishes onboarding unless told not to.</summary>
+    public static async Task<string> SignUpAsync(HttpClient c, string email, string name = "Tester", bool onboard = true)
+    {
+        var r = await c.PostAsJsonAsync("/api/auth/signup", new { email, password = "a-long-password", name, inviteCode = Invite, adult = true, terms = Legal.TermsVersion });
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        var me = await r.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(me.GetProperty("onboarded").GetBoolean());
+        if (onboard) Assert.Equal(HttpStatusCode.OK, (await c.PostAsync("/api/me/onboarded", null)).StatusCode);
+        return me.GetProperty("id").GetString()!;
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -47,16 +58,16 @@ public class ApiTests : IClassFixture<AppFactory>
     public ApiTests(AppFactory app) => _app = app;
 
     static int _n;
-    static string NewName() => $"tester{Interlocked.Increment(ref _n)}{Guid.NewGuid().ToString("N")[..6]}";
+    static string NewEmail() => $"tester{Interlocked.Increment(ref _n)}.{Guid.NewGuid().ToString("N")[..6]}@example.com";
 
-    async Task<(HttpClient C, string Id)> SignUpAsync(string? name = null)
+    async Task<(HttpClient C, string Id)> SignUpAsync(string? name = null, bool onboard = true)
     {
         var c = _app.Browser();
-        var r = await c.PostAsJsonAsync("/api/auth/signup", new { username = NewName(), password = "a-long-password", name = name ?? "Tester", inviteCode = AppFactory.Invite });
-        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
-        var me = await r.Content.ReadFromJsonAsync<JsonElement>();
-        return (c, me.GetProperty("id").GetString()!);
+        return (c, await AppFactory.SignUpAsync(c, NewEmail(), name ?? "Tester", onboard));
     }
+
+    static object Signup(string email, string password = "a-long-password", string invite = AppFactory.Invite, bool adult = true, string? terms = null) =>
+        new { email, password, name = "X", inviteCode = invite, adult, terms = terms ?? Legal.TermsVersion };
 
     /// <summary>The prototype's "room" example: one room, open to anyone, transport a must.</summary>
     static object RoomProfile(string name) => new
@@ -76,30 +87,73 @@ public class ApiTests : IClassFixture<AppFactory>
     }
 
     [Fact]
-    public async Task Sign_up_needs_the_invite_code_and_a_sound_password()
+    public async Task Sign_up_needs_the_invite_code_a_sound_password_18_plus_and_the_terms()
     {
         var c = _app.Browser();
-        var bad = await c.PostAsJsonAsync("/api/auth/signup", new { username = NewName(), password = "a-long-password", name = "X", inviteCode = "wrong" });
-        Assert.Equal(HttpStatusCode.Forbidden, bad.StatusCode);
-        var shortPw = await c.PostAsJsonAsync("/api/auth/signup", new { username = NewName(), password = "short", name = "X", inviteCode = AppFactory.Invite });
-        Assert.Equal(HttpStatusCode.BadRequest, shortPw.StatusCode);
-        var badUser = await c.PostAsJsonAsync("/api/auth/signup", new { username = "No Spaces!", password = "a-long-password", name = "X", inviteCode = AppFactory.Invite });
-        Assert.Equal(HttpStatusCode.BadRequest, badUser.StatusCode);
+        async Task<string> Code(object body)
+        {
+            var r = await c.PostAsJsonAsync("/api/auth/signup", body);
+            return (await r.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("error").GetString()!;
+        }
+        Assert.Equal("badInvite", await Code(Signup(NewEmail(), invite: "wrong")));
+        Assert.Equal("badPassword", await Code(Signup(NewEmail(), password: "short")));
+        Assert.Equal("badEmail", await Code(Signup("not-an-email")));
+        Assert.Equal("needAdult", await Code(Signup(NewEmail(), adult: false)));
+        Assert.Equal("needTerms", await Code(Signup(NewEmail(), terms: "an-old-version")));
+        var e = NewEmail();
+        Assert.Equal(HttpStatusCode.OK, (await _app.Browser().PostAsJsonAsync("/api/auth/signup", Signup(e))).StatusCode);
+        Assert.Equal("emailTaken", await Code(Signup(e.ToUpperInvariant())));
+        // What they agreed to, and when, is kept with the account.
+        using var scope = _app.Services.CreateScope();
+        var acc = scope.ServiceProvider.GetRequiredService<AppDb>().Accounts.Single(a => a.Email == e);
+        Assert.Equal(Legal.TermsVersion, acc.TermsVersion);
+        Assert.NotNull(acc.TermsAcceptedAt);
+        Assert.NotNull(acc.AdultConfirmedAt);
+    }
+
+    [Fact]
+    public async Task Until_onboarding_is_finished_you_see_no_one_and_no_one_sees_you()
+    {
+        var (fresh, freshId) = await SignUpAsync("Nueva", onboard: false);
+        Assert.Equal(HttpStatusCode.Conflict, (await fresh.GetAsync("/api/matches")).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await fresh.PutAsJsonAsync("/api/reactions/marta", new { kind = "like" })).StatusCode);
+        var (other, _) = await SignUpAsync("Otra");
+        var m = await other.GetFromJsonAsync<JsonElement>("/api/matches");
+        Assert.False(m.GetProperty("people").TryGetProperty(freshId, out _));
+        Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsJsonAsync($"/api/reactions/{freshId}", new { kind = "like" })).StatusCode);
+        // An empty area list can't finish onboarding.
+        var noAreas = ToDict(RoomProfile("Nueva")); noAreas["areas"] = Array.Empty<string>();
+        Assert.Equal(HttpStatusCode.OK, (await fresh.PutAsJsonAsync("/api/profile", noAreas)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await fresh.PostAsync("/api/me/onboarded", null)).StatusCode);
+        await fresh.PutAsJsonAsync("/api/profile", RoomProfile("Nueva"));
+        var me = await (await fresh.PostAsync("/api/me/onboarded", null)).Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(me.GetProperty("onboarded").GetBoolean());
+        m = await other.GetFromJsonAsync<JsonElement>("/api/matches");
+        Assert.True(m.GetProperty("people").TryGetProperty(freshId, out _));
+    }
+
+    [Fact]
+    public async Task Config_tells_the_front_end_how_to_sign_in()
+    {
+        var cfg = await _app.Browser().GetFromJsonAsync<JsonElement>("/api/config");
+        Assert.Equal("local", cfg.GetProperty("auth").GetString());
+        Assert.True(cfg.GetProperty("invite").GetBoolean());
+        Assert.Equal(Legal.TermsVersion, cfg.GetProperty("terms").GetString());
     }
 
     [Fact]
     public async Task Log_in_log_out_and_wrong_password()
     {
-        var c = _app.Browser(); var u = NewName();
-        await c.PostAsJsonAsync("/api/auth/signup", new { username = u, password = "a-long-password", name = "Ana", inviteCode = AppFactory.Invite });
+        var c = _app.Browser(); var u = NewEmail();
+        await AppFactory.SignUpAsync(c, u, "Ana");
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/api/me")).StatusCode);
         await c.PostAsync("/api/auth/logout", null);
         Assert.Equal(HttpStatusCode.Unauthorized, (await c.GetAsync("/api/me")).StatusCode);
-        Assert.Equal(HttpStatusCode.Unauthorized, (await c.PostAsJsonAsync("/api/auth/login", new { username = u, password = "wrong-password" })).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await c.PostAsJsonAsync("/api/auth/login", new { username = u.ToUpperInvariant(), password = "a-long-password" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await c.PostAsJsonAsync("/api/auth/login", new { email = u, password = "wrong-password" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await c.PostAsJsonAsync("/api/auth/login", new { email = " " + u.ToUpperInvariant(), password = "a-long-password" })).StatusCode);
         // Passwords are stored hashed, never as typed.
         using var scope = _app.Services.CreateScope();
-        var acc = scope.ServiceProvider.GetRequiredService<AppDb>().Accounts.Single(a => a.Username == u);
+        var acc = scope.ServiceProvider.GetRequiredService<AppDb>().Accounts.Single(a => a.Email == u);
         Assert.DoesNotContain("a-long-password", acc.PasswordHash);
     }
 
@@ -258,7 +312,7 @@ public class DemoRefreshTests
     {
         using var app = new AppFactory();
         var c = app.Browser();
-        await c.PostAsJsonAsync("/api/auth/signup", new { username = "refresh1", password = "a-long-password", name = "R", inviteCode = AppFactory.Invite });
+        await AppFactory.SignUpAsync(c, "refresh1@example.com", "R");
         int Count(string prefix) { using var s = app.Services.CreateScope(); return s.ServiceProvider.GetRequiredService<AppDb>().Accounts.Count(a => a.Id.StartsWith(prefix)); }
         Assert.Equal(DemoGenerator.BatchSize, Count("gen-20261122-"));
         Assert.Equal(14, Count("") - Count("gen-") - Count("u-"));

@@ -1,7 +1,6 @@
 using System.Threading.RateLimiting;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Compicasa.Api;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,18 +23,7 @@ if (cfg.GetValue("Demo:RefreshDaily", true)) builder.Services.AddHostedService<D
 
 builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(o =>
-{
-    o.Cookie.Name = "compicasa";
-    o.Cookie.HttpOnly = true;
-    o.Cookie.SameSite = SameSiteMode.Strict;
-    o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    o.ExpireTimeSpan = TimeSpan.FromDays(14);
-    o.SlidingExpiration = true;
-    // An API answers 401/403; it doesn't redirect to a log-in page.
-    o.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
-    o.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = 403; return Task.CompletedTask; };
-});
+Accounts.AddAuthentication(builder);
 builder.Services.AddAuthorization();
 
 builder.Services.AddRateLimiter(o =>
@@ -99,14 +87,15 @@ app.UseAuthorization();
 app.MapGet("/healthz", () => Results.Text("ok"));
 app.MapGet("/healthz/ready", async (AppDb db, CancellationToken ct) =>
     await db.Database.CanConnectAsync(ct) ? Results.Text("ready") : Results.StatusCode(503));
+Accounts.Map(app);
 Api.Map(app);
 app.MapFallbackToFile("index.html");
 
-// Create the schema, load the 14 made-up profiles and today's generated batch before taking traffic.
+// Create or migrate the schema (D-034), load the 14 made-up profiles and today's generated batch before taking traffic.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDb>();
-    await db.Database.EnsureCreatedAsync();
+    await Schema.PrepareAsync(db, app.Logger);
     var demo = scope.ServiceProvider.GetRequiredService<DemoData>();
     await demo.EnsureSeedsAsync();
     await demo.RefreshIfDueAsync();

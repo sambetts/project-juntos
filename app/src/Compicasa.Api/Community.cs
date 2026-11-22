@@ -18,7 +18,8 @@ public sealed class Community
 
     public static async Task<Community> LoadAsync(AppDb db, Account viewer, CancellationToken ct)
     {
-        var accounts = await db.Accounts.AsNoTracking().Where(a => a.Id != viewer.Id).ToListAsync(ct);
+        // Real people who haven't finished onboarding stay out of sight.
+        var accounts = await db.Accounts.AsNoTracking().Where(a => a.Id != viewer.Id && (a.Kind != AccountKind.User || a.OnboardedAt != null)).ToListAsync(ct);
         var mine = await db.Reactions.AsNoTracking().Where(r => r.FromId == viewer.Id).ToDictionaryAsync(r => r.ToId, r => r.Kind, ct);
         var likedMe = await db.Reactions.AsNoTracking().Where(r => r.ToId == viewer.Id && r.Kind == ReactionKind.Like).Select(r => r.FromId).ToListAsync(ct);
         return new Community

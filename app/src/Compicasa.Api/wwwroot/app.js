@@ -64,7 +64,7 @@ function M(m){
 }
 
 /* ---------- state ---------- */
-const S={me:null,tab:'you',authMode:'signin',profile:null,matches:null,groups:null,home:null,draft:[],save:'',busy:false};
+const S={me:null,config:null,view:null,wiz:0,authError:'',tab:'you',authMode:'signin',profile:null,matches:null,groups:null,home:null,draft:[],save:'',busy:false};
 const app=document.getElementById('app');
 const tabsEl=document.getElementById('tabs');
 const barEl=document.querySelector('#actionbar .wrap');
@@ -138,8 +138,29 @@ const PRESETS={
 const NUM_FIELDS=['bedrooms','kids','cars','maxHouseholds','sleep','tidy','social','guests','meals'];
 
 /* ---------- views ---------- */
+function consentFields(){
+  const inv=S.config&&S.config.invite;
+  const terms=`${esc(t('termsPre'))}<a href="/#terms" target="_blank" rel="noopener">${esc(t('termsLink'))}</a>${esc(t('termsMid'))}<a href="/#privacy" target="_blank" rel="noopener">${esc(t('privacyLink'))}</a>`;
+  return `${inv?`<div class="field"><label for="a-invite">${esc(t('invite'))}</label><input id="a-invite" name="inviteCode" autocomplete="off" autocapitalize="none" spellcheck="false" required><p class="hint">${esc(t('inviteHint'))}</p></div>`:''}
+<div class="field consent"><label class="check"><input type="checkbox" id="a-adult" name="adult" required><span>${esc(t('adultLabel'))}</span></label>
+<label class="check"><input type="checkbox" id="a-terms" name="terms" required><span>${terms}</span></label></div>`;
+}
+function passwordField(up){
+  return `<div class="field"><label for="a-pass">${esc(t('password'))}</label><div class="pw"><input id="a-pass" name="password" type="password" autocomplete="${up?'new-password':'current-password'}" minlength="${up?10:1}" required><button type="button" class="btn small ghost" data-action="pw-toggle" aria-controls="a-pass" aria-pressed="false" aria-label="${esc(t('showPwAria'))}">${esc(t('showPw'))}</button></div>
+${up?`<div class="meter" id="pw-meter" data-level="0" aria-hidden="true"><span></span></div><p class="hint" id="pw-label" aria-live="polite">${esc(t('passwordHint'))}</p>`:''}</div>`;
+}
 function viewAuth(){
-  const up=S.authMode==='signup';
+  const up=S.authMode==='signup',ext=S.config&&S.config.auth==='external';
+  let body;
+  if(ext&&!up)body=`<p>${esc(t('extSignInLead'))}</p><p class="error" id="auth-error" role="alert">${esc(S.authError)}</p><button type="button" class="btn primary wide" data-action="ext-signin">${esc(t('extSignInBtn'))}</button>`;
+  else if(ext)body=`<form id="auth-form" novalidate><p>${esc(t('extSignUpLead'))}</p>${consentFields()}<p class="error" id="auth-error" role="alert">${esc(S.authError)}</p><button type="submit" class="btn primary"${S.busy?' disabled':''}>${esc(t('extContinue'))}</button></form>`;
+  else body=`<form id="auth-form" novalidate>
+<div class="field"><label for="a-email">${esc(t('email'))}</label><input id="a-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" required>${up?`<p class="hint">${esc(t('emailHint'))}</p>`:''}</div>
+${passwordField(up)}
+${up?`<div class="field"><label for="a-name">${esc(t('displayName'))}</label><input id="a-name" name="name" maxlength="40" autocomplete="nickname" required><p class="hint">${esc(t('displayNameHint'))}</p></div>${consentFields()}`:''}
+<p class="error" id="auth-error" role="alert">${esc(S.authError)}</p>
+<button type="submit" class="btn primary"${S.busy?' disabled':''}>${esc(up?t('signUp'):t('signIn'))}</button>
+</form>`;
   return `<section class="card auth">
 <h2>${esc(t('authH'))}</h2>
 <p class="lead">${esc(t('authLead'))}</p>
@@ -147,63 +168,100 @@ function viewAuth(){
 <button type="button" class="tab" role="tab" data-action="auth-mode" data-id="signin" aria-selected="${!up}">${esc(t('signIn'))}</button>
 <button type="button" class="tab" role="tab" data-action="auth-mode" data-id="signup" aria-selected="${up}">${esc(t('signUp'))}</button>
 </div>
-<form id="auth-form" novalidate>
-<div class="field"><label for="a-user">${esc(t('username'))}</label><input id="a-user" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>${up?`<p class="hint">${esc(t('usernameHint'))}</p>`:''}</div>
-<div class="field"><label for="a-pass">${esc(t('password'))}</label><input id="a-pass" name="password" type="password" autocomplete="${up?'new-password':'current-password'}" required>${up?`<p class="hint">${esc(t('passwordHint'))}</p>`:''}</div>
-${up?`<div class="field"><label for="a-name">${esc(t('displayName'))}</label><input id="a-name" name="name" maxlength="40" autocomplete="nickname" required><p class="hint">${esc(t('displayNameHint'))}</p></div>
-<div class="field"><label for="a-invite">${esc(t('invite'))}</label><input id="a-invite" name="inviteCode" autocomplete="off" autocapitalize="none" required><p class="hint">${esc(t('inviteHint'))}</p></div>`:''}
-<p class="error" id="auth-error" role="alert"></p>
-<button type="submit" class="btn primary"${S.busy?' disabled':''}>${esc(up?t('signUp'):t('signIn'))}</button>
-</form></section>`;
+${body}</section>`;
+}
+/* A rough guide, not a rule: the server only insists on 10 characters */
+function pwLevel(v){
+  if(v.length<10)return 0;
+  const kinds=[/[a-z]/,/[A-Z]/,/[0-9]/,/[^A-Za-z0-9]/].filter(r=>r.test(v)).length;
+  let n=1;if(v.length>=14)n++;if(kinds>=3||v.length>=20)n++;return n;
+}
+function updateMeter(v){
+  const m=document.getElementById('pw-meter'),l=document.getElementById('pw-label');if(!m||!l)return;
+  const lv=pwLevel(v);m.setAttribute('data-level',v?String(lv):'0');
+  l.textContent=v?t('pwMeter',[t('pwShort'),t('pwWeak'),t('pwFair'),t('pwStrong')][lv]):t('passwordHint');
 }
 
-function viewYou(){
-  const u=S.profile;if(!u)return `<p class="lead">${esc(t('loading'))}</p>`;
-  const hasKids=u.household==='family'||u.household==='singleParent';
-  const bio=u.bio?(u.bio.es||''):'';
-  return `<h2>${t('profileH')}</h2>
-<p class="lead">${t('profileLead')}</p>
-<div class="card presets"><b>${t('startFrom')}</b>${Object.keys(PRESETS).map(k=>`<button type="button" class="btn small" data-action="preset" data-id="${k}">${esc(tx(PRESETS[k].label))}</button>`).join('')}</div>
-<div class="grid cols-2 mt">
-<section class="card"><h3>${esc(t('nameLabel'))}</h3>
-<div class="field"><label for="f-name">${esc(t('nameLabel'))}</label><input id="f-name" data-field="name" maxlength="40" value="${esc(u.name)}"></div>
-<div class="field"><label for="f-bio">${esc(t('bioLabel'))}</label><textarea id="f-bio" data-field="bio" maxlength="400" rows="3">${esc(bio)}</textarea><p class="hint">${esc(t('bioHint'))}</p></div>
-</section>
-<section class="card"><h3>${t('whoBuying')}</h3>
-${radioGroup('household',loc(HOUSEHOLDS),u.household,t('yourHousehold'))}
-${hasKids?selectField('kids',t('kidsLabel'),[1,2,3,4,5],u.kids):''}
-</section>
-<section class="card"><h3>${t('privateSpace')}</h3>
-${selectField('bedrooms',t('bedroomsLabel'),[1,2,3,4],u.bedrooms)}
+function viewLegal(kind){
+  const body=t(kind+'Body');
+  return `<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>
+<section class="card legal"><h2>${esc(t(kind+'H'))}</h2>
+<p class="notice card">${esc(t('legalDraft'))}</p>
+<ol class="mt">${body.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></section>`;
+}
+
+const SECTIONS={
+  name:u=>{const bio=u.bio?(u.bio.es||''):'';return `<div class="field"><label for="f-name">${esc(t('nameLabel'))}</label><input id="f-name" data-field="name" maxlength="40" autocomplete="nickname" value="${esc(u.name)}"></div>
+<div class="field"><label for="f-bio">${esc(t('bioLabel'))}</label><textarea id="f-bio" data-field="bio" maxlength="400" rows="3">${esc(bio)}</textarea><p class="hint">${esc(t('bioHint'))}</p></div>`;},
+  household:u=>{const hasKids=u.household==='family'||u.household==='singleParent';return `${radioGroup('household',loc(HOUSEHOLDS),u.household,t('yourHousehold'))}
+${hasKids?selectField('kids',t('kidsLabel'),[1,2,3,4,5],u.kids):''}`;},
+  space:u=>`${selectField('bedrooms',t('bedroomsLabel'),[1,2,3,4],u.bedrooms)}
 ${checkField('privateBath',t('ownBath'),u.privateBath)}
 ${selectField('cars',t('parkingLabel'),[0,1,2],u.cars)}
-${checkGroup('pets',t('petsLabel'),[{id:'dog',label:t('dog')},{id:'cat',label:t('cat')}],u.pets)}
-</section>
-<section class="card"><h3>${t('howLive')}</h3>
-${SLIDERS.map(s=>slider(s,u[s.id])).join('')}
+${checkGroup('pets',t('petsLabel'),[{id:'dog',label:t('dog')},{id:'cat',label:t('cat')}],u.pets)}`,
+  live:u=>`${SLIDERS.map(x=>slider(x,u[x.id])).join('')}
 ${checkField('wfh',t('wfhLabel'),u.wfh)}
-${selectField('smoking',t('smokeQ'),[{id:'no',label:t('smokeNo')},{id:'outside',label:t('smokeOutOpt')},{id:'inside',label:t('smokeInOpt')}],u.smoking)}
-</section>
-<section class="card"><h3>${t('shareWith')}</h3>
-${checkGroup('open',t('happyShare'),loc(HOUSEHOLDS),u.open)}
+${selectField('smoking',t('smokeQ'),[{id:'no',label:t('smokeNo')},{id:'outside',label:t('smokeOutOpt')},{id:'inside',label:t('smokeInOpt')}],u.smoking)}`,
+  share:u=>`${checkGroup('open',t('happyShare'),loc(HOUSEHOLDS),u.open)}
 <p class="hint">${t('demoHousehold')}</p>
 ${selectField('maxHouseholds',t('maxHHLabel'),[{id:2,label:t('maxHH2')},{id:3,label:'3'},{id:4,label:t('maxHH4')}],u.maxHouseholds)}
 ${checkField('acceptsPets',t('okPets'),u.acceptsPets)}
-${selectField('acceptsSmoking',t('smokersQ'),[{id:'none',label:t('smokersNone')},{id:'outside',label:t('smokersOut')},{id:'any',label:t('smokersAny')}],u.acceptsSmoking)}
-</section>
-<section class="card"><h3>${t('whereHow')}</h3>
-${checkGroup('areas',t('areasLabel'),loc(AREAS),u.areas)}
+${selectField('acceptsSmoking',t('smokersQ'),[{id:'none',label:t('smokersNone')},{id:'outside',label:t('smokersOut')},{id:'any',label:t('smokersAny')}],u.acceptsSmoking)}`,
+  where:u=>`${checkGroup('areas',t('areasLabel'),loc(AREAS),u.areas)}
 ${checkGroup('types',t('typesLabel'),loc(TYPES),u.types)}
-${radioGroup('horizon',loc(HORIZONS),u.horizon,t('horizonLabel'))}
-</section>
-<section class="card"><h3>${t('needsH')}</h3>
-<p class="hint">${t('needsHint')}</p>
-<div class="feat">${FEATURES.map(f=>featBtn(f,u.needs[f.id])).join('')}</div>
-</section>
+${radioGroup('horizon',loc(HORIZONS),u.horizon,t('horizonLabel'))}`,
+  needs:u=>`<p class="hint">${t('needsHint')}</p>
+<div class="feat">${FEATURES.map(f=>featBtn(f,u.needs[f.id])).join('')}</div>`
+};
+function presetButtons(){return Object.keys(PRESETS).map(k=>`<button type="button" class="btn small" data-action="preset" data-id="${k}">${esc(tx(PRESETS[k].label))}</button>`).join('');}
+
+function viewYou(){
+  const u=S.profile;if(!u)return `<p class="lead">${esc(t('loading'))}</p>`;
+  const card=(h,id)=>`<section class="card"><h3>${h}</h3>${SECTIONS[id](u)}</section>`;
+  return `<h2>${t('profileH')}</h2>
+<p class="lead">${t('profileLead')}</p>
+<div class="card presets"><b>${t('startFrom')}</b>${presetButtons()}</div>
+<div class="grid cols-2 mt">
+${card(esc(t('nameLabel')),'name')}
+${card(t('whoBuying'),'household')}
+${card(t('privateSpace'),'space')}
+${card(t('howLive'),'live')}
+${card(t('shareWith'),'share')}
+${card(t('whereHow'),'where')}
+${card(t('needsH'),'needs')}
 <section class="card"><h3>${esc(t('account'))}</h3>
-<p>${esc(t('signedInAs',S.me.username))}</p>
+<p>${esc(t('signedInAs',S.me.email||''))}</p>
 <div class="presets"><button type="button" class="btn" data-action="logout">${esc(t('signOut'))}</button><button type="button" class="btn ghost danger" data-action="delete-account">${esc(t('deleteAccount'))}</button></div>
 </section>
+</div>`;
+}
+
+/* ---------- onboarding wizard: the same sections, one per step; matches unlock at the end ---------- */
+const WIZ=[
+  {id:'name',h:()=>t('wizNameH'),lead:()=>t('wizNameLead'),check:u=>u.name&&u.name.trim()?'':t('wizNeedName')},
+  {id:'household',h:()=>t('whoBuying'),lead:()=>t('wizHouseholdLead'),examples:true},
+  {id:'space',h:()=>t('privateSpace'),lead:()=>t('wizSpaceLead')},
+  {id:'live',h:()=>t('howLive'),lead:()=>t('wizLiveLead')},
+  {id:'share',h:()=>t('shareWith'),lead:()=>t('wizShareLead')},
+  {id:'where',h:()=>t('whereHow'),lead:()=>t('wizWhereLead'),check:u=>u.areas.length&&u.types.length?'':t('err_profileIncomplete')},
+  {id:'needs',h:()=>t('needsH'),lead:()=>t('wizNeedsLead')},
+  {id:'done',h:()=>t('wizDoneH'),lead:()=>t('wizDoneLead')}
+];
+function viewWizard(){
+  const u=S.profile;if(!u)return `<p class="lead">${esc(t('loading'))}</p>`;
+  const st=WIZ[S.wiz],n=S.wiz+1,pct=Math.round(n/WIZ.length*100);
+  let body;
+  if(st.id==='done'){
+    const facts=[hhLabel(u),t('bedroomsN',u.bedrooms),listOr(u.areas.map(areaLabel)),homeType(u.types),t('staying',horizonLabel(u.horizon))];
+    body=`<section class="card"><h3>${esc(t('wizSummary'))}</h3><p><b>${esc(u.name)}</b></p><div class="facts">${facts.map(f=>`<span class="fact">${esc(cap(f))}</span>`).join('')}</div></section>`;
+  }else body=`${st.examples?`<div class="card presets mb"><span>${esc(t('wizExamples'))}</span>${presetButtons()}</div>`:''}<section class="card">${SECTIONS[st.id](u)}</section>`;
+  return `<div class="wizard">
+<p class="hint" id="wiz-step">${esc(t('wizStep',n,WIZ.length))}</p>
+<div class="progress" role="progressbar" aria-labelledby="wiz-step" aria-valuemin="1" aria-valuemax="${WIZ.length}" aria-valuenow="${n}"><span data-w="${pct}"></span></div>
+<h2>${esc(st.h())}</h2>
+<p class="lead">${esc(st.lead())}</p>
+${body}
+<p class="error" id="wiz-error" role="alert"></p>
 </div>`;
 }
 
@@ -346,13 +404,18 @@ function renderChrome(){
   document.title=t('title');
   const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
   set('brandname',BRAND);set('brandmark',BRAND.charAt(0));
-  set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));set('badge',t('badge'));set('footnote',t('footnote'));
-  const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('steps'));nav.hidden=!S.me;}
+  set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));set('badge',t('badge'));
+  const foot=document.getElementById('footnote');
+  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
+  const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('steps'));nav.hidden=!inApp();}
   const sw=document.getElementById('lang-switch');
   if(sw){sw.textContent=t('langOther');sw.setAttribute('lang',t('langOtherCode'));sw.setAttribute('data-id',t('langOtherCode'));sw.setAttribute('aria-label',t('langOtherAria'));}
 }
+/* The tabs show once someone is signed in and onboarded, and not on a legal page */
+function inApp(){return !!(S.me&&S.me.onboarded&&!S.view);}
 function renderTabs(){
-  if(!S.me){tabsEl.innerHTML='';return;}
+  if(!inApp()){tabsEl.innerHTML='';app.setAttribute('role','main');app.removeAttribute('aria-labelledby');return;}
+  app.setAttribute('role','tabpanel');
   const n=S.matches?S.matches.compatible.length:0,g=S.groups?S.groups.length:0;
   const tabs=[['you',t('tabYou'),'',''],['matches',t('tabMatches'),n?String(n):'',t('srCompatible')],['groups',t('tabHome'),g?String(g):'',t('srInGroup')]];
   tabsEl.innerHTML=tabs.map(x=>{const sel=S.tab===x[0];return `<button type="button" class="tab" role="tab" id="tab-${x[0]}" aria-controls="app" aria-selected="${sel}" tabindex="${sel?0:-1}" data-tab="${x[0]}">${x[1]}${x[2]?`<span class="count"><span aria-hidden="true">${x[2]}</span><span class="sr">: ${x[2]} ${x[3]}</span></span>`:''}</button>`;}).join('');
@@ -360,9 +423,14 @@ function renderTabs(){
 }
 function renderBar(){
   const bar=document.getElementById('actionbar');
-  if(!S.me){bar.hidden=true;return;}
+  if(!S.me||S.view){bar.hidden=true;return;}
   bar.hidden=false;
   let h;
+  if(!S.me.onboarded){
+    const last=S.wiz===WIZ.length-1,save=S.save?`<span class="hint" role="status">${esc(t(S.save))}</span>`:'';
+    barEl.innerHTML=`<button type="button" class="btn" data-action="wiz-back"${S.wiz===0?' disabled':''}>${esc(t('wizBack'))}</button>${save}<span class="spacer"></span><button type="button" class="btn primary" data-action="${last?'wiz-finish':'wiz-next'}">${esc(last?t('wizFinish'):t('wizNext'))}</button>`;
+    return;
+  }
   const m=S.matches;
   if(S.tab==='you'){
     const save=S.save?`<span class="hint" role="status">${esc(t(S.save))}</span>`:'';
@@ -376,7 +444,7 @@ function renderBar(){
 function render(){
   renderChrome();
   renderTabs();
-  app.innerHTML=!S.me?viewAuth():(S.tab==='you'?viewYou():(S.tab==='matches'?viewMatches():viewGroups()));
+  app.innerHTML=S.view?viewLegal(S.view):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(S.tab==='you'?viewYou():(S.tab==='matches'?viewMatches():viewGroups()))));
   applyStyles(app);
   renderBar();
 }
@@ -398,31 +466,70 @@ async function go(tab){
   render();window.scrollTo(0,0);focusHeading();
   if(tab==='matches'||tab==='groups')await refresh();
 }
+/* After signing in or up: load the profile, then either the wizard or the app */
+async function enter(me){
+  S.me=me;S.authError='';
+  PEOPLE[S.me.id]={name:S.me.name,color:'#1b2230'};
+  try{S.profile=await api('GET','/api/profile');}catch(e){toast(errText(e));}
+  if(S.me.onboarded){S.tab=S.tab||'matches';render();focusHeading();refresh();}
+  else{S.wiz=0;render();focusHeading();}
+}
 async function start(){
-  try{S.me=await api('GET','/api/me');}catch(e){S.me=null;}
-  if(S.me){
-    PEOPLE[S.me.id]={name:S.me.name,color:'#1b2230'};
-    try{S.profile=await api('GET','/api/profile');}catch(e){toast(errText(e));}
-    render();
-    refresh();
-  }else render();
+  try{S.config=await api('GET','/api/config');}catch(e){S.config={auth:'local',invite:true,terms:''};}
+  readHash();
+  let me=null;try{me=await api('GET','/api/me');}catch(e){}
+  if(me){S.tab='matches';await enter(me);}else render();
+}
+/* #terms, #privacy, #authError=code (back from External ID), #lang=en */
+function readHash(){
+  const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
+  const prev=S.view;
+  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':null);
+  const err=h.get('authError');
+  if(err){S.authError=t('err_'+err)!==undefined&&STR.es['err_'+err]!==undefined?t('err_'+err):t('err_generic');if(err==='noAccount')S.authMode='signup';
+    try{history.replaceState(null,'',location.pathname);}catch(e){}}
+  return prev!==S.view;
 }
 
 /* ---------- profile saving (debounced) ---------- */
-let saveTimer=0;
+let saveTimer=0,saveQueued=false,saving=null;
 function profileChanged(){
   S.save='saving';renderBar();
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(async()=>{
+  clearTimeout(saveTimer);saveQueued=true;
+  saveTimer=setTimeout(saveNow,600);
+}
+function saveNow(){
+  saveQueued=false;
+  saving=(async()=>{
     try{
       const body=Object.assign({},S.profile,{bio:S.profile.bio&&S.profile.bio.es?S.profile.bio:null});
       S.profile=await api('PUT','/api/profile',body);
       PEOPLE[S.me.id]=Object.assign({},PEOPLE[S.me.id],{name:S.profile.name,household:S.profile.household,adults:S.profile.adults,kids:S.profile.kids});
       S.save='saved';S.matches=null;
-      await loadMatches();
-    }catch(e){S.save='saveFailed';toast(errText(e));}
-    renderTabs();renderBar();
-  },600);
+      if(S.me.onboarded)await loadMatches();
+      return true;
+    }catch(e){S.save='saveFailed';toast(errText(e));return false;}
+    finally{renderTabs();renderBar();}
+  })();
+  return saving;
+}
+/* Save anything pending now and wait for it; false if it failed */
+async function flushSave(){
+  if(saveQueued){clearTimeout(saveTimer);return saveNow();}
+  return saving?saving:true;
+}
+async function wizMove(step){
+  const err=document.getElementById('wiz-error');
+  const active=document.activeElement;if(active&&active.matches&&active.matches('input,textarea,select'))active.blur();
+  if(step>0){const msg=WIZ[S.wiz].check?WIZ[S.wiz].check(S.profile):'';if(msg){if(err)err.textContent=msg;return;}}
+  if(!(await flushSave()))return;
+  S.wiz=Math.max(0,Math.min(WIZ.length-1,S.wiz+step));
+  render();window.scrollTo(0,0);focusHeading();
+}
+async function wizFinish(){
+  if(!(await flushSave()))return;
+  try{S.me=await api('POST','/api/me/onboarded');S.tab='matches';render();window.scrollTo(0,0);focusHeading();refresh();}
+  catch(e){const err=document.getElementById('wiz-error');if(err)err.textContent=errText(e);}
 }
 
 /* ---------- actions ---------- */
@@ -472,16 +579,21 @@ function switchLang(l){setLang(l);try{localStorage.setItem(LANG_KEY,LANG);}catch
 app.addEventListener('submit',async e=>{
   if(e.target.id!=='auth-form')return;
   e.preventDefault();
-  const f=e.target,data={},errEl=document.getElementById('auth-error');
-  Array.prototype.forEach.call(f.querySelectorAll('input[name]'),i=>{data[i.name]=i.value;});
-  S.busy=true;f.querySelector('button[type=submit]').disabled=true;errEl.textContent='';
+  const f=e.target,data={},errEl=document.getElementById('auth-error'),btn=f.querySelector('button[type=submit]');
+  Array.prototype.forEach.call(f.querySelectorAll('input[name]'),i=>{data[i.name]=i.type==='checkbox'?i.checked:i.value;});
+  const up=S.authMode==='signup',ext=S.config&&S.config.auth==='external';
+  if(up){data.terms=data.terms?S.config.terms:null;data.adult=!!data.adult;}
+  S.busy=true;btn.disabled=true;errEl.textContent='';
   try{
-    S.me=await api('POST',S.authMode==='signup'?'/api/auth/signup':'/api/auth/login',data);
-    PEOPLE[S.me.id]={name:S.me.name,color:'#1b2230'};
-    S.profile=await api('GET','/api/profile');
-    S.busy=false;S.tab=S.authMode==='signup'?'you':'matches';
-    render();focusHeading();refresh();
-  }catch(err){S.busy=false;f.querySelector('button[type=submit]').disabled=false;errEl.textContent=errText(err);}
+    if(ext){
+      const r=await api('POST','/api/auth/start',{inviteCode:data.inviteCode||'',adult:data.adult,terms:data.terms});
+      location.href='/auth/external?ticket='+encodeURIComponent(r.ticket)+'&lang='+LANG;
+      return;
+    }
+    const me=await api('POST',up?'/api/auth/signup':'/api/auth/login',data);
+    S.busy=false;S.tab=up?'you':'matches';
+    await enter(me);
+  }catch(err){S.busy=false;btn.disabled=false;errEl.textContent=errText(err);}
 });
 app.addEventListener('change',e=>{
   const el=e.target;
@@ -508,7 +620,7 @@ app.addEventListener('change',e=>{
   }
   profileChanged();
 });
-app.addEventListener('input',e=>{const el=e.target;if(el.type==='range'&&S.profile){S.profile[el.getAttribute('data-field')]=parseInt(el.value,10);profileChanged();}});
+app.addEventListener('input',e=>{const el=e.target;if(el.id==='a-pass'&&S.authMode==='signup'){updateMeter(el.value);return;}if(el.type==='range'&&S.profile){S.profile[el.getAttribute('data-field')]=parseInt(el.value,10);profileChanged();}});
 document.addEventListener('click',async e=>{
   const el=e.target.closest('[data-action],[data-tab]');if(!el||el.disabled)return;
   if(el.hasAttribute('data-tab')){go(el.getAttribute('data-tab'));return;}
@@ -516,7 +628,13 @@ document.addEventListener('click',async e=>{
   const ids=()=>(id||'').split(',').filter(Boolean);
   switch(el.getAttribute('data-action')){
     case 'lang':switchLang(id);break;
-    case 'auth-mode':S.authMode=id;render();break;
+    case 'auth-mode':S.authMode=id;S.authError='';render();break;
+    case 'ext-signin':location.href='/auth/external?lang='+LANG;break;
+    case 'pw-toggle':{const inp=document.getElementById('a-pass'),show=inp.type==='password';inp.type=show?'text':'password';el.setAttribute('aria-pressed',String(show));el.textContent=show?t('hidePw'):t('showPw');inp.focus();break;}
+    case 'wiz-next':wizMove(1);break;
+    case 'wiz-back':wizMove(-1);break;
+    case 'wiz-finish':wizFinish();break;
+    case 'legal-back':S.view=null;try{history.replaceState(null,'',location.pathname);}catch(err){}render();window.scrollTo(0,0);focusHeading();break;
     case 'goto':go(id);break;
     case 'preset':Object.assign(S.profile,JSON.parse(JSON.stringify(PRESETS[id].v)));rerender();profileChanged();toast(t('tExample',tx(PRESETS[id].label)));break;
     case 'feat':cycleFeature(el,id);break;
@@ -533,7 +651,7 @@ document.addEventListener('click',async e=>{
     case 'all-groups':S.home=null;go('groups');break;
     case 'respond':respond(id,el.getAttribute('data-accept')==='1');break;
     case 'leave':leave(id);break;
-    case 'logout':try{await api('POST','/api/auth/logout');}catch(err){}S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.authMode='signin';render();break;
+    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.authMode='signin';render();break;}
     case 'delete-account':if(window.confirm(t('deleteConfirm'))){try{await api('DELETE','/api/me');S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];render();}catch(err){toast(errText(err));}}break;
   }
 });
@@ -548,6 +666,7 @@ tabsEl.addEventListener('keydown',e=>{
 let saved=null;try{saved=localStorage.getItem(LANG_KEY);}catch(e){}
 setLang(saved==='en'?'en':'es');
 try{const h=new URLSearchParams((location.hash||'').replace(/^#/,''));const lg=h.get('lang');if(lg==='en'||lg==='es')setLang(lg);}catch(e){}
+window.addEventListener('hashchange',()=>{if(readHash()){render();window.scrollTo(0,0);focusHeading();}});
 window.__compicasa={S:S,M:M,setLang:setLang,render:render,api:api};
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 start();
