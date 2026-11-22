@@ -164,6 +164,35 @@ public static partial class Api
             return Results.Ok(Views.Home(c, Views.OthersInOrder(g, a.Id), g));
         });
 
+        // Homes for sale that fit the group's brief (D-035). Each carries its agency and the link to its own advert.
+        me.MapGet("/groups/{id:guid}/homes", async (Guid id, HttpContext http, AppDb db, IConfiguration cfg) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var g = await db.Groups.AsNoTracking().Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
+            if (g is null || !g.Members.Any(m => m.AccountId == a.Id && m.Status != MemberStatus.Left)) return Error("notFound", 404);
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            var all = new List<Profile> { c.Me };
+            all.AddRange(Views.OthersInOrder(g, a.Id).Select(c.Get).OfType<Profile>());
+            var hb = Matching.Brief(all);
+            int lo = g.M2Min ?? hb.M2Min, hi = g.M2Max ?? hb.M2Max;
+            var stopped = HomeSources.Stopped(cfg);
+            var q = db.Homes.AsNoTracking().Where(h => h.GoneAt == null && h.Beds >= hb.Beds);
+            if (hb.Areas.Count > 0) q = q.Where(h => h.Area != null && hb.Areas.Contains(h.Area));
+            var candidates = (await q.ToListAsync(http.RequestAborted)).Where(h => !stopped.Contains(h.Source)).Select(h => h.ToListing()).ToList();
+            var ranked = HomeFit.Rank(hb, lo, hi, candidates, 24);
+            return Results.Ok(new
+            {
+                considered = candidates.Count,
+                real = candidates.Count(h => !h.IsDemo),
+                homes = ranked.Select(x => new
+                {
+                    x.Home.Id, x.Home.Agency, x.Home.Url, x.Home.Price, x.Home.M2, x.Home.Beds, x.Home.Baths, x.Home.Type,
+                    x.Home.Municipality, x.Home.District, x.Home.Area, x.Home.Features, x.Home.Energy, x.Home.IsDemo,
+                    x.Fit.Score, x.Fit.Fits, x.Fit.Misses, x.Fit.Check,
+                }),
+            });
+        });
+
         me.MapPost("/groups/{id:guid}/respond", async (Guid id, RespondRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
         {
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();

@@ -56,6 +56,15 @@ async function shot(name) {
   const r = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
   writeFileSync(join(shots, name + '.png'), Buffer.from(r.result.data, 'base64'));
 }
+// Homes for sale that fit the group (D-035): each names its agency and links to the agency's own advert.
+async function homesCheck(tag) {
+  if (!await until(`document.querySelectorAll('#homes .home').length>0`, tag + ': homes that fit load')) return;
+  ok(await js(`[...document.querySelectorAll('#homes .home')].every(h=>{const a=h.querySelector('a.btn');return a?(a.target==='_blank'&&/noopener/.test(a.rel)&&/^https:/.test(a.href)&&/Ver el anuncio en /.test(a.textContent)):/inventada/.test(h.innerText);})`),
+    tag + ': every home links to the agency advert in a new tab, or is marked made-up');
+  await js(`document.getElementById('homes').scrollIntoView()`);
+  await shot(tag + '-5b-homes-es');
+  await js('window.scrollTo(0,0)');
+}
 async function size(w, h, mobile) { await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: mobile ? 2 : 1, mobile }); }
 
 await send('Runtime.enable'); await send('Log.enable'); await send('Page.enable');
@@ -170,12 +179,14 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
     await until(`document.body.innerText.includes('Formado')`, 'group formed');
     ok(await js(`document.querySelectorAll('.matrix, .kpis').length`) > 0, 'formed group shows the brief');
     await shot(tag + '-5-group-es');
+    await homesCheck(tag);
   } else {
     await click('[data-tab="groups"]');
     await until(`document.querySelectorAll('[data-action="open-group"]').length>0`, 'desktop sees the group from the phone');
     await click('[data-action="open-group"]');
     await until(`!!document.querySelector('.kpis')`, 'group opens');
     await shot(tag + '-5-group-es');
+    await homesCheck(tag);
   }
 
   // Switch to English and check the same screen.

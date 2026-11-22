@@ -35,7 +35,7 @@ The project is in Build mode from 2026-11-22 (D-023). It's also a proof of conce
 **How approval works.** An approval covers only the action it names, its scope and its date; silence or a partial answer approves nothing. If Sam approves something in chat, copy his words and the date into FOUNDER-QUEUE.md or DECISIONS.md before acting on it. Sam carries out external actions himself unless he delegates one in writing, with its scope and an expiry date. Having a tool that can do something doesn't make it allowed.
 
 **Off-limits** unless Sam changes the rule in DECISIONS.md (the reason is in brackets):
-- scraping property portals, fetching listing previews, framing listings, or copying their photos and descriptions (portal terms and database rights; D-004, D-015)
+- scraping property portals (Idealista, Fotocasa, habitaclia, pisos.com and the like), framing listings, or copying any listing's photos, description text or agents' contact details (portal terms, copyright and database rights; D-004, D-015). Agencies' own websites may be crawled for facts and the advert's link, within D-035
 - presenting legal, tax or financial conclusions to users as advice (we aren't qualified; that's what the lawyer is for)
 - letting people match or filter on protected characteristics: race or ethnicity, national origin, religion, sex, gender identity, sexual orientation, disability, health or age (Ley 15/2022; D-009)
 - filtering or ranking real people by household type or money before D-009 is decided and a lawyer has reviewed it; made-up prototype profiles are fine

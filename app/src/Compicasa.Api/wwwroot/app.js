@@ -395,7 +395,36 @@ ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>
 <p class="hint">${esc(t('agreeHint'))}</p>
 <ul class="clean mt">${h.topics.map(x=>{const a=t(x.key);return `<li><span class="tag tip">${esc(a[0])}</span><div>${esc(a[1])}<div class="who">${esc(x.why?M(x.why):a[2])}</div></div></li>`;}).join('')}</ul>
 </section>
-</div>${leave}`;
+</div>
+${isPreview?'':homesSection(h.id)}${leave}`;
+}
+function euros(n){return n==null?'':n.toLocaleString(LANG==='es'?'es-ES':'en-GB')+' €';}
+function homesSection(gid){
+  const r=S.homes&&S.homes.gid===gid?S.homes:null;
+  let body;
+  if(!r||r.loading)body=`<p class="hint">${esc(t('homesLoading'))}</p>`;
+  else if(r.error)body=`<p class="error">${esc(r.error)}</p>`;
+  else if(!r.data.homes.length)body=`<p>${esc(t('homesNone'))}</p>`;
+  else body=`<ul class="homes">${r.data.homes.map(homeItem).join('')}</ul>`;
+  const count=r&&r.data?`<p class="hint">${esc(t('homesCount',r.data.considered,r.data.real>0))}</p>`:'';
+  return `<section class="card mt" id="homes"><h3>${esc(t('homesH'))}</h3><p class="hint">${esc(t('homesLead'))}</p>${count}${body}<p class="hint mt">${esc(t('homesNote'))}</p></section>`;
+}
+function homeItem(x){
+  const where=[x.district,x.municipality].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
+  const facts=[typeLabel(x.type),x.beds!=null?t('homeBeds',x.beds):'',x.baths!=null?t('homeBaths',x.baths):'',x.m2?x.m2+' m²':'',x.energy?t('energy',x.energy):''].filter(Boolean).join(' · ');
+  const tags=x.fits.filter(f=>!f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(t('fit_'+f))}</span>`).join('')
+    +x.fits.filter(f=>f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(featLabel(f.slice(2)))}</span>`).join('')
+    +x.misses.map(f=>`<span class="tag must">${esc(f.startsWith('f:')?t('missF',featLabel(f.slice(2))):t('miss_'+f))}</span>`).join('');
+  const check=x.check.length?`<div class="who">${esc(t('checkH'))}: ${esc(listAnd(x.check.map(c=>c.startsWith('f:')?featLabel(c.slice(2)).toLowerCase():t('check_'+c))))}</div>`:'';
+  const link=x.url&&!x.isDemo?`<a class="btn small primary" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer external">${esc(t('seeAdvert',x.agency))} ↗</a>`:`<span class="hint">${esc(t('demoHome'))}</span>`;
+  return `<li class="home"><div class="home-top"><b>${esc(euros(x.price))}</b><span class="tag tip">${esc(t('homeFit',x.score))}</span></div>
+<div>${esc(facts)}</div><div class="who">${esc(where)} · ${esc(x.isDemo?t('demoAgency'):x.agency)}</div><div class="home-tags">${tags}</div>${check}<div class="row">${link}</div></li>`;
+}
+async function loadHomes(gid){
+  S.homes={gid:gid,loading:true};
+  try{const d=await api('GET','/api/groups/'+gid+'/homes');if(S.homes&&S.homes.gid===gid){S.homes={gid:gid,data:d};}}
+  catch(e){S.homes={gid:gid,error:errText(e)};}
+  if(S.home&&S.home.id===gid)rerender();
 }
 
 /* ---------- render ---------- */
@@ -551,15 +580,15 @@ async function preview(ids){
   catch(e){toast(t('tCantForm',errText(e)));}
 }
 async function propose(ids){
-  try{const h=await api('POST','/api/groups',{ids:ids});remember(h.people);S.home=h;S.draft=[];S.tab='groups';await loadGroups();render();window.scrollTo(0,0);focusHeading();toast(t('tProposed'));}
+  try{const h=await api('POST','/api/groups',{ids:ids});remember(h.people);S.home=h;S.draft=[];S.tab='groups';await loadGroups();render();window.scrollTo(0,0);focusHeading();toast(t('tProposed'));if(h.id&&h.check&&h.check.ok)loadHomes(h.id);}
   catch(e){toast(t('tCantForm',errText(e)));}
 }
 async function openGroup(id){
-  try{const h=await api('GET','/api/groups/'+id);remember(h.people);S.home=h;render();window.scrollTo(0,0);focusHeading();}
+  try{const h=await api('GET','/api/groups/'+id);remember(h.people);S.home=h;render();window.scrollTo(0,0);focusHeading();if(h.check&&h.check.ok)loadHomes(id);}
   catch(e){toast(errText(e));}
 }
 async function respond(id,accept){
-  try{const h=await api('POST','/api/groups/'+id+'/respond',{accept:accept});remember(h.people);S.home=h;await loadGroups();render();toast(accept?t('tAccepted'):t('tDeclined'));}
+  try{const h=await api('POST','/api/groups/'+id+'/respond',{accept:accept});remember(h.people);S.home=h;await loadGroups();render();toast(accept?t('tAccepted'):t('tDeclined'));if(h.check&&h.check.ok)loadHomes(id);}
   catch(e){toast(errText(e));}
 }
 async function leave(id){

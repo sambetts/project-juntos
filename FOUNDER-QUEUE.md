@@ -48,11 +48,6 @@ Then, after his sign-up still failed: "Fix production" (Sam, 2026-11-22, in GitH
 **Recommendation:** answer only if a name comes to mind; the lawyer shortlist (B-021) covers the rest.
 **If no answer:** Partnerships researches candidates without contacting anyone.
 
-### F-009 · Amend the listings decision (D-015) · by 2026-12-04
-**Why:** the review found that links pasted by members lower the scraping risk but aren't permission, and Idealista's terms make no exception for them.
-**Recommendation:** accept. Phase 1 is brief-only, with no listing links; later, only licensed or authorised links.
-**If no answer:** D-004 stands, but the Homes tab (B-014) stays parked.
-
 ### F-010 · Approve the pilot design (B-002, D-018) · by 2026-12-04
 **Why:** the Phase 1 pilot plan is drafted: `product/phase1-validation-plan.md` (its first section is a summary). About 20 households, pairs only, run by hand; no money, listings or advice; about 24 hours of your time over six weeks.
 **Options:** A) approve as drafted · B) approve with edits · C) not now
@@ -74,6 +69,19 @@ Then, after his sign-up still failed: "Fix production" (Sam, 2026-11-22, in GitH
 **If no answer:** Compicasa stays a provisional working name; nothing is bought or published.
 
 ## Closed
+
+### F-009 · Amend the listings decision (D-015) · closed 2026-11-22
+**Why:** the review found that links pasted by members lower the scraping risk but aren't permission, and Idealista's terms make no exception for them.
+**Recommendation:** accept. Phase 1 is brief-only, with no listing links; later, only licensed or authorised links.
+**If no answer:** D-004 stands, but the Homes tab (B-014) stays parked.
+**Closed 2026-11-22:** superseded by F-017 and D-035 (agency websites may be crawled, never portals; facts and a link only).
+
+### F-017 · An index of homes for sale: how far may we go? (amends D-004, D-015) · closed 2026-11-22
+**Why:** you asked for our own database of homes, scraped daily from agencies, matched to groups and linking to the advert. D-004 and AGENTS.md section 4 rule out scraping until you change them. Tests (`research/2026-11-22-listings-index.md`): all nine agency networks checked restrict it in their terms, and the database right (LPI art. 133.2) covers daily re-crawling.
+**Options:** A) build it with made-up homes, hand-seed a few dozen real ones (facts and link only), automate per agency once it says yes · B) A plus automated crawling of agency sites now (not portals), facts and link only · C) made-up homes only
+**Recommendation:** A, and add the questions to the lawyer brief.
+**If no answer:** C.
+**ANSWER (Sam, 2026-11-22, in Claude Code):** chose "B: crawl agency sites now": "A, plus a daily automated crawl of agency websites (never portals). It would honour robots.txt and store only facts and the link." Recorded as D-035.
 
 ### F-015 · One Azure region for the PoC: how? · closed 2026-11-22
 **Why:** you asked for everything in one European region (D-031). On 2026-11-22 no EU region offered both free tiers on your subscription. France Central has the free database but no free web-app quota; West Europe has the free web app but accepts no new databases. For now the web app is in West Europe and the database in France Central, the next region over, at €0. It works, and all 24 browser checks pass.

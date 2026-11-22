@@ -73,6 +73,12 @@ We're exploring a service, for Spain only, that helps people who can't afford a 
 - What must a landing page with a waiting list include under the LSSI (Ley 34/2002), including cookies?
 - *Added 2026-11-22 (B-013):* if the founder runs the pilot and waiting list as an individual, must the page show his postal address under LSSI art. 10.1? Does a free waiting list count as an information society service? Does that favour forming an S.L. first (A1)?
 
+**A7. Our index of homes for sale** *(added 2026-11-22, D-035)*
+- We read homes for sale from estate agencies' own websites (never portals) once a day, honouring robots.txt, and keep only the facts (price, size, bedrooms, bathrooms, type, area, energy rating), the agency's name and a link to its advert. No photos, descriptions or agents' contact details. Several agencies' legal notices forbid extracting their content or deep-linking without written permission. Does that expose us under the database right (LPI art. 133, including 133.2 on repeated extraction of small parts), under contract, or under unfair competition law, and how much does it help that every home links back to the agency?
+- Are agencies' "no deep links" clauses binding on someone who never accepted the terms?
+- If an agency objects, is stopping at once and deleting its homes enough, or do we owe more?
+- Does showing homes and sending groups to the agency make us a property intermediary (R-003), even with no fee?
+
 ## 4. Part B: questions for later (quote only for now)
 1. **Structure** for two to four unrelated households: shares plus an agreement, an S.L., or separate registered units. Set-up and running costs, lending, tax, who may live there and how easily someone can leave. How do the structures similar companies use compare?
 2. **Scenarios** under shares plus an agreement: two owners buy out the third; one of three leaves; one stops paying; deadlock; an owner dies; divorce, or a new partner moving in; a forced sale (Civil Code art. 404); an owner sells to an outsider (arts. 1522 and 1524). Can the agreement add a right of first refusal?

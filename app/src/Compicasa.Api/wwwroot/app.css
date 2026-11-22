@@ -176,3 +176,10 @@ input[type=email],input[type=text]{inline-size:100%;padding:10px 12px;border-rad
 .legal{max-inline-size:760px;margin-inline:auto}
 .legal ol{padding-inline-start:20px;display:grid;gap:10px}
 footer.note p{margin:0 0 6px}
+
+.homes{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.home{border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.home-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:18px}
+.home-tags{display:flex;flex-wrap:wrap;gap:4px}
+.home .row{margin-top:auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.home a.btn{white-space:normal;overflow-wrap:anywhere}

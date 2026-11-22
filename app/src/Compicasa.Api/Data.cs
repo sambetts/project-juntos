@@ -100,6 +100,47 @@ public sealed class DemoState
     public DateTimeOffset RefreshedAt { get; set; }
 }
 
+/// <summary>
+/// A home for sale in our index (D-035): facts and the link to the agency's own advert only. No photos,
+/// description text or agents' contact details are ever stored. Made-up homes have Source "demo" and no link.
+/// </summary>
+public sealed class Home
+{
+    /// <summary>"{source}:{the agency's own reference}".</summary>
+    public string Id { get; set; } = "";
+    public string Source { get; set; } = "";
+    /// <summary>The agency (and office) the advert belongs to, shown with every home.</summary>
+    public string Agency { get; set; } = "";
+    /// <summary>The agency's own advert. Null for made-up homes.</summary>
+    public string? Url { get; set; }
+    public int? Price { get; set; }
+    public int? M2 { get; set; }
+    public int? Beds { get; set; }
+    public int? Baths { get; set; }
+    /// <summary>"flat" or "house" (Catalogue.Types).</summary>
+    public string? Type { get; set; }
+    public string? Province { get; set; }
+    public string? Municipality { get; set; }
+    public string? Postcode { get; set; }
+    public string? District { get; set; }
+    /// <summary>One of Catalogue.Areas, or null outside them (MadridZones).</summary>
+    public string? Area { get; set; }
+    /// <summary>Comma-separated HomeFit.Knowable ids.</summary>
+    public string Features { get; set; } = "";
+    public string? Energy { get; set; }
+    public DateTimeOffset FirstSeenAt { get; set; }
+    public DateTimeOffset LastSeenAt { get; set; }
+    /// <summary>When we last read the advert itself (not just saw it in the sitemap).</summary>
+    public DateTimeOffset CheckedAt { get; set; }
+    /// <summary>Set when the advert left the agency's site.</summary>
+    public DateTimeOffset? GoneAt { get; set; }
+
+    public bool IsDemo => Source == HomeSources.Demo;
+
+    public HomeListing ToListing() => new(Id, Source, Agency, Url, Price, M2, Beds, Baths, Type, Municipality, Postcode, District, Area,
+        Features.Split(',', StringSplitOptions.RemoveEmptyEntries), Energy, IsDemo);
+}
+
 public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
 {
     public DbSet<Account> Accounts => Set<Account>();
@@ -107,6 +148,7 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
     public DbSet<DemoState> DemoStates => Set<DemoState>();
+    public DbSet<Home> Homes => Set<Home>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -152,6 +194,25 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
         {
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).ValueGeneratedNever();
+        });
+        b.Entity<Home>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).HasMaxLength(80);
+            e.Property(x => x.Source).HasMaxLength(24);
+            e.Property(x => x.Agency).HasMaxLength(120);
+            e.Property(x => x.Url).HasMaxLength(400);
+            e.Property(x => x.Type).HasMaxLength(8);
+            e.Property(x => x.Province).HasMaxLength(60);
+            e.Property(x => x.Municipality).HasMaxLength(80);
+            e.Property(x => x.Postcode).HasMaxLength(8);
+            e.Property(x => x.District).HasMaxLength(80);
+            e.Property(x => x.Area).HasMaxLength(12);
+            e.Property(x => x.Features).HasMaxLength(120);
+            e.Property(x => x.Energy).HasMaxLength(4);
+            e.HasIndex(x => new { x.Source, x.GoneAt });
+            e.HasIndex(x => x.Area);
+            e.Ignore(x => x.IsDemo);
         });
     }
 }

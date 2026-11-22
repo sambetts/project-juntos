@@ -2,6 +2,35 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 15: our own index of homes for sale
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Research and Legal & Compliance (sources and law), the CEO (D-035), the Builder and Tester (B-046)
+**Mode:** Build (D-023), within D-027 and D-035 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 14. Sam: a database of homes for sale in Spain, "scrape manually" from agencies and update daily until formal feeds exist, with common facts and a link to the original advert, matched to groups and referring them to the agency; "run a few tests before you decide how to implement this."
+**Goals:** 1. Allowed tests of sources and terms. 2. Research note with a design. 3. F-017 for Sam. After his answer, 4. build it (B-046).
+**Needs Sam:** F-017 (answered in the session); the go to deploy (B-047).
+**Did**
+- Tests without fetching any listing: robots.txt of 4 portals, 11 agency networks and bank-owned sellers, Kyero, Casafari and the BOE auctions site; the legal notices of 9 agency networks; LPI art. 133 in the BOE. Of the nine notices, six ban extraction or deep links without permission, two ban reproducing content (RE/MAX for commercial use only), and one couldn't be read. Note: `research/2026-11-22-listings-index.md`.
+- F-017 asked in chat with a recommendation (A: permission-first). Sam chose **B: crawl agency sites now** (never portals), then added: "We need to clearly link each house to the original agent… Unless they specifically issue a cease & desist, I think this is an acceptable route for now." Recorded as D-035. The AGENTS.md off-limits line was changed to match his decision (portals stay off-limits). F-017 closed, and F-009 closed as superseded.
+- Technical tests after D-035: Tecnocasa's sitemaps list adverts with last-changed dates (about 1,250 homes for sale in the province of Madrid in the first of two files), and each advert page carries its facts as JSON. Redpiso's schema.org markup has price and town only.
+- B-046 built:
+  - Fit rules against the group's brief and a postcode-based placement in the five Madrid areas (approximate, Assumption).
+  - A `Homes` table and migration.
+  - A crawler run by hand from the built app (`crawl tecnocasa`): portals blocked in code, robots.txt honoured, 3 seconds between requests, only changed adverts fetched, gone adverts marked, the `Homes:Stopped` switch, and a `/bot` page that explains it and how to block it.
+  - The Tecnocasa adapter keeps facts, the agency office's name and the link, nothing else.
+  - 90 made-up homes.
+  - `GET /api/groups/{id}/homes` for members only.
+  - A "Homes for sale that fit" section on the group page (both languages), with real homes first and a "See the advert at <agency>" button opening the agency's page in a new tab.
+- A test crawl of 40 pages per run (two runs; the first stopped on a network timeout, now skipped per page) stored 65 real homes in a local scratch database, outside the repository.
+- Tests: 39 .NET tests (9 new) and 34 browser checks (2 new, homes) pass locally. One browser run failed on an old race (two quick likes of the same person), now B-045 (5); the rerun passed.
+- The lawyer brief gained A7 (database right, deep-link clauses, objections, intermediary status). R-023 added, R-005 updated. B-047 (go live) and B-048 (more agencies) added; B-014 superseded.
+- `dotnet-ef` 10.0.15 installed as a global tool on this machine. `dotnet run` was refused by the machine's app control (Access is denied on the `.exe`); running the built DLL works.
+
+**Decided:** D-035 (Sam). **Approvals used:** F-017 option B and Sam's follow-up (both 2026-11-22, in Claude Code). Nothing was deployed, and nothing was written to the live database.
+**Learned:** every agency network checked restricts crawling in its terms (Verified, 2026-11-22). LPI art. 133.2 covers repeated extraction of small parts (Verified, BOE). Not checked: Engel & Völkers' terms (the page is built by script); which CRMs Madrid agencies use and whether a new portal can receive their Kyero feed.
+**Open or blocked:** B-047 waits for Sam's go to deploy.
+**Saved and checked:** `dotnet test` (39 passed); browser test 34 of 34 against a local run with screenshots of the homes on phone and desktop; `git status` and `git diff` reviewed for AGENTS, DECISIONS, FOUNDER-QUEUE, BACKLOG, RISKS, STATE, the lawyer brief and `app/`. LOG saved last; its check and the commit are confirmed in the closing report.
+**Next session should start with:** 1. B-047, if Sam says deploy. 2. B-042. 3. B-045 and B-048.
+
 ## 2026-11-22 · Session 14: the sign-up error
 **Who:** Sam with GitHub Copilot CLI (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-034)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

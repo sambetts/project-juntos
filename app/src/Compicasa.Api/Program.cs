@@ -89,6 +89,8 @@ app.MapGet("/healthz/ready", async (AppDb db, CancellationToken ct) =>
     await db.Database.CanConnectAsync(ct) ? Results.Text("ready") : Results.StatusCode(503));
 Accounts.Map(app);
 Api.Map(app);
+// What our crawler does and how to block it (D-035); named in its user agent.
+app.MapGet("/bot", (IWebHostEnvironment env) => Results.File(Path.Combine(env.WebRootPath, "bot.html"), "text/html; charset=utf-8"));
 app.MapFallbackToFile("index.html");
 
 // Create or migrate the schema (D-034), load the 14 made-up profiles and today's generated batch before taking traffic.
@@ -99,6 +101,19 @@ using (var scope = app.Services.CreateScope())
     var demo = scope.ServiceProvider.GetRequiredService<DemoData>();
     await demo.EnsureSeedsAsync();
     await demo.RefreshIfDueAsync();
+    await DemoHomes.EnsureAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>());
+
+    // Crawl one agency by hand and exit (D-035): dotnet run -- crawl tecnocasa [--Crawl:Max=200] [--Crawl:DelaySeconds=3]
+    if (args.Length >= 2 && args[0] == "crawl")
+    {
+        var source = HomeSources.Get(args[1]) ?? throw new ArgumentException($"No adapter for '{args[1]}'.");
+        using var http = Crawl.NewClient();
+        var crawl = new Crawl(db, TimeProvider.System, app.Logger, http, TimeSpan.FromSeconds(cfg.GetValue("Crawl:DelaySeconds", 3.0)));
+        var r = await crawl.RunAsync(source, cfg.GetValue("Crawl:Max", 200), HomeSources.Stopped(cfg), CancellationToken.None);
+        app.Logger.LogInformation("Crawl of {Source} done: {Result}", source.SourceId, r);
+        Console.WriteLine($"{source.SourceId}: {r}");
+        return;
+    }
 }
 
 app.Run();
