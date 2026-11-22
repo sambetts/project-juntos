@@ -6,7 +6,10 @@ _Last updated 2026-11-22 after Session 12 (Claude Code, Opus 5.5): the working P
 Sam cleared F-001 and switched to Build mode on 2026-11-22 (D-023). Agents may build prototypes, code and unpublished drafts in this repository, using made-up data only. Nothing public, paid or sent, no one contacted and no real personal data collected without Sam (AGENTS.md sections 3 and 4). **One scoped exception (D-027):** the PoC runs in Sam's Azure subscription as if in production, closed by an invite code, with made-up people; the AI administers it through the Azure CLI. Real users, a domain, app stores or promoting it still need Sam. Pilot mode needs every gate in section 2 of `product/phase1-validation-plan.md` and Sam's dated go-ahead.
 
 ## Session in progress
-None. At the start of a session, list its goals here as a checklist; clear it at the end.
+Session 13 (2026-11-22, Claude Code, Opus 5.5), from Sam's release-readiness request (D-033):
+- [x] Record D-033 and D-034; add the review's items to BACKLOG (B-033 to B-044)
+- [ ] B-033 EF Core migrations with a baseline for the live database
+- [ ] B-034 email sign-in through Entra External ID, 18+ and terms checks, onboarding wizard
 
 ## In short
 The idea: help compatible strangers buy one home together in Spain, starting with the social side (matching plus a joint "what our home needs" brief). On public evidence, no rival lets strangers form a group before choosing a whole home, but affinity questionnaires, co-ownership shares with a notarised pact, and exit services already exist, so the group-first idea is what we must test. A working proof of concept now runs in Azure on free tiers (closed, made-up people, €0 a month expected: D-030); nothing else is public or bought. The project is the private GitHub repository project-juntos (D-022), and is also a proof of concept for building a new company with AI (D-026). Sam's plan (2026-11-21): build a small product and see if it gains interest. The product is Spanish first, with English supported; project documents stay in English (D-024). The pilot can't run until every gate in section 2 of its plan is met.
