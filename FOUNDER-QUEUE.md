@@ -14,11 +14,6 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **Recommendation:** B. Finance costs the plan against your choice (B-008).
 **If no answer:** no spending; research only.
 
-### F-003 · The name (D-007) · within two weeks of F-001
-**Recommendation:** keep Compicasa as the provisional favourite. Before approving or spending, run a clearance search for similar names in the services we'll actually offer (Compricasa, Compracasa, and the rival Casicasa), and a quick comprehension test with Spanish speakers. Brand & Marketing can do a first pass on the public registers now (B-024). Then buy compicasa.es and compicasa.com (€10.99 + €21.99 = €32.98 listed on 2026-11-20; prices and availability can change) and file a trademark for those services.
-**Update (2026-11-22):** at your request, a fresh longlist of 71 names: `research/2026-11-22-name-longlist.md`. New recommendation: keep **Compicasa** as the favourite and take **Comprañeros** ("buying mates": it says *buying*, which fixes Compicasa's flat-share risk) and **Sumallaves** ("your keys add up") into the clearance search with it, then choose. All three looked free in .com and .es. Runners-up: Compramigos, Condueños, Anidamos. Nothing to buy yet.
-**If no answer:** "working name" everywhere; nothing published.
-
 ### F-004 · First customer group (D-008) · by 2026-12-04
 **Recommendation:** start with two households searching in one Madrid area and one home price band set for the pilot, which participants opt into themselves (we don't collect their finances), planning to buy within 12 months; keep families exploratory. Research and Validation will propose two or three candidate areas (B-022) for you to pick.
 **If no answer:** the pilot plan stays a draft and nothing runs.
@@ -59,6 +54,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **If no answer:** the modes apply as written in AGENTS.md section 3, and Build mode continues.
 
 ## Closed
+
+### F-003 · The name (D-007) · closed 2026-11-22
+**Recommendation:** keep Compicasa as the provisional favourite. Before approving or spending, run a clearance search for similar names in the services we'll actually offer (Compricasa, Compracasa, and the rival Casicasa), and a quick comprehension test with Spanish speakers. Brand & Marketing can do a first pass on the public registers now (B-024). Then buy compicasa.es and compicasa.com (€10.99 + €21.99 = €32.98 listed on 2026-11-20; prices and availability can change) and file a trademark for those services.
+**Update (2026-11-22):** at your request, a fresh longlist of 71 names: `research/2026-11-22-name-longlist.md`. New recommendation: keep **Compicasa** as the favourite and take **Comprañeros** ("buying mates": it says *buying*, which fixes Compicasa's flat-share risk) and **Sumallaves** ("your keys add up") into the clearance search with it, then choose. All three looked free in .com and .es. Runners-up: Compramigos, Condueños, Anidamos. Nothing to buy yet.
+**If no answer:** "working name" everywhere; nothing published.
+**ANSWER (Sam, 2026-11-22, in Claude Code):** "Compicasa for now. Might change later." Recorded as D-007: Compicasa is the provisional working name. Buying the domains and filing a trademark aren't approved yet; they wait for the clearance search (B-024) and a separate request.
 
 ### F-012 · Push to the private repository, then delete the work copies · closed 2026-11-22
 **Done (seen in Session 8, 2026-11-22):** the repository is pushed: the local clone tracks `github.com/<Sam's account>/project-juntos` and has its first commit ("Initial"), and Session 8 ran in it on Sam's personal machine.
