@@ -1,6 +1,6 @@
 # Current state
 
-_Last updated 2026-11-22 after Session 8, the first in the repository (Claude Code, Opus 5.5): Build mode started, and the prototype became bilingual. By the Chief of Staff. Rewrite this file at the end of every session._
+_Last updated 2026-11-22 after Session 9 (Claude Code, Opus 5.5): a fresh name longlist for F-003. Session 8 before it started Build mode and made the prototype bilingual. By the Chief of Staff. Rewrite this file at the end of every session._
 
 ## Operating mode: Build, from 2026-11-22
 Sam cleared F-001 and switched to Build mode on 2026-11-22 (D-023). Agents may build prototypes, code and unpublished drafts in this repository, using made-up data only. Nothing public, paid or sent, no one contacted and no real personal data collected without Sam (AGENTS.md sections 3 and 4). Pilot mode needs every gate in section 2 of `product/phase1-validation-plan.md` and Sam's dated go-ahead.
@@ -29,7 +29,7 @@ Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief
 | Independent review | `research/2026-11-20-independent-review.md` | Fact checks with links; fixes applied or in the backlog |
 | Spanish legal landscape | `research/2026-11-18-spain-legal-landscape.md` | Corrected 2026-11-20; the lawyer's review is pending (F-006) |
 | Where to find homes | `research/2026-11-18-homes-sourcing.md` | Corrected 2026-11-20; sources mostly named, not linked (links are in the review) |
-| Name screening | `research/2026-11-20-naming-screen.md` | Provisional; clearance search next (B-024) |
+| Name screening | `research/2026-11-20-naming-screen.md`, `research/2026-11-22-name-longlist.md` | Provisional. Compicasa is the favourite, with Sumallaves second (B-026, 71 names screened); a clearance search of both comes next (B-024) |
 | Profile and matching model | `product/profile-and-matching-model.md` | v0.3 |
 | Budget, experiments, partners | `project/budget.md`, `project/experiments.md`, `project/partners.md` | First pilot estimate in the budget; EXP-001 to EXP-003 planned; no partners yet |
 
@@ -37,13 +37,14 @@ Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief
 D-001 Spain only · D-002 groups, not just pairs · D-003 social side first · D-004 link out to listings, no scraping (amendment proposed: D-015) · D-005 prototype first · D-006 AI-run, Sam approves · D-014 Spanish first (amended by D-024) · D-016 canonical copy (now D-022) · D-017 working positioning (internal) · D-019 sessions run on Opus · D-020 operating modes · D-021 personal resources, off work systems · D-013 where the project lives · D-022 private repository project-juntos · D-023 F-001 cleared, Build mode from 2026-11-22 · D-024 Spanish-first product with English supported; English documents
 
 ## Waiting on Sam
-F-002 time and budget · F-003 name · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief (unblocked by F-001) · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes; B-025 (phone and native-speaker checks) is parked until user tests come closer
+F-002 time and budget · F-003 name (updated 2026-11-22: Compicasa or Sumallaves) · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief (unblocked by F-001) · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes; B-025 (phone and native-speaker checks) is parked until user tests come closer
 
 ## Next up (Build mode)
 1. B-007 landing-page draft with waitlist, Spanish and English, not published, storing and sending nothing (Builder with Brand & Marketing). The Builder's rule is one prototype per session.
 2. B-013 privacy and safety groundwork (Legal & Compliance): the top backlog item, and a gate for any real users.
-3. B-020 pilot materials, made-up data only (Product); per D-024, decide whether participant-facing materials need English versions too.
-4. Sam: F-011, then the pilot items F-010, F-004, F-005 and F-006.
+3. B-024 name clearance for Compicasa and Sumallaves, public registers only (Brand & Marketing with Legal & Compliance), so F-003 can be decided.
+4. B-020 pilot materials, made-up data only (Product); per D-024, decide whether participant-facing materials need English versions too.
+5. Sam: F-011 and F-003, then the pilot items F-010, F-004, F-005 and F-006.
 
 ## Watch out
 - F-012 closed 2026-11-22: the work copies are deleted.

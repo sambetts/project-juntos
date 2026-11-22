@@ -16,6 +16,7 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ### F-003 · The name (D-007) · within two weeks of F-001
 **Recommendation:** keep Compicasa as the provisional favourite. Before approving or spending, run a clearance search for similar names in the services we'll actually offer (Compricasa, Compracasa, and the rival Casicasa), and a quick comprehension test with Spanish speakers. Brand & Marketing can do a first pass on the public registers now (B-024). Then buy compicasa.es and compicasa.com (€10.99 + €21.99 = €32.98 listed on 2026-11-20; prices and availability can change) and file a trademark for those services.
+**Update (2026-11-22):** at your request, a fresh longlist of 71 names: `research/2026-11-22-name-longlist.md`. New recommendation: take **Compicasa and Sumallaves** ("your keys add up"; .com and .es both looked free) into the clearance search together, then choose. Runners-up: Condueños, Anidamos, Casa Socia. Nothing to buy yet.
 **If no answer:** "working name" everywhere; nothing published.
 
 ### F-004 · First customer group (D-008) · by 2026-12-04

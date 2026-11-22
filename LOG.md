@@ -2,6 +2,23 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 9: name suggestions
+**Who:** Sam with Claude Code (Opus 5.5) on his personal machine, as Chief of Staff, with Brand & Marketing (B-026) and the CEO (D-007 options)
+**Mode:** Build (D-023) · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md "Last updated 2026-11-22 after Session 8"; newest LOG entry Session 8
+**Goals:** 1. B-026 (new), a fresh name longlist with a quick public screen, because Sam asked: "We need name suggestions".
+**Needs Sam:** F-003 updated: take Compicasa and Sumallaves into the clearance search together, then choose.
+**Did**
+- B-026 (Brand & Marketing): screened 71 new names. For .com, the registry's public lookup (Verisign RDAP); for .es, public DNS name servers only, which is indicative. Web searches for existing use of the top names. Result: `research/2026-11-22-name-longlist.md`, with a top five (Sumallaves, Condueños, Anidamos, Casa Socia, Casa al Alimón), the other unregistered names, and the names ruled out with reasons (for example Fincamos is too close to the registered AFINCA mark; Copropia; Arraigo).
+- Updated D-007's options (CEO), F-003, B-024 (now clears Sumallaves too, and confirms the .es addresses), B-019 (adds Viviendea) and STATE.
+
+**Decided:** none; the name is Sam's (F-003). D-007's options now list the new names.
+**Approvals used:** none. Nothing was bought, filed, published or sent.
+**Learned:** about 20 of the 71 names have neither address registered, but most are descriptive phrases, which are weaker as marks. Spanish agency names that use "llaves" are common. Found Viviendea, a platform that groups housing seekers by interests before approaching a developer (Reported, construible.es 2018); it isn't in B-001. Not checked: trademark registers, whether the .es addresses are really free, and what Anidando S.L. does.
+**Open or blocked:** F-003 waits on Sam; B-024 can start now.
+**Saved and checked:** reviewed `git diff` for BACKLOG, DECISIONS, FOUNDER-QUEUE and STATE, and re-read the new note, against what I meant to write. LOG.md saved last and checked with `git diff`; the commit is confirmed in the closing report.
+**Next session should start with:** 1. B-007 bilingual landing-page draft. 2. B-013 privacy and safety groundwork. 3. B-024 clearance of Compicasa and Sumallaves.
+
 ## 2026-11-22 · Session 8: Build mode, bilingual prototype
 **Who:** Sam with Claude Code (Opus 5.5) on his personal machine, as Chief of Staff, with the CEO (D-023, D-024), Builder and Tester (B-018)
 **Mode:** Plan, then Build from 2026-11-22 (D-023) · **Copy used:** canonical repository (D-022)
