@@ -10,7 +10,7 @@ Finance owns this file. Nothing is spent without Sam's dated approval (AGENTS.md
 ## Ledger
 | Date | Item | Amount (€) | VAT incl.? | Recurring? | Approval (F-### and date) | Paid by |
 |---|---|---|---|---|---|---|
-| | Nothing spent yet | 0 | | | | |
+| 2026-11-22 | Azure hosting for the PoC (D-027): App Service B1 Linux and SQL Database Basic in Spain Central, plus a little for logs. Billed to Sam's Azure subscription "Visual Studio Enterprise - New" | About 16 a month (11.83 + 4.40, Azure list prices) | No (list prices exclude VAT) | Yes, monthly, from 2026-11-22 | D-027, Sam in Claude Code on 2026-11-22 | Sam's Azure subscription; whether its monthly credit covers it isn't checked (Assumption) |
 
 ## Known quotes (not approved)
 | Item | Quote | Source and date |

@@ -70,23 +70,30 @@ public sealed class DemoData(AppDb db, TimeProvider clock, ILogger<DemoData> log
     }
 }
 
-/// <summary>Checks every 15 minutes whether a new day's batch is due, so a restart or a missed hour can't skip a day.</summary>
-public sealed class DemoRefreshWorker(IServiceScopeFactory scopes, ILogger<DemoRefreshWorker> log) : BackgroundService
+/// <summary>
+/// Checks every 15 minutes whether a new day's batch is due, so a restart or a missed hour can't skip a day.
+/// The check is in memory; the database is touched only when the date changes (start-up loads the first batch).
+/// </summary>
+public sealed class DemoRefreshWorker(IServiceScopeFactory scopes, TimeProvider clock, ILogger<DemoRefreshWorker> log) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var loaded = DemoData.DueBatch(clock);
         using var timer = new PeriodicTimer(TimeSpan.FromMinutes(15));
-        do
+        while (await timer.WaitForNextTickAsync(stoppingToken))
         {
+            var due = DemoData.DueBatch(clock);
+            if (due == loaded) continue;
             try
             {
                 using var scope = scopes.CreateScope();
                 await scope.ServiceProvider.GetRequiredService<DemoData>().RefreshIfDueAsync(stoppingToken);
+                loaded = due;
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 log.LogError(ex, "Daily refresh of the made-up profiles failed; will retry");
             }
-        } while (await timer.WaitForNextTickAsync(stoppingToken));
+        }
     }
 }

@@ -2,6 +2,33 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 12: working PoC with a C# backend, hosted in Azure
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-028, B-029), the CEO (D-028) and Finance (ledger)
+**Mode:** Build (D-023), with Sam's scoped exception for hosting (D-027) · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md "Last updated 2026-11-22 after Session 11"; newest LOG entry Session 11. Sam: "start next session. I want a build with a C# backend hosted in Azure subscription ID 81209232-7da9-4f81-b984-7ab0bd3dcfb3. You are the admin, azcmd has access to this sub. We build the PoC in Azure and pretend it's production for now. We're not doing dev/staging environments as this is a PoC, but one that'll look like production." Then: "The only requirement I have is the backend is C#, and for Azure. The front-end, however you like. Whatever's best. We'll need mobile & web apps", and: "The PoC should have fake data injected & refreshed daily for now"
+**Goals:** 1. B-028 working PoC with a C# backend and a front end for phones and web. 2. B-029 host it in Azure as production. 3. Close the session.
+**Needs Sam:** Nothing new in the queue. Who gets the invite code is his call (D-027).
+**Did**
+- Recorded Sam's words before acting: D-027 (host in Azure as production; the scope and what it doesn't cover), D-028 (stack, CEO), D-029 (made-up people refreshed daily). Reshaped B-028, which had said "a Node server, local and free", and added B-029.
+- B-028 (Builder with Tester), `app/`:
+  - Matching engine: the prototype's logic block ported to C# (`Compicasa.Core`). It returns message codes, and the wording stays in the front end. A Node script exports the 14 made-up profiles and a parity fixture from the prototype itself; the C# engine matches it exactly on all 240 pairings, the group suggestions, the briefs and the group checks.
+  - API: ASP.NET Core minimal API on .NET 10; EF Core on Azure SQL (SQLite locally); accounts with an invite code, hashed passwords and a SameSite=Strict cookie; profiles validated on the server; likes, passes and mutual matches; groups with invitations; the home brief. Other people's dealbreaker settings, sliders and pickiness never leave the server.
+  - Made-up people (D-029): the 14 hand-written profiles plus 30 generated ones, replaced each day after 04:00 Madrid time; likes and groups involving replaced profiles go with them.
+  - Front end: a PWA (installable on Android and iOS), plain HTML, CSS and JavaScript, views ported from the prototype, Spanish first with English; the string tables were copied from the prototype and extended. Strict CSP, so colours are set from script.
+  - Tests: 19 .NET tests (parity, fairness, API, security headers, daily refresh) and a 24-check browser test that drives headless Edge through the DevTools protocol at phone and desktop sizes, in both languages.
+  - The browser test caught a real bug: C# passed a lone `string[]` as the whole `params object[]`, spreading list arguments. Fixed in `Msg`, with a test.
+- B-029 (Builder), `app/infra/`: Bicep for `rg-compicasa-prod` in Spain Central; `deploy.ps1` (infrastructure, the managed identity's database user via a temporary firewall opening, then tests, publish and zip deploy). Live at https://app-compicasa-prod-25yr5.azurewebsites.net. All 24 browser checks pass on the live site; HTTP redirects to HTTPS; HSTS, CSP and `noindex` headers present.
+  - The free serverless SQL offer was refused in Spain Central ("not supported for provided service level objective or region"). I switched to SQL Basic to keep the data in Spain, and corrected D-028.
+  - I also changed the daily-refresh worker to check the date in memory, so it doesn't query the database every 15 minutes.
+- Finance: the running cost is in `project/budget.md`. Risks: R-007 updated, R-022 added. Backlog: B-030 (deploy from GitHub Actions), B-031 (native speaker's review of the new Spanish), B-032 (store apps, later). Builder role file and README updated.
+
+**Decided:** D-027 (Sam), D-028 (CEO, corrected the same day: SQL Basic, not the free offer), D-029 (Sam)
+**Approvals used:** D-027, 2026-11-22: created `rg-compicasa-prod` and its resources in subscription 81209232-…, and deployed the app. Nothing else was published, bought, sent or registered; no domain; the invite code went to no one.
+**Learned:** Azure's free SQL offer isn't available in Spain Central. nuget.org is blocked on this machine, but its configured feed works. Cost (Reported, Azure retail price API, EUR, VAT not included): App Service B1 Linux €0.0162 an hour, SQL Basic €0.1445 a day, so about €16 a month. Not checked: whether Sam's Visual Studio subscription credit covers it; real phones and screen readers; a native speaker's review of the new Spanish.
+**Open or blocked:** B-030 needs Sam to push a workflow and add a federated credential. Who gets the invite code is Sam's call.
+**Saved and checked:** `dotnet test` (19 passed) before each deploy; the browser test passed locally and on the live site (24 passed); reviewed `git status` and `git diff` for DECISIONS, BACKLOG, RISKS, STATE, README, budget and the Builder file, and compared them with what I meant to write. LOG.md was saved last and checked with `git diff`; the commit is confirmed in the closing report.
+**Next session should start with:** 1. B-027 DPIA, covering the hosted PoC. 2. B-030 deploy from GitHub Actions (with Sam). 3. B-020 privacy notice and consent texts.
+
 ## 2026-11-22 · Session 11: privacy groundwork, rename, name clearance
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Legal & Compliance (B-013), the Builder and Tester (B-012), and Brand & Marketing (B-024)
 **Mode:** Build (D-023) · **Copy used:** canonical repository (D-022)

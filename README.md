@@ -2,7 +2,7 @@
 
 Private codename for a new company, run mostly by AI agents with Sam Betts as founder. The idea: **help compatible people in Spain buy one home together**, matched dating-style, then help with the joint home brief, the search and, later, the legal set-up and exits.
 
-- **Status:** Phase 0 (explore and set up), in Build mode since 2026-11-22 (D-023). Nothing public, nothing bought, €0 spent. Done so far: research, a bilingual playable prototype and landing-page draft under the provisional name Compicasa (D-007), an independent review, a map of rivals, a lawyer brief, a pilot plan and privacy groundwork. Last updated 2026-11-22.
+- **Status:** Phase 0 (explore and set up), in Build mode since 2026-11-22 (D-023). A working proof of concept with a C# backend runs in Sam's Azure subscription as if in production (D-027): closed by an invite code, made-up people only, about €16 a month before VAT (`app/README.md`). Nothing else is public or bought. Done so far: research, a bilingual playable prototype and landing-page draft under the provisional name Compicasa (D-007), an independent review, a map of rivals, a lawyer brief, a pilot plan, privacy groundwork and the hosted PoC. Last updated 2026-11-22.
 - **Where it runs:** on any machine, account or tool Sam chooses, including Microsoft and work ones; the project is also a proof of concept for building a new company with AI (D-026). Build mode since 2026-11-22 (D-023): prototypes and code, nothing published (AGENTS.md section 3).
 - **Name:** not chosen. Provisional favourite **Compicasa**, pending a proper clearance search (`research/2026-11-20-naming-screen.md`). "project-juntos" is only this repository's codename: "Juntos" itself isn't available, as its .es and .com domains are taken.
 - **Canonical copy:** this repository, private on Sam's personal GitHub account (D-022). Keep it private: only Sam changes its visibility or collaborators.
@@ -31,6 +31,7 @@ Private codename for a new company, run mostly by AI agents with Sam Betts as fo
 | `research/` | Dated research notes, including the independent review and the lawyer brief |
 | `product/` | Profile and matching model, prototype notes, Phase 1 pilot plan |
 | `prototype/` | Playable single-file prototype and its checks (run `node test_proto.js` inside `prototype/`) |
+| `app/` | The working PoC: C# API, matching engine, web app for phones and desktops, tests, and the Azure infrastructure and deploy script (`app/README.md`) |
 | `templates/` | Session hand-off, decision record, experiment card, research brief |
 
 Older log entries and research notes mention `agents/` and the OneDrive folder "Co-buying startup": they're records and stay as written. The role files are now in `.github/agents/`, and Sam's role is in `project/founder.md`.
