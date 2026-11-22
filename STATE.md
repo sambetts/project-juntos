@@ -37,15 +37,16 @@ Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief
 D-001 Spain only · D-002 groups, not just pairs · D-003 social side first · D-004 link out to listings, no scraping (amendment proposed: D-015) · D-005 prototype first · D-006 AI-run, Sam approves · D-014 Spanish first (amended by D-024) · D-016 canonical copy (now D-022) · D-017 working positioning (internal) · D-019 sessions run on Opus · D-020 operating modes · D-021 personal resources, off work systems · D-013 where the project lives · D-022 private repository project-juntos · D-023 F-001 cleared, Build mode from 2026-11-22 · D-024 bilingual product, English documents
 
 ## Waiting on Sam
-F-012 delete the work copies (the push is done) · F-002 time and budget · F-003 name · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief (unblocked by F-001) · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes · B-025 try the prototype on his phone, or approve a Spanish-speaking reviewer
+F-002 time and budget · F-003 name · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief (unblocked by F-001) · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes; B-025 (phone and native-speaker checks) is parked until user tests come closer
 
 ## Next up (Build mode)
 1. B-007 landing-page draft with waitlist, Spanish and English, not published, storing and sending nothing (Builder with Brand & Marketing). The Builder's rule is one prototype per session.
 2. B-013 privacy and safety groundwork (Legal & Compliance): the top backlog item, and a gate for any real users.
 3. B-020 pilot materials, made-up data only (Product); per D-024, decide whether participant-facing materials need English versions too.
-4. Sam: F-012 (delete the work copies), F-011, then the pilot items F-010, F-004, F-005 and F-006.
+4. Sam: F-011, then the pilot items F-010, F-004, F-005 and F-006.
 
 ## Watch out
+- F-012 closed 2026-11-22: the work copies are deleted.
 - Nothing for this project on Sam's work devices, accounts, systems or tools, or in his working time; no employer confidential information or work; no approaching colleagues or his employer's customers through work (F-001, D-021).
 - Build mode allows building, not publishing: no hosting, deploys, domains, sign-ups, analytics or forms that send data without Sam's dated approval.
 - Real participants' data must never land in this repository (git history keeps it), on work systems or in an AI session without approved terms (R-020). Only pseudonymised IDs and totals belong here.

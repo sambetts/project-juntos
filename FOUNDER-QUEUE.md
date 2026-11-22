@@ -4,12 +4,6 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-012 · Delete the work copies (last step) · by 2026-11-28
-**Done (seen in Session 8, 2026-11-22):** the repository is pushed: the local clone tracks `github.com/<Sam's account>/project-juntos` and has its first commit ("Initial"), and Session 8 ran in it on Sam's personal machine.
-**Still open:** delete the work copies: the "Co-buying startup" folder at the root of your work OneDrive, and this project's task folder in its Cowork folder (Tasks › shared-property-co-buying-market-2026-11-18), which holds an older snapshot, the first prototype and project-juntos.zip. Also check on GitHub that the repository is private.
-**Recommendation:** do it this week, outside working time, then write "ANSWER: deleted" here.
-**If no answer:** the copies stay on work systems, which the employer's policy rules out (D-021, R-008).
-
 ### F-002 · Time and money for Phase 1 (about six weeks) · by 2026-11-27
 **Options:**
 - A) about 2 hours a week (12 hours in total), up to €300
@@ -64,6 +58,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **If no answer:** the modes apply as written in AGENTS.md section 3, and Build mode continues.
 
 ## Closed
+
+### F-012 · Push to the private repository, then delete the work copies · closed 2026-11-22
+**Done (seen in Session 8, 2026-11-22):** the repository is pushed: the local clone tracks `github.com/<Sam's account>/project-juntos` and has its first commit ("Initial"), and Session 8 ran in it on Sam's personal machine.
+**Still open:** delete the work copies: the "Co-buying startup" folder at the root of your work OneDrive, and this project's task folder in its Cowork folder (Tasks › shared-property-co-buying-market-2026-11-18), which holds an older snapshot, the first prototype and project-juntos.zip. Also check on GitHub that the repository is private.
+**Recommendation:** do it this week, outside working time, then write "ANSWER: deleted" here.
+**If no answer:** the copies stay on work systems, which the employer's policy rules out (D-021, R-008).
+**ANSWER (Sam, 2026-11-22, in Claude Code):** "F012: done."
 
 ### F-001 · Employer check · closed 2026-11-22
 **ANSWER (Sam, 2026-11-22, in Claude Code):** selected "F-001 cleared, Build from today": "You confirm you've read the agreement and it has no exclusivity, approval or IP clause that blocks this." Recorded as D-023, Build mode from 2026-11-22.
