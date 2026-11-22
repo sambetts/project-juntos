@@ -169,6 +169,8 @@ public static class Accounts
             o.Events.OnRedirectToIdentityProvider = ctx =>
             {
                 if (ctx.Properties.Items.TryGetValue("lang", out var lang)) ctx.ProtocolMessage.UiLocales = lang == "en" ? "en" : "es";
+                // prompt=create should open the sign-up page, but External ID has ignored it since early 2026 (Reported, Microsoft Q&A),
+                // so the sign-up screen also tells people to tap "No account? Create one". Kept in case it starts working again.
                 if (ctx.Properties.Items.ContainsKey("ticket")) ctx.ProtocolMessage.Prompt = "create";
                 return Task.CompletedTask;
             };

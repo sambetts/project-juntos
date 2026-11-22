@@ -153,7 +153,7 @@ function viewAuth(){
   const up=S.authMode==='signup',ext=S.config&&S.config.auth==='external';
   let body;
   if(ext&&!up)body=`<p>${esc(t('extSignInLead'))}</p><p class="error" id="auth-error" role="alert">${esc(S.authError)}</p><button type="button" class="btn primary wide" data-action="ext-signin">${esc(t('extSignInBtn'))}</button>`;
-  else if(ext)body=`<form id="auth-form" novalidate><p>${esc(t('extSignUpLead'))}</p>${consentFields()}<p class="error" id="auth-error" role="alert">${esc(S.authError)}</p><button type="submit" class="btn primary"${S.busy?' disabled':''}>${esc(t('extContinue'))}</button></form>`;
+  else if(ext)body=`<form id="auth-form" novalidate><p>${esc(t('extSignUpLead'))}</p>${consentFields()}<p class="notice card" id="ext-tip"><b>${esc(t('extSignUpTip'))}</b></p><p class="error" id="auth-error" role="alert">${esc(S.authError)}</p><button type="submit" class="btn primary"${S.busy?' disabled':''}>${esc(t('extContinue'))}</button></form>`;
   else body=`<form id="auth-form" novalidate>
 <div class="field"><label for="a-email">${esc(t('email'))}</label><input id="a-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" required>${up?`<p class="hint">${esc(t('emailHint'))}</p>`:''}</div>
 ${passwordField(up)}
