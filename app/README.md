@@ -1,6 +1,6 @@
 # Compicasa PoC: the working app
 
-The working proof of concept (B-028, B-029), hosted in Azure as if it were production (D-027). A C# backend with one installable web app for phones and desktops (D-028), filled with made-up people that are refreshed every morning (D-029). Spanish first, English supported (D-024). By the Builder, 2026-11-22.
+The working proof of concept (B-028, B-029), hosted in Azure as if it were production (D-027), on Azure's free tiers (D-030). A C# backend with one installable web app for phones and desktops (D-028), filled with made-up people that are refreshed every morning (D-029). Spanish first, English supported (D-024). By the Builder, 2026-11-22.
 
 **Live:** https://app-compicasa-prod-25yr5.azurewebsites.net. It's closed: creating an account needs the invite code (see "Operating it"). Hidden from search engines. Made-up data only: no real users or real personal data without Sam (D-027).
 
@@ -24,9 +24,11 @@ The working proof of concept (B-028, B-029), hosted in Azure as if it were produ
 | Infrastructure | Bicep: one resource group in Spain Central | `infra/main.bicep`, `infra/resources.bicep` |
 | Deploy | Tests, publish, zip deploy, health wait; idempotent | `infra/deploy.ps1` |
 
-**Azure (rg-compicasa-prod, Spain Central):** App Service plan B1 Linux with one web app (Always On, health check `/healthz`, HTTPS only, TLS 1.2, FTP off, system-assigned managed identity); Azure SQL Database Basic (5 DTU, 2 GB) with Entra ID sign-in only, so no database password exists anywhere; Application Insights on a Log Analytics workspace capped at 0.2 GB a day; a €30 monthly budget alert to the subscription's owners.
+**Azure (rg-compicasa-prod), free tiers (D-030):** App Service plan F1 (free) Linux in Spain Central with one web app (HTTPS only, TLS 1.2, FTP off, system-assigned managed identity); Azure SQL Database on the free offer (serverless, 100,000 vCore-seconds and 32 GB a month, pauses instead of billing if that runs out) in **France Central**, because Azure refuses the free offer in Spain Central; Entra ID sign-in only, so no database password exists anywhere; Application Insights on a Log Analytics workspace capped at 0.1 GB a day; a €5 monthly budget alert to the subscription's owners.
 
-**Cost (Reported, Azure retail price API, EUR, VAT not included, checked 2026-11-22):** App Service B1 Linux €0.0162 an hour (about €11.83 a month) plus SQL Basic €0.1445 a day (about €4.40 a month): about €16 a month, plus a little for logs. The free serverless SQL offer was tried first but Azure refused it in Spain Central.
+**Cost:** expected €0. F1 and the SQL free offer don't bill. Logs are capped at about 3 GB a month, inside Log Analytics' free 5 GB per billing account (Reported; the allowance is shared with any other workspace on the same billing account). On 2026-11-22 it ran for a few hours on B1 and SQL Basic (about €16 a month at list prices, VAT not included), so expect a few cents on this month's bill.
+
+**Free-tier limits:** the app sleeps after about 20 idle minutes, and the database pauses after 60. The first visit after a pause can take up to a minute while both wake. F1 allows 60 CPU minutes a day, after which the app stops until the next day. The daily refresh of made-up people runs when the app wakes, not at exactly 04:00. The data is in the EU (France), not in Spain.
 
 **Security:** strict Content Security Policy (no inline scripts or styles; colours and sizes are set from script), `X-Frame-Options: DENY`, `nosniff`, no referrer, HSTS; every changing API call needs the `X-Compicasa: 1` header (blocks cross-site requests); sign-in and sign-up rate-limited to 10 a minute per address; server-side validation of every profile field; `noindex` on every response. The SQL server accepts connections from Azure services, and sign-in needs an Entra ID identity with a database user (only the web app and the admin have one).
 
@@ -49,7 +51,8 @@ Then open the URL it prints and sign up with invite code `local-test`.
 - **Invite code:** kept only in the web app's settings, never in this repository. Read it with
   `az webapp config appsettings list -g rg-compicasa-prod -n app-compicasa-prod-25yr5 --subscription 81209232-7da9-4f81-b984-7ab0bd3dcfb3 --query "[?name=='Auth__InviteCode'].value | [0]" -o tsv`.
   Replace it with `deploy.ps1 -Infra -NewInviteCode`. Giving it to anyone but Sam means real users, which needs Sam's decision first (D-027).
-- **Health:** `/healthz` (the app is up) and `/healthz/ready` (it can reach the database).
+- **Health:** `/healthz` (the app is up) and `/healthz/ready` (it can reach the database; slow if the database is paused).
+- **If it outgrows the free tiers:** in `infra/resources.bicep`, set the plan to B1 with `alwaysOn: true` (about €12 a month) and, if the database pauses too often, drop `useFreeLimit`.
 - **Logs:** Application Insights `appi-compicasa-prod`.
 
 ## Not done yet (in the backlog)

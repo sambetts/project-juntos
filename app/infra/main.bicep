@@ -1,10 +1,14 @@
-// Compicasa PoC, hosted as production (D-027, D-028). One environment, one resource group, Spain Central.
+// Compicasa PoC, hosted as production (D-027, D-028) on free tiers (D-030). One environment, one resource group:
+// the web app in Spain Central, the database in France Central (the SQL free offer isn't available in Spain).
 // Deploy with app/infra/deploy.ps1. No passwords exist: the app reaches Azure SQL with its managed identity,
 // and the database accepts Entra ID sign-in only.
 targetScope = 'subscription'
 
-@description('Azure region: Spain Central keeps the data in Spain (EU).')
+@description('Region for the web app.')
 param location string = 'spaincentral'
+
+@description('Region for the database. The SQL free offer is not available in Spain Central; France Central is the nearest EU region tried (D-030).')
+param sqlLocation string = 'francecentral'
 
 @description('Short name used in resource names.')
 param name string = 'compicasa'
@@ -20,7 +24,7 @@ param sqlAdminLogin string
 param inviteCode string
 
 @description('Monthly budget alert for the resource group, in the billing currency.')
-param monthlyBudget int = 30
+param monthlyBudget int = 5
 
 @description('First day of the budget period (first of a month, YYYY-MM-01).')
 param budgetStart string = '2026-11-01'
@@ -43,6 +47,7 @@ module app 'resources.bicep' = {
   scope: rg
   params: {
     location: location
+    sqlLocation: sqlLocation
     name: name
     tags: tags
     sqlAdminObjectId: sqlAdminObjectId

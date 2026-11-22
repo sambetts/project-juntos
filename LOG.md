@@ -28,6 +28,13 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Open or blocked:** B-030 needs Sam to push a workflow and add a federated credential. Who gets the invite code is Sam's call.
 **Saved and checked:** `dotnet test` (19 passed) before each deploy; the browser test passed locally and on the live site (24 passed); reviewed `git status` and `git diff` for DECISIONS, BACKLOG, RISKS, STATE, README, budget and the Builder file, and compared them with what I meant to write. LOG.md was saved last and checked with `git diff`; the commit is confirmed in the closing report.
 **Next session should start with:** 1. B-027 DPIA, covering the hosted PoC. 2. B-030 deploy from GitHub Actions (with Sam). 3. B-020 privacy notice and consent texts.
+**After the closing report:** Sam: "Put it on the free tier az resources, or as close as possible". Recorded as D-030.
+- The web plan moved from B1 to F1 (free) in Spain Central, with Always On and the health check off, since F1 has neither.
+- I tried the SQL free offer in Spain Central again through the CLI, and it was refused again. A new SQL server in France Central accepted it (`sql-compicasa-eu-25yr5`, GP_S_Gen5_2 with `useFreeLimit`; it pauses if the allowance runs out). The app's managed identity got its database user there. The app restarted and seeded itself.
+- Before deleting the old Spain Central server, I counted its accounts: 30 generated and 14 seed, no real accounts. Then I deleted it.
+- The log cap is now 0.1 GB a day, and the budget alert is now €5.
+- All 24 browser checks pass on the free set-up.
+- Updated `app/README.md`, `app/infra/`, budget, risks (R-022), backlog (B-029), STATE and README. Expected cost €0, plus a few cents for the hours on B1 and SQL Basic. Checked with `git diff`; committed.
 
 ## 2026-11-22 · Session 11: privacy groundwork, rename, name clearance
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Legal & Compliance (B-013), the Builder and Tester (B-012), and Brand & Marketing (B-024)

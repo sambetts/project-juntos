@@ -10,7 +10,8 @@ Finance owns this file. Nothing is spent without Sam's dated approval (AGENTS.md
 ## Ledger
 | Date | Item | Amount (€) | VAT incl.? | Recurring? | Approval (F-### and date) | Paid by |
 |---|---|---|---|---|---|---|
-| 2026-11-22 | Azure hosting for the PoC (D-027): App Service B1 Linux and SQL Database Basic in Spain Central, plus a little for logs. Billed to Sam's Azure subscription "Visual Studio Enterprise - New" | About 16 a month (11.83 + 4.40, Azure list prices) | No (list prices exclude VAT) | Yes, monthly, from 2026-11-22 | D-027, Sam in Claude Code on 2026-11-22 | Sam's Azure subscription; whether its monthly credit covers it isn't checked (Assumption) |
+| 2026-11-22 | Azure hosting for the PoC (D-027), first set-up: App Service B1 Linux and SQL Database Basic in Spain Central, for a few hours | A few cents (about 16 a month at list prices, pro rata) | No (list prices exclude VAT) | No: replaced the same day | D-027, Sam in Claude Code on 2026-11-22 | Sam's Azure subscription "Visual Studio Enterprise - New" |
+| 2026-11-22 | Azure hosting for the PoC on free tiers (D-030): App Service F1, the SQL free offer, logs capped inside the free allowance | 0 expected | n/a | Monthly, €0 expected | D-030, Sam in Claude Code on 2026-11-22 | Sam's Azure subscription; €5 budget alert set |
 
 ## Known quotes (not approved)
 | Item | Quote | Source and date |
