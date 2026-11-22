@@ -35,6 +35,7 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 - The Azure CLI's default account had moved to the new tenant; set back to subscription 81209232-….
 - B-033 done; B-034 waits on Sam's own test sign-up; B-045 added. F-016 closed. Checked with `git diff`; committed.
 Sam's test sign-up failed: "We couldn't find an account with this email address." Cause: External ID ignores `prompt=create` and always shows its sign-in page, which only looks up existing accounts (confirmed by fetching both pages: identical; Reported broken since February 2026 on Microsoft Q&A). Our side already copes if people tap "No account? Create one" there, since the ticket travels with them. Fix: the sign-up step now says so plainly, in the page's own words in each language, with a browser check; `prompt=create` kept. Tests pass (30). Not deployed yet: the tool's safety check stopped `deploy.ps1 -App`; waiting for Sam.
+Sam: "deploy". Deployed (30 tests passed first); the live browser test passes 15 of 15, including the new instruction. Checked with `git diff`; committed.
 
 ## 2026-11-22 · Session 12: working PoC with a C# backend, hosted in Azure
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-028, B-029), the CEO (D-028) and Finance (ledger)
