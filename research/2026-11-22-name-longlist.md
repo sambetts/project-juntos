@@ -9,7 +9,22 @@
 - Names that only work for two people (Casa de Dos, Dos Dueños, Casa al Alimón) fit pairs-only pilots but not groups (D-002), so they rank lower.
 - **Found in passing:** Viviendea, a platform that "groups people looking for housing according to their interests" and then approaches a developer (Reported: construible.es, 2018-07-09). It isn't in our rival review (B-001). I've proposed it for the next competitor watch (B-019).
 
-## Top five
+## Second round: names in Compicasa's style (added later on 2026-11-22)
+Sam asked for more, since Compicasa was winning. This round checked 33 warm, colloquial puns in the same family; the method is the same as below.
+
+| Name | Meaning and feel | .com | .es | Existing use found (web search) | Watch-outs |
+|---|---|---|---|---|---|
+| **Comprañeros** | *compra* (buying) + *compañeros* (mates): "buying mates" | free (compraneros) | free (compraneros) | None | The ñ is lost in the web address; English speakers won't get the pun |
+| **Compramigos** | *compra* + *amigos*: "buy-friends" | free | free | None | *Amigos* suggests you already know each other, but we match strangers |
+| **Llavemigos** | *llave* (key) + *amigos* | free | free | None | Playful, maybe too childish for a big purchase |
+| Compillave, Compihogar, Compinido, Compitecho, Casacompi, Compicompra | Variants of Compicasa | free | free | Not searched | Worth registering only to protect Compicasa, if it's chosen |
+| Cocompramos, Socicasa, Mitacasa, Majicasa, Sumacompis, Nidocompi, Compinchecasa, Casa en Pandilla | Various | free | free | Not searched | Weaker: *compinche* means "partner in crime"; *mita* reads as half a word; *pandilla* suggests a gang |
+
+Taken in .com, .es or both: Colecasa, Amicasa, Casamiga, Cocompra, Compramos Juntos, Juntamos, Vecicasa, Compinche, Compis, Compiclub, Comprajuntos, Pandicasa.
+
+**Updated recommendation:** keep Compicasa as the favourite. **Comprañeros** is the strongest challenger: it has the same warmth, and it says *buying* rather than just *mate + house*, which fixes Compicasa's flat-share risk (2026-11-20 screen). Take Compicasa, Comprañeros and Sumallaves into the clearance search (B-024) and the comprehension test.
+
+## Top five (first round)
 | Rank | Name | Meaning and feel | .com | .es | Existing use found (web search, 2026-11-22) | Watch-outs |
 |---|---|---|---|---|---|---|
 | 1 | **Sumallaves** | *suma* (add up, pool) + *llaves* (keys): "your keys add up" | free | free | None | "Llaves" is common in agency names (Entre Llaves in Vejer, 4 Llaves in Madrid, DosLlavesGestión in Valencia), so check it for confusion; English speakers need to learn how to say it (soo-ma-YA-ves) |
@@ -61,4 +76,5 @@
 - Inmobiliaria Entre Llaves (Trustlocal): https://trustlocal.es/cádiz/vejer-de-la-frontera/agencia-inmobiliaria/inmobiliaria-entre-llaves/
 - 4 Llaves Inmobiliaria (RealAdvisor): https://realadvisor.es/es/agencias-inmobiliarias/agencia-4-llaves-inmobiliaria
 - Viviendea (Construible, 2018-07-09): https://www.construible.es/2018/07/09/lanzadera-cbre-impulsan-viviendea-plataforma-promueve-adquisicion-sostenible-viviendas
+- Web searches for "Comprañeros", "Compramigos" and "Llavemigos" (2026-11-22) returned only unrelated pages (dictionary entries, keyrings).
 - Earlier screen: `research/2026-11-20-naming-screen.md`

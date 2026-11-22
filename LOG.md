@@ -17,7 +17,8 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Learned:** about 20 of the 71 names have neither address registered, but most are descriptive phrases, which are weaker as marks. Spanish agency names that use "llaves" are common. Found Viviendea, a platform that groups housing seekers by interests before approaching a developer (Reported, construible.es 2018); it isn't in B-001. Not checked: trademark registers, whether the .es addresses are really free, and what Anidando S.L. does.
 **Open or blocked:** F-003 waits on Sam; B-024 can start now.
 **Saved and checked:** reviewed `git diff` for BACKLOG, DECISIONS, FOUNDER-QUEUE and STATE, and re-read the new note, against what I meant to write. LOG.md saved last and checked with `git diff`; the commit is confirmed in the closing report.
-**Next session should start with:** 1. B-007 bilingual landing-page draft. 2. B-013 privacy and safety groundwork. 3. B-024 clearance of Compicasa and Sumallaves.
+**Next session should start with:** 1. B-007 bilingual landing-page draft. 2. B-013 privacy and safety groundwork. 3. B-024 clearance of Compicasa, Comprañeros and Sumallaves.
+**After the closing report:** Sam asked for more: "Any more? Compicasa is winning to far". A second round screened 33 names in Compicasa's style, the same way, and added it to the note. Comprañeros ("buying mates"), Compramigos and Llavemigos look free in both .com and .es, with no existing use found. Comprañeros now joins Sumallaves as a challenger in F-003, D-007, B-024, B-026 and STATE. Checked with `git diff`; committed.
 
 ## 2026-11-22 · Session 8: Build mode, bilingual prototype
 **Who:** Sam with Claude Code (Opus 5.5) on his personal machine, as Chief of Staff, with the CEO (D-023, D-024), Builder and Tester (B-018)
