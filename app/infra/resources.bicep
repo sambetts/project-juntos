@@ -1,4 +1,8 @@
 // Resources inside rg-compicasa-prod. See main.bicep.
+@description('The App Service plan the web app runs on: the existing BuildSyncProd (Windows, P1v2, UK South; D-036), in its own resource group.')
+param planId string
+@description('Agencies the homes crawler must leave alone and whose homes are hidden (D-035), comma-separated; kept across deploys.')
+param homesStopped string = ''
 param location string
 @description('Region for the database. Ideally the same as location (D-031); see main.bicep for why it may differ.')
 param sqlLocation string = location
@@ -16,8 +20,7 @@ param budgetStart string
 
 var suffix = substring(uniqueString(resourceGroup().id), 0, 5)
 var dbName = 'sqldb-${name}'
-// The France Central server was created before servers were named by region.
-var sqlServerName = sqlLocation == 'francecentral' ? 'sql-${name}-eu-${suffix}' : 'sql-${name}-${sqlLocation}-${suffix}'
+var sqlServerName = 'sql-${name}-${sqlLocation}-${suffix}'
 
 // ---------- monitoring ----------
 resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -88,29 +91,22 @@ resource db 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
   }
 }
 
-// ---------- web app: ASP.NET Core API + PWA, Linux, F1 (free, D-030) ----------
-resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
-  name: 'asp-${name}-prod'
-  location: location
-  tags: tags
-  kind: 'linux'
-  sku: { name: 'F1', tier: 'Free' }
-  properties: { reserved: true }
-}
-
+// ---------- web app: ASP.NET Core API + PWA, Windows, on the shared BuildSyncProd plan (D-036) ----------
 resource web 'Microsoft.Web/sites@2023-12-01' = {
   name: 'app-${name}-prod-${suffix}'
   location: location
   tags: tags
-  kind: 'app,linux'
+  kind: 'app'
   identity: { type: 'SystemAssigned' }
   properties: {
-    serverFarmId: plan.id
+    serverFarmId: planId
     httpsOnly: true
     clientAffinityEnabled: false
     siteConfig: {
-      linuxFxVersion: 'DOTNETCORE|10.0'
-      alwaysOn: false // not available on F1: the app sleeps when idle and refreshes the made-up people when it wakes (D-029)
+      netFrameworkVersion: 'v10.0'
+      metadata: [ { name: 'CURRENT_STACK', value: 'dotnet' } ]
+      use32BitWorkerProcess: false
+      alwaysOn: true // needed for the scheduled WebJob (the daily homes crawl, D-036)
       http20Enabled: true
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
@@ -123,6 +119,11 @@ resource web 'Microsoft.Web/sites@2023-12-01' = {
         { name: 'Auth__External__Authority', value: externalIdAuthority }
         { name: 'Auth__External__ClientId', value: externalIdClientId }
         { name: 'Demo__RefreshDaily', value: 'true' }
+        { name: 'Homes__Stopped', value: homesStopped }
+        // The WebJob's schedule (App_Data/jobs/triggered/homes-sync/settings.job) is in Madrid time.
+        { name: 'WEBSITE_TIME_ZONE', value: 'Romance Standard Time' }
+        // The first crawl reads every advert (about two hours); don't kill it for being quiet.
+        { name: 'WEBJOBS_IDLE_TIMEOUT', value: '3600' }
       ]
     }
   }
@@ -142,7 +143,6 @@ resource logsToWorkspace 'Microsoft.Insights/diagnosticSettings@2021-05-01-previ
     workspaceId: logs.id
     logs: [
       { category: 'AppServiceHTTPLogs', enabled: true }
-      { category: 'AppServiceConsoleLogs', enabled: true }
       { category: 'AppServiceAppLogs', enabled: true }
     ]
   }

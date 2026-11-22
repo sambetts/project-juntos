@@ -384,7 +384,7 @@ Object.assign(STR.en,{
     "What we keep: your email address; when you confirmed you're 18 or over and accepted these texts; the profile you fill in; your likes, matches and groups.",
     "Why: to give you the service you asked for, which is suggesting people and groups and building the group's home brief. We don't sell your data or use it for advertising.",
     'Who sees what: other people see your name to show, household, bio and the parts of your profile shown on cards. Your email, your dealbreakers and your day-to-day answers are never shown to anyone.',
-    'Where: Microsoft Azure data centres in the European Union. Sign-in is handled by Microsoft Entra External ID, in Europe.',
+    'Where: Microsoft Azure data centres in the United Kingdom (UK South), which the EU recognises as giving adequate protection to personal data. Sign-in is handled by Microsoft Entra External ID, in Europe.',
     'How long: until you delete your account. Deleting it removes your profile, your likes and the groups you started. In this draft, your sign-in record at Microsoft Entra External ID is not yet removed automatically.',
     "Your rights: to access, correct, delete or take away your data, and to object to or restrict its use. You can also complain to Spain's data protection authority, the AEPD (aepd.es).",
     'Cookies: one essential cookie keeps you signed in, and your browser remembers your language. No advertising or analytics cookies.']
@@ -434,7 +434,7 @@ Object.assign(STR.es,{
     'Qué guardamos: tu correo electrónico; cuándo confirmaste que tienes 18 años o más y aceptaste estos textos; el perfil que rellenas; tus «Me interesa», tus matches y tus grupos.',
     'Para qué: para darte el servicio que has pedido, es decir, sugerirte personas y grupos y preparar la ficha de la casa del grupo. No vendemos tus datos ni los usamos para publicidad.',
     'Quién ve qué: las demás personas ven tu nombre visible, tu hogar, tu presentación y las partes de tu perfil que aparecen en las tarjetas. Tu correo, lo que no es negociable para ti y tus respuestas sobre el día a día no se muestran nunca a nadie.',
-    'Dónde: en centros de datos de Microsoft Azure en la Unión Europea. El acceso lo gestiona Microsoft Entra External ID, en Europa.',
+    'Dónde: en centros de datos de Microsoft Azure en el Reino Unido (UK South), país al que la UE reconoce un nivel de protección de datos adecuado. El acceso lo gestiona Microsoft Entra External ID, en Europa.',
     'Cuánto tiempo: hasta que borres tu cuenta. Al borrarla se eliminan tu perfil, tus «Me interesa» y los grupos que creaste. En este borrador, tu registro de acceso en Microsoft Entra External ID todavía no se elimina automáticamente.',
     'Tus derechos: acceder a tus datos, rectificarlos, suprimirlos o llevártelos, y oponerte a su uso o limitarlo. También puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).',
     'Cookies: una cookie imprescindible mantiene tu sesión abierta, y tu navegador recuerda tu idioma. No usamos cookies de publicidad ni de analítica.']

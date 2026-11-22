@@ -15,6 +15,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.15" />
   </ItemGroup>
 
+  <!-- The daily homes crawl, run by App Service as a scheduled WebJob (D-036). -->
+  <ItemGroup>
+    <None Update="App_Data\jobs\**\*" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>

@@ -1,19 +1,24 @@
-// Compicasa PoC, hosted as production (D-027, D-028) on free tiers (D-030): the web app in West Europe, the database
-// in France Central until one region offers both free tiers (D-031).
-// One environment, one resource group. (The group itself was first made in Spain Central; a group's location is
-// only where its metadata lives, and the resources are in West Europe and France Central.)
+// Compicasa PoC, hosted as production (D-027, D-028), in UK South (D-036): the web app runs on the existing
+// App Service plan BuildSyncProd (Windows, P1v2, its own resource group), with the daily homes crawl as a WebJob;
+// the database on the Azure SQL free offer. One environment, one resource group (recreated in UK South, 2026-11-22).
 // Deploy with app/infra/deploy.ps1. No passwords exist: the app reaches Azure SQL with its managed identity,
 // and the database accepts Entra ID sign-in only.
 targetScope = 'subscription'
 
-@description('Region for every resource. West Europe has App Service F1 quota on this subscription; France Central does not (D-031).')
-param location string = 'westeurope'
+@description('Region for every resource: where the BuildSyncProd plan is (D-036).')
+param location string = 'uksouth'
 
-@description('Region for the database. On 2026-11-22 no EU region offered both App Service F1 and the SQL free offer on this subscription: France Central has the free database but no F1 quota; West Europe has F1 but accepts no new SQL servers; Sweden Central, Italy North and Poland Central fail to create a free database. So the database stays in France Central for now (D-031).')
-param sqlLocation string = 'francecentral'
+@description('Region for the database; the same as the web app unless the free offer is refused there.')
+param sqlLocation string = location
 
-@description('Region of the resource group record (metadata only). It was created in Spain Central and cannot move.')
-param groupLocation string = 'spaincentral'
+@description('Region of the resource group record (metadata only).')
+param groupLocation string = location
+
+@description('The App Service plan to run on (D-036).')
+param planId string = '/subscriptions/${subscription().subscriptionId}/resourceGroups/BuildSyncProd/providers/Microsoft.Web/serverfarms/BuildSyncProd'
+
+@description('Agencies the homes crawler leaves alone (D-035), kept across deploys by deploy.ps1.')
+param homesStopped string = ''
 
 @description('Short name used in resource names.')
 param name string = 'compicasa'
@@ -57,6 +62,8 @@ module app 'resources.bicep' = {
   params: {
     location: location
     sqlLocation: sqlLocation
+    planId: planId
+    homesStopped: homesStopped
     name: name
     tags: tags
     sqlAdminObjectId: sqlAdminObjectId

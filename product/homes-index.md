@@ -14,7 +14,7 @@ Groups agree what their shared home needs (the home brief). The homes index show
 
 ## How a home gets from an agency to a group
 ```
-Agency website                      Our crawler (run by hand for now)          Our database
+Agency website                      Our crawler (daily WebJob)                Our database
 --------------                      ---------------------------------          ------------
 robots.txt  ---------------------->  check what we may read
 sitemap (adverts + last changed) ->  list homes for sale in Madrid province
@@ -47,7 +47,7 @@ Group page                          The app
 | Crawler's public page | `app/src/Compicasa.Api/wwwroot/bot.html`, served at `/bot` |
 
 ## Running it
-For now someone runs the crawler from a machine, against the local or live database (commands in `app/README.md`, "Crawling homes"). For the live database, that machine needs a temporary SQL firewall rule and the Azure CLI signed in as the database admin. Next: a daily run from Azure or GitHub Actions (B-047), then more agencies (B-048), then proper feeds (Kyero XML) from agencies that agree.
+The crawl runs inside Azure as a WebJob of the web app (D-036): `homes-sync`, every day at 05:00 Madrid time, using the app's own settings and managed identity. It can also be started by hand, or run from a developer's machine against a local or the live database (commands in `app/README.md`, "Crawling homes"). Next: more agencies (B-048), then proper feeds (Kyero XML) from agencies that agree.
 
 ## Not yet
 - Price and budget matching (B-043, after the lawyer on money filters: D-009).

@@ -31,6 +31,19 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Saved and checked:** `dotnet test` (39 passed); browser test 34 of 34 against a local run with screenshots of the homes on phone and desktop; `git status` and `git diff` reviewed for AGENTS, DECISIONS, FOUNDER-QUEUE, BACKLOG, RISKS, STATE, the lawyer brief and `app/`. LOG saved last; its check and the commit are confirmed in the closing report.
 **Next session should start with:** 1. B-047, if Sam says deploy. 2. B-042. 3. B-045 and B-048.
 **After the closing report:** Sam: "deploy and push" (recorded under F-017). Deployed with `deploy.ps1 -App` (39 tests passed first). Live: `/healthz/ready` ready, `/bot` served, the homes endpoint refuses anyone not signed in, and the live browser test passes 15 of 15 up to External ID. The first live crawl didn't run: Claude Code's safety check refused adding a SQL firewall rule for this machine (B-047). Checked with `git diff`; committed and pushed.
+Then the first live crawl. Sam chose to add the SQL firewall rule himself, then said "You fix it": the AI added `crawl-session15`. Sign-in failed twice ("The server is not currently configured to accept this token": the default credential chain picked up another account on the machine, even with the tenant pinned). The crawler gained a `Database:Credential=AzureCli` option that takes a token from `az account get-access-token`; with it the crawl connected and stored 50 homes. Sam asked for a high-level explanation: `product/homes-index.md`.
+Then Sam: move the PoC onto his existing App Service plan BuildSyncProd (Windows, P1v2, UK South), deleting and recreating everything, with the crawl as a WebJob (D-036, his words recorded).
+- The local crawl was stopped. The invite code and External ID settings were saved outside the repository first.
+- `rg-compicasa-prod` was deleted, together with the old firewall rule, and recreated in UK South. The web app kept its name and address and runs on BuildSyncProd from another resource group. The SQL free offer was accepted in UK South. The WebJob `homes-sync` runs daily at 05:00 Madrid time.
+- Problems on the way:
+  - The deployment name was pinned to Spain Central, so deployments are now named per region.
+  - The first site create raced the old group's deletion and was lost; a rerun fixed it.
+  - For about 10 minutes, Azure's lookups of the new site failed now and then.
+  - A JMESPath query in `deploy.ps1` came back empty from PowerShell, so the script now reads settings as JSON.
+  - `deploy.ps1` printed its arguments, invite code included, in an error. The code appeared in this session's terminal only, not in the repository; errors now hide arguments.
+- The draft privacy notice now says the data is in the UK, which has an EU adequacy decision (Reported, not re-checked this session).
+- Live: ready, External ID sign-in, `/bot` served, browser test 15 of 15. The WebJob was started by hand at 18:46 UTC and stored 25 homes in its first two minutes, using the app's managed identity.
+Checked with `git diff`; committed and pushed.
 
 ## 2026-11-22 · Session 14: the sign-up error
 **Who:** Sam with GitHub Copilot CLI (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-034)

@@ -11,18 +11,20 @@
 #>
 param(
   [string]$Subscription = '81209232-7da9-4f81-b984-7ab0bd3dcfb3',
-  [string]$Location = 'spaincentral',
+  [string]$Location = 'uksouth',
   [switch]$Infra,
   [switch]$App,
   [switch]$NewInviteCode,
-  [string]$InviteCode  # sets the code, for example to keep the old one when the web app is rebuilt
+  [string]$InviteCode,  # sets the code, for example to keep the old one when the web app is rebuilt
+  [string]$ExternalIdAuthority,  # with -ExternalIdClientId: the External ID settings, when the web app is rebuilt
+  [string]$ExternalIdClientId
 )
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $rg = 'rg-compicasa-prod'
 if (-not $Infra -and -not $App) { $Infra = $true; $App = $true }
 
-function Invoke-Az { $out = & az @args; if ($LASTEXITCODE -ne 0) { throw "az $($args -join ' ') failed" }; return $out }
+function Invoke-Az { $out = & az @args; if ($LASTEXITCODE -ne 0) { throw "az $($args[0..1] -join ' ') failed (arguments not shown: they can include the invite code)" }; return $out }
 
 if ($Infra) {
   Write-Host '== Infrastructure'
@@ -33,15 +35,17 @@ if ($Infra) {
   $invite = $InviteCode
   if (-not $invite -and -not $NewInviteCode) {
     $existing = az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv 2>$null
-    if ($existing) { $invite = az webapp config appsettings list -g $rg -n $existing --subscription $Subscription --query "[?name=='Auth__InviteCode'].value | [0]" -o tsv 2>$null }
+    if ($existing) { $invite = ((az webapp config appsettings list -g $rg -n $existing --subscription $Subscription -o json 2>$null) | ConvertFrom-Json | Where-Object name -eq 'Auth__InviteCode').value }
   }
   # Keep the External ID settings that external-id.ps1 wrote (D-033).
-  $authority = ''; $clientId = ''
+  # Keep any agencies the crawler was told to leave alone (D-035).
+  $authority = $ExternalIdAuthority; $clientId = $ExternalIdClientId; $stopped = ''
   $existingWeb = az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv 2>$null
   if ($existingWeb) {
     $settings = az webapp config appsettings list -g $rg -n $existingWeb --subscription $Subscription -o json 2>$null | ConvertFrom-Json
-    $authority = ($settings | Where-Object name -eq 'Auth__External__Authority').value
-    $clientId = ($settings | Where-Object name -eq 'Auth__External__ClientId').value
+    if (-not $authority) { $authority = ($settings | Where-Object name -eq 'Auth__External__Authority').value }
+    if (-not $clientId) { $clientId = ($settings | Where-Object name -eq 'Auth__External__ClientId').value }
+    $stopped = ($settings | Where-Object name -eq 'Homes__Stopped').value
   }
   if (-not $invite) {
     $chars = 'abcdefghjkmnpqrstuvwxyz23456789'.ToCharArray()
@@ -49,9 +53,9 @@ if ($Infra) {
     Write-Host 'New invite code made.'
   }
 
-  $out = Invoke-Az deployment sub create --subscription $Subscription -l $Location -n compicasa-prod `
+  $out = Invoke-Az deployment sub create --subscription $Subscription -l $Location -n compicasa-prod-$Location `
     --template-file (Join-Path $PSScriptRoot 'main.bicep') `
-    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "externalIdAuthority=$authority" "externalIdClientId=$clientId" `
+    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "externalIdAuthority=$authority" "externalIdClientId=$clientId" "homesStopped=$stopped" `
     --query properties.outputs -o json | ConvertFrom-Json
   $web = $out.webAppName.value; $sqlServer = $out.sqlServer.value; $db = $out.database.value
   Write-Host "Web app: $web  SQL: $sqlServer/$db"
@@ -95,7 +99,8 @@ if ($App) {
   Write-Host '== App'
   $web = Invoke-Az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv
   # Production signs people in through External ID only (D-034): local password accounts are for developers.
-  $mode = Invoke-Az webapp config appsettings list -g $rg -n $web --subscription $Subscription --query "[?name=='Auth__Mode'].value | [0]" -o tsv
+  # Read the settings as JSON: a JMESPath filter here came back empty from PowerShell on 2026-11-22.
+  $mode = ((Invoke-Az webapp config appsettings list -g $rg -n $web --subscription $Subscription -o json) | ConvertFrom-Json | Where-Object name -eq 'Auth__Mode').value
   if ($mode -ne 'External') { throw 'The web app is not set up for External ID sign-in yet: run external-id.ps1 first (D-034).' }
   $publish = Join-Path $root 'publish'
   $zip = Join-Path $root 'publish.zip'
