@@ -70,6 +70,10 @@ Then, after his sign-up still failed: "Fix production" (Sam, 2026-11-22, in GitH
 
 ## Closed
 
+### F-018 · Deploy the design review's explorers (B-049) · closed 2026-11-22
+**Asked in:** the Session 16 closing report ("say 'deploy' and I'll run `deploy.ps1 -App`, then check it on the live site with the real Tecnocasa homes").
+**ANSWER (Sam, 2026-11-22, in Claude Code):** "deploy". Read as approval to deploy B-049 with `deploy.ps1 -App` and run the live checks, within D-027. Not an approval to push.
+
 ### F-009 · Amend the listings decision (D-015) · closed 2026-11-22
 **Why:** the review found that links pasted by members lower the scraping risk but aren't permission, and Idealista's terms make no exception for them.
 **Recommendation:** accept. Phase 1 is brief-only, with no listing links; later, only licensed or authorised links.

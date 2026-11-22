@@ -24,6 +24,7 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Open or blocked:** B-049 deploy waits for Sam's go. Proposed follow-ups are in the review and the B-049 row.
 **Saved and checked:** `dotnet test` (39 passed); browser test 34 of 34 against a local run, no script errors; a scratch screenshot script (outside the repository) found no sideways scrolling at 390 px or 1280 px in either theme; `git status` and `git diff` reviewed for STATE, BACKLOG, DECISIONS, the review note, `app/README.md` and `app/`. LOG saved last; its check and the commit are confirmed in the closing report.
 **Next session should start with:** 1. B-049 deploy (on Sam's go) and a live check with real homes. 2. B-047 check the first WebJob crawl. 3. B-042.
+**After the closing report:** Sam: "deploy" (recorded as F-018, closed). Deployed with `deploy.ps1 -App` (39 tests passed first). Live: `/healthz/ready` 200; the new `app.js` and service-worker version are served; the live browser test passes 15 of 15 up to External ID. The explorers past sign-in weren't seen live, since signing in there needs a real inbox: Sam's own account is the check. The first WebJob crawl (started 18:46 UTC) kept running through the deploy and had stored 600 homes by 19:31 UTC. Checked with `git diff`; committed, not pushed.
 
 ## 2026-11-22 · Session 15: our own index of homes for sale
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Research and Legal & Compliance (sources and law), the CEO (D-035), the Builder and Tester (B-046)
