@@ -59,6 +59,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **Recommendation:** B. It's quick, and it keeps the project clearly off work accounts and systems.
 **If no answer:** sessions carry on here, and the risk stays open in R-008.
 
+### F-014 · Ten-minute trademark search for Compicasa, then the domains · by 2026-12-06
+**Why:** the public checks found no blocker (`research/2026-11-22-name-clearance.md`): no web use, no company, and .com and .es look free. But the trademark registers (OEPM and TMView) block automated searches, so a person has to run them. The closest sound-alike is Comprarcasa, an estate-agency network.
+**Ask:** run the searches in that note's "Steps" section (about ten minutes), or name a delegate. Paste the results here.
+**Then:** if nothing similar shows up in classes 35, 36, 42 or 45, approve buying compicasa.es and compicasa.com (€32.98 listed on 2026-11-20; re-check the price), from a personal account.
+**Recommendation:** do the search this fortnight; buy only after it's clean. File a trademark later, with the lawyer.
+**If no answer:** Compicasa stays a provisional working name; nothing is bought or published.
+
 ## Closed
 
 ### F-003 · The name (D-007) · closed 2026-11-22

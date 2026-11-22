@@ -2,6 +2,38 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 11: privacy groundwork, rename, name clearance
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Legal & Compliance (B-013), the Builder and Tester (B-012), and Brand & Marketing (B-024)
+**Mode:** Build (D-023) · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md "Last updated 2026-11-22 after Session 10"; newest LOG entry Session 10. Sam: "do all the next tasks"
+**Goals:** 1. B-013 privacy and safety groundwork. 2. B-012 rename the prototype to Compicasa. 3. B-024 name clearance for Compicasa.
+**Needs Sam:** F-014 new: a ten-minute trademark register search, then approve the domains if it's clean. F-013 is still open.
+**Did**
+- B-013 (Legal & Compliance): `research/2026-11-22-privacy.md`.
+  - Contents: who's the controller; a data map of nine purposes with lawful basis, who sees what, where it lives and retention; sensitive data; the DPIA decision; requirements for tools; breach and safety incident steps; what the waitlist page needs before it goes live.
+  - Checked against the BOE texts of the GDPR (arts. 2.2.c, 9.2.a, 12.3, 22, 28.1, 30.5, 33), LOPDGDD art. 11 and LSSI arts. 10 and 21, plus the AEPD's art. 35.4 list.
+  - The pilot meets AEPD criteria 1 and 4, so a short DPIA is proposed (new B-027).
+  - New finding: LSSI art. 10.1 requires a website to show its provider's name and postal address.
+  - Four new questions added to the lawyer brief (A2, A6); the pilot plan's gate row is updated.
+- B-012 (Builder with Tester):
+  - The prototype is now `prototype/compicasa-prototype.html` (git mv). The name is set once in `BRAND`; the title and header come from it, with a static no-script fallback.
+  - Internal hooks keep the codename: `window.__juntos` and the storage key.
+  - `test_proto.js` grew to 199 checks (5 new: the name set once, the title starts with it, the header shows it, no "Juntos" on screen). Two planted faults were both caught.
+  - Headless Edge loaded both languages with no script errors; the screenshot looked right.
+  - Updated the prototype notes and the Builder's queue.
+- B-024 (Brand & Marketing with Legal & Compliance): `research/2026-11-22-name-clearance.md`.
+  - No blocker found: no web use or company called Compicasa. .com and .net are unregistered (RDAP); .es, .org, .eu and .app look free (DNS, indicative). TikTok and YouTube have no account; the other networks are inconclusive.
+  - Main sound-alike: Comprarcasa, an estate-agency network.
+  - The trademark registers weren't searched: the OEPM requires reCAPTCHA and TMView rejects automated requests. These are deliberate blocks, so I didn't try to get around them; F-014 asks Sam to search by hand.
+  - Ley 17/2001 arts. 5 and 6 checked on the BOE.
+
+**Decided:** none
+**Approvals used:** none. Nothing was published, sent, bought or filed.
+**Learned:** the official registers deliberately block automated searching, so name clearance needs a person. An individual running a website in Spain may have to publish a postal address (LSSI art. 10), which bears on whether to form an S.L. first (A1). EUR-Lex blocked the download, but the BOE's copy of the GDPR worked.
+**Open or blocked:** B-024 is blocked on F-014 (the register search). F-013 is unanswered. B-027 is new.
+**Saved and checked:** committed B-013 and B-012 as each finished; re-ran `node test_proto.js` (199 passed) and `node test_landing.js` (135 passed); reviewed `git diff` for STATE, BACKLOG and FOUNDER-QUEUE and re-read the two new notes against what I meant to write. LOG.md saved last and checked with `git diff`; the commit is confirmed in the closing report.
+**Next session should start with:** 1. B-027 short DPIA. 2. B-020 pilot materials (privacy notice and consent texts first). 3. B-022 pilot areas or B-021 lawyer shortlist.
+
 ## 2026-11-22 · Session 10: landing-page draft
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Brand & Marketing (B-007) and the Tester
 **Mode:** Build (D-023) · **Copy used:** canonical repository (D-022)
