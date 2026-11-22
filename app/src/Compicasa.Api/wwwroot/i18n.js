@@ -439,3 +439,47 @@ Object.assign(STR.es,{
     'Tus derechos: acceder a tus datos, rectificarlos, suprimirlos o llevártelos, y oponerte a su uso o limitarlo. También puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).',
     'Cookies: una cookie imprescindible mantiene tu sesión abierta, y tu navegador recuerda tu idioma. No usamos cookies de publicidad ni de analítica.']
 });
+
+/* Session 16 design review: homes explorer, matches explorer, charts */
+Object.assign(STR.en,{
+  demoHomeTag:'Made-up',kEur:n=>'€'+n+'k',mEur:n=>'€'+n+'m',
+  hxFilters:'Filters',hxReset:'Clear filters',hxPrice:'Price',hxFrom:'From',hxTo:'Up to',hxSize:'Minimum size',hxBeds:'Bedrooms',hxAny:'Any',
+  hxType:'Type',hxArea:'Area',hxEnergy:'Energy rating',hxMore:'Only show',hxMust:'Must-haves confirmed',hxReal:'Real adverts',hxSort:'Sort by',
+  sort_fit:'Best fit',sort_priceUp:'Price, low to high',sort_priceDown:'Price, high to low',sort_pm2:'Lowest price per m²',sort_size:'Largest first',
+  hxShown:(n,m)=>n+' of '+pl(m,'home','homes')+' shown',hxNone:'No home matches these filters.',moreHomes:(n,m)=>'Show '+n+' more ('+m+' left)',
+  stHomes:'Homes that fit',stOfTotal:n=>'of '+n,stMedPrice:'Median price',stMedPm2:'Median price per m²',stMedSize:'Median size',stBestFit:'Best fit',
+  vsAll:d=>(d>0?'+':(d<0?'−':'±'))+Math.abs(d)+'% vs all that fit',
+  vsMedian:d=>d===0?'at the median per m²':(d>0?'+':'−')+Math.abs(d)+'% per m² vs median',
+  chAll:'All that fit',chSel:'With your filters',chPriceH:'How many homes at each price',chClickBin:'Tap a bar to show only that price band.',
+  chBinTip:(lo,hi,s,a)=>lo+'–'+hi+': '+s+' of '+a+' homes',chScatterH:'Price against size',
+  chScatterNote:'The line is the median price per m². Homes below it cost less per m² than the median. Tap a dot to find the home.',
+  chRef:n=>'median '+n+' €/m²',chDotTip:(p,m2,b,w)=>p+' · '+m2+' m² · '+pl(b||0,'bedroom','bedrooms')+(w?' · '+w:''),
+  chAreaH:'Median price per m², by area',chAreaTip:(a,v,n)=>a+': '+v+' €/m², '+pl(n,'home','homes'),
+  planAria:(b,ba)=>'Sketch with '+pl(b,'bedroom','bedrooms')+' and '+pl(ba,'bathroom','bathrooms')+'; not the real floor plan',
+  stCompat:'Compatible',stHidden:'Hidden by your dealbreakers',stLiked:'You liked',stMutual:'Mutual',stMedScore:'Median affinity',
+  mfSearch:'Search by name',mfStatus:'Show',mf_all:'All',mf_new:'Not answered',mf_liked:'Liked',mf_mutual:'Mutual',mf_passed:'Passed',
+  mfMinL:'Minimum affinity',msort_score:'Affinity',msort_name:'Name',mfShown:(n,m)=>'Showing '+n+' of '+m,mfNone:'Nobody matches these filters.',
+  chScoreH:'Your affinity with everyone compatible',chScoreAll:'Everyone compatible',chClickScore:'Tap a bar to show only people from that affinity up.',
+  chScoreTip:(lo,hi,s,a)=>lo+'–'+hi+'%: '+s+' of '+pl(a,'person','people')
+});
+Object.assign(STR.es,{
+  demoHomeTag:'Inventada',kEur:n=>n+' mil €',mEur:n=>n+' M€',
+  hxFilters:'Filtros',hxReset:'Quitar filtros',hxPrice:'Precio',hxFrom:'Desde',hxTo:'Hasta',hxSize:'Superficie mínima',hxBeds:'Dormitorios',hxAny:'Cualquiera',
+  hxType:'Tipo',hxArea:'Zona',hxEnergy:'Certificado energético',hxMore:'Mostrar solo',hxMust:'Con lo imprescindible confirmado',hxReal:'Anuncios reales',hxSort:'Ordenar por',
+  sort_fit:'Mejor encaje',sort_priceUp:'Precio, de menor a mayor',sort_priceDown:'Precio, de mayor a menor',sort_pm2:'Menor precio por m²',sort_size:'Más grandes primero',
+  hxShown:(n,m)=>n+' de '+(m===1?'1 vivienda':m+' viviendas'),hxNone:'Ninguna vivienda cumple estos filtros.',moreHomes:(n,m)=>'Ver '+n+' más (quedan '+m+')',
+  stHomes:'Viviendas que encajan',stOfTotal:n=>'de '+n,stMedPrice:'Precio mediano',stMedPm2:'Precio mediano por m²',stMedSize:'Superficie mediana',stBestFit:'Mejor encaje',
+  vsAll:d=>(d>0?'+':(d<0?'−':'±'))+Math.abs(d)+' % frente a todas',
+  vsMedian:d=>d===0?'en la mediana por m²':(d>0?'+':'−')+Math.abs(d)+' % por m² frente a la mediana',
+  chAll:'Todas las que encajan',chSel:'Con tus filtros',chPriceH:'Cuántas viviendas hay en cada precio',chClickBin:'Toca una barra para ver solo esa franja de precio.',
+  chBinTip:(lo,hi,s,a)=>lo+'–'+hi+': '+s+' de '+a+' viviendas',chScatterH:'Precio frente a superficie',
+  chScatterNote:'La línea marca el precio mediano por m². Las viviendas por debajo cuestan menos por m² que la mediana. Toca un punto para ir a la vivienda.',
+  chRef:n=>'mediana '+n+' €/m²',chDotTip:(p,m2,b,w)=>p+' · '+m2+' m² · '+pl(b||0,'dormitorio','dormitorios')+(w?' · '+w:''),
+  chAreaH:'Precio mediano por m², por zona',chAreaTip:(a,v,n)=>a+': '+v+' €/m², '+(n===1?'1 vivienda':n+' viviendas'),
+  planAria:(b,ba)=>'Esquema con '+pl(b,'dormitorio','dormitorios')+' y '+pl(ba,'baño','baños')+'; no es el plano real',
+  stCompat:'Compatibles',stHidden:'Ocultas por tus innegociables',stLiked:'Te interesan',stMutual:'Interés mutuo',stMedScore:'Afinidad mediana',
+  mfSearch:'Buscar por nombre',mfStatus:'Mostrar',mf_all:'Todas',mf_new:'Sin responder',mf_liked:'Te interesan',mf_mutual:'Interés mutuo',mf_passed:'Descartadas',
+  mfMinL:'Afinidad mínima',msort_score:'Afinidad',msort_name:'Nombre',mfShown:(n,m)=>'Mostrando '+n+' de '+m,mfNone:'Nadie cumple estos filtros.',
+  chScoreH:'Tu afinidad con cada persona compatible',chScoreAll:'Todas las compatibles',chClickScore:'Toca una barra para ver solo a quienes tienen esa afinidad o más.',
+  chScoreTip:(lo,hi,s,a)=>lo+'–'+hi+' %: '+s+' de '+(a===1?'1 persona':a+' personas')
+});

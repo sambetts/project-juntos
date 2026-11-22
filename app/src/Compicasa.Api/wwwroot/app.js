@@ -305,12 +305,15 @@ function viewMatches(){
   const label=(g,i)=>(i===0?t('topSugg'):'')+(g.size===2?t('pairOf'):t('groupOf',g.size));
   const groupsBlock=m.suggestions.length?`<p class="hint">${esc(t('groupsHint'))}</p><div class="grid groups">${m.suggestions.map((g,i)=>groupCard(g,label(g,i))).join('')}</div>`
     :`<div class="card hint">${esc(m.mutualCount?t('noGroupYet'):t('groupsAppear'))}</div>`;
-  return `<h2>${t('matchesH')}</h2>
-<p class="lead">${esc(t('matchesLead2',m.compatible.length))}</p>
+  const all=m.compatible,mutual=all.filter(x=>x.state==='mutual').length,med=median(all.map(x=>x.score.total));
+  const stats=`<div class="tiles">${tile(num(all.length),t('stCompat'),'')}${tile(num(m.hidden.length),t('stHidden'),'')}${tile(num(m.likedCount),t('stLiked'),'')}${tile(num(mutual),t('stMutual'),'')}${tile(med!=null?Math.round(med)+' %':'–',t('stMedScore'),'')}</div>`;
+  return `<section class="hero"><h2>${t('matchesH')}</h2>
+<p class="lead">${esc(t('matchesLead2',m.compatible.length))}</p>${stats}</section>
 <details class="card mb"><summary><b>${t('howScore')}</b></summary><p class="hint">${esc(t('howScoreText'))}</p></details>
 <section class="mb"><h3>${t('groupsH')}</h3>${groupsBlock}</section>
 <h3>${t('everyoneH')}</h3>
-<div class="grid people">${m.compatible.length?m.compatible.map(personCard).join(''):`<div class="card empty">${esc(t('nobody'))}</div>`}</div>
+${all.length?matchesToolbar():''}
+<div id="mx-results">${matchesResults()}</div>
 ${m.hidden.length?`<details class="card mt"><summary><b>${esc(t('hiddenN',m.hidden.length))}</b> <span class="hint">${t('seeWhy')}</span></summary><ul class="clean mt">${m.hidden.map(h=>`<li>${avatar(h.person.id,32,h.person.color,h.person.name)}<div><b>${esc(h.person.name)}</b> <span class="hint">· ${esc(hhLabel(h.person))}</span><div class="who">${esc(h.reasons.map(M).join(' · '))}</div></div></li>`).join('')}</ul></details>`:''}`;
 }
 
@@ -398,28 +401,230 @@ ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>
 </div>
 ${isPreview?'':homesSection(h.id)}${leave}`;
 }
-function euros(n){return n==null?'':n.toLocaleString(LANG==='es'?'es-ES':'en-GB')+' €';}
+/* ---------- numbers, stat tiles and charts (Session 16 design review) ----------
+   Charts are plain SVG drawn at the container's real width, so text stays readable on phones.
+   Colours come from CSS classes (the page's security policy blocks inline styles). */
+function locale(){return LANG==='es'?'es-ES':'en-GB';}
+function num(n,d){return n==null||isNaN(n)?'–':Number(n).toLocaleString(locale(),{maximumFractionDigits:d||0});}
+function euros(n){return n==null?'':num(n)+' €';}
+function kEur(n){if(n==null)return '–';return n>=1e6?t('mEur',num(n/1e6,2)):t('kEur',num(Math.round(n/1000)));}
+function median(a){const v=a.filter(x=>x!=null&&!isNaN(x)).sort((x,y)=>x-y);if(!v.length)return null;const m=v.length>>1;return v.length%2?v[m]:(v[m-1]+v[m])/2;}
+function niceStep(range,count){const raw=Math.max(range,1)/Math.max(1,count),p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p;}
+function ticks(lo,hi,count){const s=niceStep(hi-lo,count),a=[];for(let v=Math.ceil(lo/s)*s;v<=hi+1e-9;v+=s)a.push(v);return a;}
+function tile(v,k,sub){return `<div class="tile"><div class="tv">${v}</div><div class="tk">${esc(k)}</div>${sub?`<div class="ts">${sub}</div>`:''}</div>`;}
+function colPath(x,y,w,h){const r=Math.max(0,Math.min(4,w/2,h));return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`;}
+function hash(s){let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
+/* Chart builders, keyed by the data-chart attribute of their container; filled after each render */
+const CHARTS={};
+function chartBox(key,build,label){CHARTS[key]=build;return `<div class="chart" data-chart="${key}" role="img" aria-label="${esc(label)}"></div>`;}
+function drawCharts(root){(root||document).querySelectorAll('[data-chart]').forEach(el=>{const b=CHARTS[el.getAttribute('data-chart')];const w=Math.floor(el.clientWidth);if(b&&w>0)el.innerHTML=b(w);});}
+let resizeTimer=0;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>drawCharts(),150);});
+function legend(items){return `<div class="legend">${items.map(i=>`<span><i class="sw ${i[0]}"></i>${esc(i[1])}</span>`).join('')}</div>`;}
+/* A histogram of everything (context) with the filtered part on top (the accent). bins:[{lo,hi,all,sel,tip}] */
+function histogram(w,bins,o){
+  const H=168,L=30,R=6,T=10,B=24,n=bins.length,max=Math.max(1,...bins.map(b=>b.all));
+  const yt=ticks(0,max,3).filter(v=>Number.isInteger(v)),ymax=Math.max(max,yt[yt.length-1]||1);
+  const pw=w-L-R,ph=H-T-B,bw=pw/n,cw=Math.max(2,Math.min(24,bw-2)),y=v=>T+ph-ph*v/ymax;
+  let s=yt.map(v=>`<line class="gl" x1="${L}" x2="${w-R}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L-6}" y="${y(v)+4}" text-anchor="end">${num(v)}</text>`).join('');
+  const stride=Math.max(1,Math.ceil(64/bw));
+  bins.forEach((b,i)=>{
+    const x=L+i*bw+(bw-cw)/2;
+    if(b.all)s+=`<path class="m-ctx" d="${colPath(x,y(b.all),cw,ph-(y(b.all)-T))}"/>`;
+    if(b.sel)s+=`<path class="m-acc" d="${colPath(x,y(b.sel),cw,ph-(y(b.sel)-T))}"/>`;
+    if(i%stride===0){const lx=L+i*bw,lab=o.fmt(b.lo),half=3.2*lab.length;s+=`<text class="ax" x="${Math.max(half,Math.min(w-half,lx))}" y="${H-6}" text-anchor="middle">${esc(lab)}</text>`;}
+    s+=`<rect class="hit" x="${L+i*bw}" y="${T}" width="${bw}" height="${ph}" data-tip="${esc(b.tip)}"${o.action?` data-action="${o.action}" data-lo="${b.lo}" data-hi="${b.hi}"`:''}/>`;
+  });
+  s+=`<line class="base" x1="${L}" x2="${w-R}" y1="${T+ph}" y2="${T+ph}"/>`;
+  return `<svg width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" aria-hidden="true">${s}</svg>`;
+}
+
+/* ---------- homes explorer: filters, live stats and charts over the homes that fit ---------- */
+const EN_ORDER='ABCDEFG';
+const HSORTS={
+  fit:(a,b)=>(a.isDemo-b.isDemo)||(b.score-a.score)||((a.price||9e9)-(b.price||9e9)),
+  priceUp:(a,b)=>(a.price||9e9)-(b.price||9e9),
+  priceDown:(a,b)=>(b.price||0)-(a.price||0),
+  pm2:(a,b)=>(a.pm2||9e9)-(b.pm2||9e9),
+  size:(a,b)=>(b.m2||0)-(a.m2||0)
+};
+function hfFor(gid){if(!S.hf||S.hf.gid!==gid)S.hf={gid:gid,pmin:null,pmax:null,beds:0,m2:0,types:[],areas:[],energy:'',must:false,real:false,sort:'fit',show:12};return S.hf;}
+function hfActive(f){return (f.pmin!=null)+(f.pmax!=null)+!!f.beds+!!f.m2+!!f.types.length+!!f.areas.length+!!f.energy+f.must+f.real;}
+function hfApply(list,f){
+  return list.filter(x=>(f.pmin==null||(x.price!=null&&x.price>=f.pmin))&&(f.pmax==null||(x.price!=null&&x.price<=f.pmax))
+    &&(!f.beds||(x.beds||0)>=f.beds)&&(!f.m2||(x.m2||0)>=f.m2)
+    &&(!f.types.length||f.types.indexOf(x.type)>=0)&&(!f.areas.length||f.areas.indexOf(x.area)>=0)
+    &&(!f.energy||(x.energy&&EN_ORDER.indexOf(x.energy)>=0&&EN_ORDER.indexOf(x.energy)<=EN_ORDER.indexOf(f.energy)))
+    &&(!f.must||!x.misses.some(m=>m.startsWith('f:')))&&(!f.real||!x.isDemo));
+}
+function homesAll(){const r=S.homes;if(!r||!r.data)return [];if(!r.list)r.list=r.data.homes.map(x=>Object.assign({},x,{pm2:x.price&&x.m2?x.price/x.m2:null}));return r.list;}
+function priceBounds(list){const p=list.map(x=>x.price).filter(v=>v!=null);if(!p.length)return [0,0];return [Math.floor(Math.min(...p)/10000)*10000,Math.ceil(Math.max(...p)/10000)*10000];}
+function pressBtn(k,v,on,label){return `<button type="button" class="chipbtn" data-action="hf" data-k="${k}" data-v="${esc(v)}" aria-pressed="${on}">${esc(label)}</button>`;}
 function homesSection(gid){
   const r=S.homes&&S.homes.gid===gid?S.homes:null;
   let body;
-  if(!r||r.loading)body=`<p class="hint">${esc(t('homesLoading'))}</p>`;
+  if(!r||r.loading)body=`<div class="skeleton"></div><div class="skeleton short"></div>`;
   else if(r.error)body=`<p class="error">${esc(r.error)}</p>`;
   else if(!r.data.homes.length)body=`<p>${esc(t('homesNone'))}</p>`;
-  else body=`<ul class="homes">${r.data.homes.map(homeItem).join('')}</ul>`;
+  else body=homesExplorer(gid);
   const count=r&&r.data?`<p class="hint">${esc(t('homesCount',r.data.considered,r.data.real>0))}</p>`:'';
-  return `<section class="card mt" id="homes"><h3>${esc(t('homesH'))}</h3><p class="hint">${esc(t('homesLead'))}</p>${count}${body}<p class="hint mt">${esc(t('homesNote'))}</p></section>`;
+  return `<section class="card mt explorer" id="homes"><div class="sec-head"><div><h3>${esc(t('homesH'))}</h3><p class="hint">${esc(t('homesLead'))}</p>${count}</div></div>${body}<p class="hint mt">${esc(t('homesNote'))}</p></section>`;
 }
-function homeItem(x){
+function homesExplorer(gid){
+  const f=hfFor(gid),all=homesAll(),[plo,phi]=priceBounds(all);
+  const types=TYPES.filter(x=>all.some(h=>h.type===x.id)),areas=AREAS.filter(a=>all.some(h=>h.area===a.id));
+  const bedsMin=Math.min(...all.map(h=>h.beds||0)),bedsMax=Math.max(...all.map(h=>h.beds||0));
+  const m2Max=Math.ceil(Math.max(0,...all.map(h=>h.m2||0))/10)*10,real=all.some(h=>!h.isDemo),n=hfActive(f);
+  const bedOpts=[];for(let b=bedsMin+1;b<=Math.min(bedsMax,bedsMin+3);b++)bedOpts.push(b);
+  const pmin=f.pmin==null?plo:f.pmin,pmax=f.pmax==null?phi:f.pmax;
+  const controls=`<details class="filters" id="hx-filters"${(S.hfOpen===undefined?window.innerWidth>=720:S.hfOpen)?' open':''}><summary><b>${esc(t('hxFilters'))}</b>${n?` <span class="count">${n}</span>`:''}</summary>
+<div class="fgrid">
+<div class="fcell wide"><span class="label">${esc(t('hxPrice'))} <output id="hx-price-out" class="hint">${esc(euros(pmin))} – ${esc(euros(pmax))}</output></span>
+<div class="dual"><div class="dtrack"><i id="hx-dfill"></i></div><input type="range" data-hf="pmin" min="${plo}" max="${phi}" step="5000" value="${pmin}" aria-label="${esc(t('hxPrice')+': '+t('hxFrom'))}"><input type="range" data-hf="pmax" min="${plo}" max="${phi}" step="5000" value="${pmax}" aria-label="${esc(t('hxPrice')+': '+t('hxTo'))}"></div></div>
+<div class="fcell"><span class="label">${esc(t('hxSize'))} <output id="hx-m2-out" class="hint">${f.m2?f.m2+' m²':esc(t('hxAny'))}</output></span><input type="range" data-hf="m2" min="0" max="${m2Max}" step="5" value="${f.m2}" aria-label="${esc(t('hxSize'))}"></div>
+<div class="fcell"><span class="label">${esc(t('hxBeds'))}</span><div class="seg">${pressBtn('beds',0,!f.beds,t('hxAny'))}${bedOpts.map(b=>pressBtn('beds',b,f.beds===b,b+'+')).join('')}</div></div>
+${types.length>1?`<div class="fcell"><span class="label">${esc(t('hxType'))}</span><div class="seg">${types.map(x=>pressBtn('types',x.id,f.types.indexOf(x.id)>=0,tx(x.label))).join('')}</div></div>`:''}
+${areas.length>1?`<div class="fcell"><span class="label">${esc(t('hxArea'))}</span><div class="seg">${areas.map(a=>pressBtn('areas',a.id,f.areas.indexOf(a.id)>=0,tx(a.label))).join('')}</div></div>`:''}
+<div class="fcell"><span class="label">${esc(t('hxEnergy'))}</span><div class="seg">${pressBtn('energy','',!f.energy,t('hxAny'))}${['C','E'].map(e=>pressBtn('energy',e,f.energy===e,'A–'+e)).join('')}</div></div>
+<div class="fcell"><span class="label">${esc(t('hxMore'))}</span><div class="seg">${pressBtn('must',1,f.must,t('hxMust'))}${real?pressBtn('real',1,f.real,t('hxReal')):''}</div></div>
+<div class="fcell"><label class="label" for="hx-sort">${esc(t('hxSort'))}</label><select id="hx-sort" data-hf="sort">${Object.keys(HSORTS).map(k=>`<option value="${k}"${f.sort===k?' selected':''}>${esc(t('sort_'+k))}</option>`).join('')}</select></div>
+</div>
+<div class="frow"><span class="hint" id="hx-count" aria-live="polite"></span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="hf-reset"${n?'':' disabled'}>${esc(t('hxReset'))}</button></div>
+</details>`;
+  return `${controls}<div id="hx-results"></div>`;
+}
+function homesResults(){
+  const f=S.hf,all=homesAll(),sel=hfApply(all,f).sort(HSORTS[f.sort]||HSORTS.fit);
+  const medP=median(sel.map(x=>x.price)),medPm2=median(sel.map(x=>x.pm2)),medM2=median(sel.map(x=>x.m2)),allPm2=median(all.map(x=>x.pm2));
+  const best=sel.length?Math.max(...sel.map(x=>x.score)):null;
+  const tiles=`<div class="tiles">${tile(num(sel.length),t('stHomes'),esc(t('stOfTotal',all.length)))}${tile(kEur(medP),t('stMedPrice'),'')}${tile(medPm2?num(Math.round(medPm2))+' €/m²':'–',t('stMedPm2'),medPm2&&allPm2&&f!==null&&hfActive(f)?esc(t('vsAll',Math.round((medPm2/allPm2-1)*100))):'')}${tile(medM2?num(medM2)+' m²':'–',t('stMedSize'),'')}${tile(best!=null?best+' %':'–',t('stBestFit'),'')}</div>`;
+  if(!sel.length)return `${tiles}<div class="card empty mt"><p>${esc(t('hxNone'))}</p><button type="button" class="btn" data-action="hf-reset">${esc(t('hxReset'))}</button></div>`;
+  /* price histogram: all homes that fit (context) and the filtered ones (accent) */
+  const [plo,phi]=priceBounds(all),step=niceStep(phi-plo,10),start=Math.floor(plo/step)*step,bins=[];
+  for(let lo=start;lo<phi||bins.length===0;lo+=step){const hi=lo+step,inb=x=>x.price!=null&&x.price>=lo&&(x.price<hi||(hi>=phi&&x.price<=hi));const a=all.filter(inb).length,s=sel.filter(inb).length;bins.push({lo:lo,hi:hi,all:a,sel:s,tip:t('chBinTip',kEur(lo),kEur(hi),s,a)});}
+  /* price against size, with the median price per m² as a reference line */
+  const pts=all.filter(x=>x.price&&x.m2),selIds={};sel.forEach(x=>{selIds[x.id]=1;});
+  /* median price per m² by area */
+  const byArea=AREAS.map(a=>{const v=sel.filter(x=>x.area===a.id);return {a:a,n:v.length,m:median(v.map(x=>x.pm2))};}).filter(x=>x.n);
+  const aMax=Math.max(1,...byArea.map(x=>x.m||0));
+  const areaBars=byArea.length?`<div class="hbars">${byArea.map(x=>`<div class="hbar" data-tip="${esc(t('chAreaTip',tx(x.a.label),num(Math.round(x.m)),x.n))}"><span class="hl">${esc(tx(x.a.label))}</span><span class="track"><i data-w="${Math.round(100*(x.m||0)/aMax)}"></i></span><b>${num(Math.round(x.m))} €/m²</b></div>`).join('')}</div>`:'';
+  const charts=`<div class="charts">
+<figure class="chartcard"><figcaption><b>${esc(t('chPriceH'))}</b>${legend([['ctx',t('chAll')],['acc',t('chSel')]])}</figcaption>${chartBox('hx-price',w=>histogram(w,bins,{fmt:kEur,action:'bin'}),t('chPriceH'))}<p class="hint">${esc(t('chClickBin'))}</p></figure>
+<figure class="chartcard"><figcaption><b>${esc(t('chScatterH'))}</b>${legend([['ctx',t('chAll')],['acc',t('chSel')],['ref',t('chRef',num(Math.round(medPm2||allPm2||0)))]])}</figcaption>${chartBox('hx-scatter',w=>scatter(w,pts,selIds,medPm2||allPm2),t('chScatterH'))}<p class="hint">${esc(t('chScatterNote'))}</p></figure>
+${areaBars?`<figure class="chartcard"><figcaption><b>${esc(t('chAreaH'))}</b></figcaption>${areaBars}</figure>`:''}
+</div>`;
+  const shown=sel.slice(0,f.show),more=sel.length-shown.length;
+  return `${tiles}${charts}<ul class="homes">${shown.map(x=>homeItem(x,medPm2)).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-homes">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`;
+}
+function scatter(w,pts,selIds,refPm2){
+  if(!pts.length)return '';
+  const xs=pts.map(p=>p.m2),ys=pts.map(p=>p.price);
+  /* axes run from one round tick below the data to one above */
+  const span=(lo,hi,n)=>{const st=niceStep(hi-lo,n),a=Math.floor(lo/st)*st,b=Math.ceil(hi/st)*st,v=[];for(let x=a;x<=b+1e-9;x+=st)v.push(x);return v;};
+  const xt=span(Math.min(...xs),Math.max(...xs),w<480?3:5),yt=span(Math.min(...ys),Math.max(...ys),4);
+  const H=w<480?220:250,L=12+6.4*Math.max(...yt.map(v=>kEur(v).length)),R=14,T=12,B=30;
+  const x0=xt[0],x1=xt[xt.length-1],y0=yt[0],y1=yt[yt.length-1];
+  const X=v=>L+(w-L-R)*(v-x0)/(x1-x0||1),Y=v=>T+(H-T-B)*(1-(v-y0)/(y1-y0||1));
+  let s=yt.map(v=>`<line class="gl" x1="${L}" x2="${w-R}" y1="${Y(v)}" y2="${Y(v)}"/><text class="ax" x="${L-6}" y="${Y(v)+4}" text-anchor="end">${esc(kEur(v))}</text>`).join('');
+  s+=xt.map(v=>{const lab=num(v)+' m²',half=3.2*lab.length;return `<text class="ax" x="${Math.max(L,Math.min(w-half,X(v)))}" y="${H-10}" text-anchor="middle">${lab}</text>`;}).join('');
+  s+=`<line class="base" x1="${L}" x2="${w-R}" y1="${H-B}" y2="${H-B}"/>`;
+  if(refPm2){
+    /* clip the reference line to the plot */
+    const a=Math.max(x0,y0/refPm2),b=Math.min(x1,y1/refPm2);
+    if(b>a)s+=`<line class="ref" x1="${X(a)}" y1="${Y(a*refPm2)}" x2="${X(b)}" y2="${Y(b*refPm2)}"/>`;
+  }
+  const dot=(p,on)=>`<circle class="${on?'d-acc':'d-ctx'}" cx="${X(p.m2).toFixed(1)}" cy="${Y(p.price).toFixed(1)}" r="${on?5:4}"/><circle class="hit" cx="${X(p.m2).toFixed(1)}" cy="${Y(p.price).toFixed(1)}" r="10" data-tip="${esc(t('chDotTip',euros(p.price),p.m2,p.beds,p.district||p.municipality||''))}"${on?` data-action="dot" data-id="${esc(p.id)}"`:''}/>`;
+  s+=pts.filter(p=>!selIds[p.id]).map(p=>dot(p,false)).join('')+pts.filter(p=>selIds[p.id]).map(p=>dot(p,true)).join('');
+  return `<svg width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" aria-hidden="true">${s}</svg>`;
+}
+/* An illustrative floor-plan sketch drawn from the advert's facts (no photos: D-035). Not the real plan. */
+function planSvg(x){
+  const W=240,H=110,p=5,r=hash(x.id),beds=Math.max(1,Math.min(6,x.beds||1)),baths=Math.max(1,Math.min(3,x.baths||1)),fe=x.features||[];
+  const out=(x.type==='house'&&(fe.indexOf('garden')>=0||fe.indexOf('pool')>=0))||fe.indexOf('terrace')>=0?50:0;
+  const iw=W-2*p-out,ih=H-2*p,top=Math.round(ih*(0.46+(r%9)/100)),bw=iw/beds,baw=Math.min(iw*0.2,36);
+  let s=`<rect class="pl-wall" x="${p}" y="${p}" width="${iw}" height="${ih}" rx="4"/>`;
+  for(let i=0;i<beds;i++)s+=`<rect class="pl-bed" x="${(p+i*bw+2).toFixed(1)}" y="${p+2}" width="${(bw-4).toFixed(1)}" height="${top-4}" rx="2.5"/>`;
+  for(let j=0;j<baths;j++)s+=`<rect class="pl-bath" x="${(p+j*baw+2).toFixed(1)}" y="${p+top+2}" width="${(baw-4).toFixed(1)}" height="${ih-top-4}" rx="2.5"/>`;
+  const lx=p+baths*baw+2;s+=`<rect class="pl-live" x="${lx.toFixed(1)}" y="${p+top+2}" width="${(p+iw-lx-2).toFixed(1)}" height="${ih-top-4}" rx="2.5"/>`;
+  if(out){
+    const ox=W-p-out+4;
+    if(fe.indexOf('garden')>=0)s+=`<rect class="pl-garden" x="${ox}" y="${p}" width="${out-4}" height="${ih}" rx="4"/>`;
+    else s+=`<rect class="pl-terrace" x="${ox}" y="${p}" width="${out-4}" height="${ih}" rx="4"/>`;
+    if(fe.indexOf('pool')>=0)s+=`<rect class="pl-pool" x="${ox+8}" y="${p+ih*0.55}" width="${out-20}" height="${ih*0.32}" rx="4"/>`;
+  }
+  return `<svg class="plan" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t('planAria',beds,baths))}">${s}</svg>`;
+}
+function homeItem(x,medPm2){
   const where=[x.district,x.municipality].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
-  const facts=[typeLabel(x.type),x.beds!=null?t('homeBeds',x.beds):'',x.baths!=null?t('homeBaths',x.baths):'',x.m2?x.m2+' m²':'',x.energy?t('energy',x.energy):''].filter(Boolean).join(' · ');
+  const facts=[typeLabel(x.type),x.beds!=null?t('homeBeds',x.beds):'',x.baths!=null?t('homeBaths',x.baths):'',x.m2?x.m2+' m²':''].filter(Boolean).join(' · ');
   const tags=x.fits.filter(f=>!f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(t('fit_'+f))}</span>`).join('')
     +x.fits.filter(f=>f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(featLabel(f.slice(2)))}</span>`).join('')
     +x.misses.map(f=>`<span class="tag must">${esc(f.startsWith('f:')?t('missF',featLabel(f.slice(2))):t('miss_'+f))}</span>`).join('');
   const check=x.check.length?`<div class="who">${esc(t('checkH'))}: ${esc(listAnd(x.check.map(c=>c.startsWith('f:')?featLabel(c.slice(2)).toLowerCase():t('check_'+c))))}</div>`:'';
   const link=x.url&&!x.isDemo?`<a class="btn small primary" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer external">${esc(t('seeAdvert',x.agency))} ↗</a>`:`<span class="hint">${esc(t('demoHome'))}</span>`;
-  return `<li class="home"><div class="home-top"><b>${esc(euros(x.price))}</b><span class="tag tip">${esc(t('homeFit',x.score))}</span></div>
+  const d=x.pm2&&medPm2?Math.round((x.pm2/medPm2-1)*100):null;
+  const delta=d==null?'':`<span class="delta ${d<=-5?'lo':(d>=5?'hi':'')}">${esc(t('vsMedian',d))}</span>`;
+  const cls=x.score>=85?'hi':(x.score>=70?'mid':'lo');
+  const energy=x.energy&&EN_ORDER.indexOf(x.energy)>=0?`<span class="energy e-${x.energy}" title="${esc(t('energy',x.energy))}" aria-label="${esc(t('energy',x.energy))}">${esc(x.energy)}</span>`:'';
+  return `<li class="home" id="home-${esc(x.id)}"><div class="home-vis">${planSvg(x)}${energy}${x.isDemo?`<span class="demo">${esc(t('demoHomeTag'))}</span>`:''}</div>
+<div class="home-top"><b class="price">${esc(euros(x.price))}</b><div class="ring sm ${cls}" data-p="${x.score}" role="img" aria-label="${esc(t('homeFit',x.score))}"><b>${x.score}</b></div></div>
+<div class="pm2">${x.pm2?esc(num(Math.round(x.pm2))+' €/m²'):''} ${delta}</div>
 <div>${esc(facts)}</div><div class="who">${esc(where)} · ${esc(x.isDemo?t('demoAgency'):x.agency)}</div><div class="home-tags">${tags}</div>${check}<div class="row">${link}</div></li>`;
 }
+function updateHomes(){
+  const el=document.getElementById('hx-results');if(!el||!S.hf)return;
+  el.innerHTML=homesResults();applyStyles(el);drawCharts(el);homesControlsSync();
+  const all=homesAll(),n=hfApply(all,S.hf).length,c=document.getElementById('hx-count');if(c)c.textContent=t('hxShown',n,all.length);
+}
+function homesControlsSync(){
+  const f=S.hf,[plo,phi]=priceBounds(homesAll());
+  const po=document.getElementById('hx-price-out');if(po)po.textContent=euros(f.pmin==null?plo:f.pmin)+' – '+euros(f.pmax==null?phi:f.pmax);
+  const mo=document.getElementById('hx-m2-out');if(mo)mo.textContent=f.m2?f.m2+' m²':t('hxAny');
+  const fill=document.getElementById('hx-dfill'),span=(phi-plo)||1;
+  if(fill){const a=((f.pmin==null?plo:f.pmin)-plo)/span*100,b=((f.pmax==null?phi:f.pmax)-plo)/span*100;fill.style.insetInlineStart=a+'%';fill.style.inlineSize=Math.max(0,b-a)+'%';}
+}
+/* Re-render the homes section in place, keeping focus on the control that changed */
+function rerenderHomes(focusSel){
+  const sec=document.getElementById('homes');if(!sec||!S.home)return;
+  const d=document.getElementById('hx-filters');if(d)S.hfOpen=d.open;
+  const tmp=document.createElement('div');tmp.innerHTML=homesSection(S.home.id);sec.replaceWith(tmp.firstElementChild);
+  updateHomes();
+  if(focusSel){const el=document.querySelector(focusSel);if(el)el.focus();}
+}
+
+/* ---------- matches explorer: affinity distribution, status and score filters ---------- */
+function mfState(){if(!S.mf)S.mf={min:0,status:'all',sort:'score',q:''};return S.mf;}
+function stateGroup(x){const s=x.state;return s==='none'?'new':(s==='mutual'?'mutual':(s==='passed'?'passed':'liked'));}
+function mfApply(list,f){const q=f.q.trim().toLowerCase();const r=list.filter(x=>x.score.total>=f.min&&(f.status==='all'||stateGroup(x)===f.status)&&(!q||x.person.name.toLowerCase().indexOf(q)>=0));
+  if(f.sort==='name')r.sort((a,b)=>a.person.name.localeCompare(b.person.name,locale()));return r;}
+function matchesResults(){
+  const m=S.matches,f=mfState(),all=m.compatible,sel=mfApply(all,f);
+  const lo=Math.min(95,Math.floor(Math.min(...all.map(x=>x.score.total),100)/5)*5),bins=[];
+  for(let b=lo;b<=95;b+=5){const inb=x=>x.score.total>=b&&(x.score.total<b+5||(b===95&&x.score.total<=100));const a=all.filter(inb).length,s=sel.filter(inb).length;bins.push({lo:b,hi:b+5,all:a,sel:s,tip:t('chScoreTip',b,Math.min(100,b+4+(b===95?1:0)),s,a)});}
+  const chart=all.length?`<figure class="chartcard"><figcaption><b>${esc(t('chScoreH'))}</b>${legend([['ctx',t('chScoreAll')],['acc',t('chSel')]])}</figcaption>${chartBox('mx-score',w=>histogram(w,bins,{fmt:v=>v+'%',action:'score-bin'}),t('chScoreH'))}<p class="hint">${esc(t('chClickScore'))}</p></figure>`:'';
+  const grid=sel.length?`<div class="grid people">${sel.map(personCard).join('')}</div>`:`<div class="card empty">${esc(all.length?t('mfNone'):t('nobody'))}</div>`;
+  return `${chart}<p class="hint mt" aria-live="polite">${esc(t('mfShown',sel.length,all.length))}</p>${grid}`;
+}
+function updateMatches(){const el=document.getElementById('mx-results');if(!el)return;el.innerHTML=matchesResults();applyStyles(el);drawCharts(el);}
+function matchesToolbar(){
+  const m=S.matches,f=mfState(),cnt={all:m.compatible.length,new:0,liked:0,mutual:0,passed:0};m.compatible.forEach(x=>cnt[stateGroup(x)]++);
+  return `<div class="toolbar card">
+<div class="fcell"><label class="label" for="mf-q">${esc(t('mfSearch'))}</label><input id="mf-q" type="search" data-mf="q" value="${esc(f.q)}" autocomplete="off"></div>
+<div class="fcell wide"><span class="label">${esc(t('mfStatus'))}</span><div class="seg">${['all','new','liked','mutual','passed'].map(k=>`<button type="button" class="chipbtn" data-action="mf" data-k="status" data-v="${k}" aria-pressed="${f.status===k}">${esc(t('mf_'+k))} <span class="n">${cnt[k]}</span></button>`).join('')}</div></div>
+<div class="fcell"><label class="label" for="mf-min">${esc(t('mfMinL'))} <output id="mf-min-out" class="hint">${f.min?f.min+' %':esc(t('hxAny'))}</output></label><input id="mf-min" type="range" data-mf="min" min="0" max="100" step="5" value="${f.min}"></div>
+<div class="fcell"><label class="label" for="mf-sort">${esc(t('hxSort'))}</label><select id="mf-sort" data-mf="sort"><option value="score"${f.sort==='score'?' selected':''}>${esc(t('msort_score'))}</option><option value="name"${f.sort==='name'?' selected':''}>${esc(t('msort_name'))}</option></select></div>
+</div>`;
+}
+
+/* One tooltip for every chart mark: follows the pointer, shows the mark's data-tip */
+const tipEl=document.createElement('div');tipEl.className='charttip';tipEl.setAttribute('role','tooltip');tipEl.hidden=true;document.body.appendChild(tipEl);
+document.addEventListener('pointermove',e=>{
+  const el=e.target.closest&&e.target.closest('[data-tip]');
+  if(!el){if(!tipEl.hidden)tipEl.hidden=true;return;}
+  tipEl.textContent=el.getAttribute('data-tip');tipEl.hidden=false;
+  const r=tipEl.getBoundingClientRect(),x=Math.min(window.innerWidth-r.width-8,Math.max(8,e.clientX-r.width/2)),y=e.clientY-r.height-14<8?e.clientY+18:e.clientY-r.height-14;
+  tipEl.style.left=x+'px';tipEl.style.top=y+'px';
+});
+document.addEventListener('pointerleave',()=>{tipEl.hidden=true;});
 async function loadHomes(gid){
   S.homes={gid:gid,loading:true};
   try{const d=await api('GET','/api/groups/'+gid+'/homes');if(S.homes&&S.homes.gid===gid){S.homes={gid:gid,data:d};}}
@@ -432,7 +637,7 @@ function renderChrome(){
   document.documentElement.setAttribute('lang',LANG);
   document.title=t('title');
   const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
-  set('brandname',BRAND);set('brandmark',BRAND.charAt(0));
+  set('brandname',BRAND);
   set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));set('badge',t('badge'));
   const foot=document.getElementById('footnote');
   if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
@@ -475,6 +680,8 @@ function render(){
   renderTabs();
   app.innerHTML=S.view?viewLegal(S.view):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(S.tab==='you'?viewYou():(S.tab==='matches'?viewMatches():viewGroups()))));
   applyStyles(app);
+  if(document.getElementById('hx-results'))updateHomes();
+  drawCharts(app);
   renderBar();
 }
 function rerender(){const y=window.scrollY||0;render();window.scrollTo(0,y);}
@@ -568,7 +775,7 @@ async function react(id,kind){
     if(kind==='like'){const n=personName(id);toast(r.mutual?(r.isDemo?t('tMutual',n):t('tMutualReal',n)):(r.isDemo?t('tNoMatch',n):t('tWaiting',n)));}
     if(kind!=='like')S.draft=S.draft.filter(x=>x!==id);
     await loadMatches();rerender();
-  }catch(e){toast(errText(e));}
+  }catch(e){toast(errText(e));rerender();}
 }
 async function addToDraft(id){
   if(S.draft.indexOf(id)>=0){toast(t('tAlready',personName(id)));return;}
@@ -626,6 +833,8 @@ app.addEventListener('submit',async e=>{
 });
 app.addEventListener('change',e=>{
   const el=e.target;
+  if(el.getAttribute('data-hf')==='sort'&&S.hf){S.hf.sort=el.value;S.hf.show=12;updateHomes();return;}
+  if(el.getAttribute('data-mf')==='sort'){mfState().sort=el.value;updateMatches();return;}
   if(el.hasAttribute('data-size')){
     const vals={};app.querySelectorAll('input[data-size]').forEach(x=>{vals[x.getAttribute('data-size')]=parseInt(x.value,10);});
     if(isNaN(vals.min)||isNaN(vals.max)||!S.home)return;
@@ -649,7 +858,14 @@ app.addEventListener('change',e=>{
   }
   profileChanged();
 });
-app.addEventListener('input',e=>{const el=e.target;if(el.id==='a-pass'&&S.authMode==='signup'){updateMeter(el.value);return;}if(el.type==='range'&&S.profile){S.profile[el.getAttribute('data-field')]=parseInt(el.value,10);profileChanged();}});
+app.addEventListener('input',e=>{const el=e.target;
+  if(el.hasAttribute('data-hf')&&S.hf&&el.type==='range'){
+    const k=el.getAttribute('data-hf'),v=parseInt(el.value,10),f=S.hf,[plo,phi]=priceBounds(homesAll());
+    if(k==='m2')f.m2=v;
+    else{f[k]=v;if(f.pmin!=null&&f.pmax!=null&&f.pmin>f.pmax){if(k==='pmin')f.pmax=f.pmin;else f.pmin=f.pmax;const o=app.querySelector('input[data-hf="'+(k==='pmin'?'pmax':'pmin')+'"]');if(o)o.value=f[k==='pmin'?'pmax':'pmin'];}
+      if(f.pmin!=null&&f.pmin<=plo)f.pmin=null;if(f.pmax!=null&&f.pmax>=phi)f.pmax=null;}
+    f.show=12;homesControlsSync();updateHomes();return;}
+  if(el.hasAttribute('data-mf')){const f=mfState(),k=el.getAttribute('data-mf');if(k==='q')f.q=el.value;else if(k==='min'){f.min=parseInt(el.value,10);const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');}updateMatches();return;}if(el.id==='a-pass'&&S.authMode==='signup'){updateMeter(el.value);return;}if(el.type==='range'&&S.profile){S.profile[el.getAttribute('data-field')]=parseInt(el.value,10);profileChanged();}});
 document.addEventListener('click',async e=>{
   const el=e.target.closest('[data-action],[data-tab]');if(!el||el.disabled)return;
   if(el.hasAttribute('data-tab')){go(el.getAttribute('data-tab'));return;}
@@ -667,9 +883,9 @@ document.addEventListener('click',async e=>{
     case 'goto':go(id);break;
     case 'preset':Object.assign(S.profile,JSON.parse(JSON.stringify(PRESETS[id].v)));rerender();profileChanged();toast(t('tExample',tx(PRESETS[id].label)));break;
     case 'feat':cycleFeature(el,id);break;
-    case 'like':react(id,'like');break;
-    case 'pass':react(id,'pass');break;
-    case 'undo':react(id,'none');break;
+    case 'like':el.disabled=true;react(id,'like');break;
+    case 'pass':el.disabled=true;react(id,'pass');break;
+    case 'undo':el.disabled=true;react(id,'none');break;
     case 'add':addToDraft(id);break;
     case 'remove':S.draft=S.draft.filter(x=>x!==id);rerender();toast(t('tRemoved'));break;
     case 'clear-draft':S.draft=[];rerender();break;
@@ -680,6 +896,17 @@ document.addEventListener('click',async e=>{
     case 'all-groups':S.home=null;go('groups');break;
     case 'respond':respond(id,el.getAttribute('data-accept')==='1');break;
     case 'leave':leave(id);break;
+    case 'hf':{const f=S.hf;if(!f)break;const k=el.getAttribute('data-k'),v=el.getAttribute('data-v');
+      if(k==='types'||k==='areas'){const i=f[k].indexOf(v);if(i>=0)f[k].splice(i,1);else f[k].push(v);}
+      else if(k==='beds')f.beds=parseInt(v,10)||0;else if(k==='energy')f.energy=v;else f[k]=!f[k];
+      f.show=12;rerenderHomes('[data-action="hf"][data-k="'+k+'"][data-v="'+v+'"]');break;}
+    case 'hf-reset':if(S.home){S.hf=null;hfFor(S.home.id);rerenderHomes('#hx-filters summary');}break;
+    case 'more-homes':if(S.hf){S.hf.show+=12;updateHomes();}break;
+    case 'bin':if(S.hf){S.hf.pmin=+el.getAttribute('data-lo');S.hf.pmax=+el.getAttribute('data-hi');const[plo,phi]=priceBounds(homesAll());if(S.hf.pmin<=plo)S.hf.pmin=null;if(S.hf.pmax>=phi)S.hf.pmax=null;S.hf.show=12;rerenderHomes();}break;
+    case 'dot':{const f=S.hf;if(!f)break;const list=hfApply(homesAll(),f).sort(HSORTS[f.sort]||HSORTS.fit),i=list.findIndex(x=>x.id===id);if(i>=f.show){f.show=i+1;updateHomes();}
+      const card=document.getElementById('home-'+id);if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.classList.add('flash');setTimeout(()=>card.classList.remove('flash'),1600);}break;}
+    case 'mf':{const f=mfState();f[el.getAttribute('data-k')]=el.getAttribute('data-v');el.parentNode.querySelectorAll('.chipbtn').forEach(b=>b.setAttribute('aria-pressed',String(b===el)));updateMatches();break;}
+    case 'score-bin':{const f=mfState();f.min=+el.getAttribute('data-lo');const r=document.getElementById('mf-min');if(r)r.value=f.min;const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');updateMatches();break;}
     case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.authMode='signin';render();break;}
     case 'delete-account':if(window.confirm(t('deleteConfirm'))){try{await api('DELETE','/api/me');S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];render();}catch(err){toast(errText(err));}}break;
   }
@@ -697,6 +924,7 @@ setLang(saved==='en'?'en':'es');
 try{const h=new URLSearchParams((location.hash||'').replace(/^#/,''));const lg=h.get('lang');if(lg==='en'||lg==='es')setLang(lg);}catch(e){}
 window.addEventListener('hashchange',()=>{if(readHash()){render();window.scrollTo(0,0);focusHeading();}});
 window.__compicasa={S:S,M:M,setLang:setLang,render:render,api:api};
+window.addEventListener('scroll',()=>{tipEl.hidden=true;},{passive:true});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 start();
 })();

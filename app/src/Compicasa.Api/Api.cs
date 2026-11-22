@@ -94,15 +94,26 @@ public static partial class Api
             var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
             if (id == a.Id || !await db.Accounts.AnyAsync(x => x.Id == id && (x.Kind != AccountKind.User || x.OnboardedAt != null))) return Error("unknownPerson", 404);
             var existing = await db.Reactions.FindAsync(a.Id, id);
+            var added = false;
             if (r.Kind is ReactionKind.Like or ReactionKind.Pass)
             {
-                if (existing is null) db.Reactions.Add(existing = new Reaction { FromId = a.Id, ToId = id });
+                if (existing is null) { db.Reactions.Add(existing = new Reaction { FromId = a.Id, ToId = id }); added = true; }
                 existing.Kind = r.Kind;
                 existing.At = clock.GetUtcNow();
             }
             else if (r.Kind is "none") { if (existing is not null) db.Reactions.Remove(existing); }
             else return Error("badReaction");
-            await db.SaveChangesAsync();
+            try { await db.SaveChangesAsync(); }
+            catch (DbUpdateException) when (added)
+            {
+                // Two quick reactions to the same person (B-045): the other request inserted the row first, so update it.
+                db.ChangeTracker.Clear();
+                var row = await db.Reactions.FindAsync(a.Id, id);
+                if (row is null) throw;
+                row.Kind = r.Kind;
+                row.At = clock.GetUtcNow();
+                await db.SaveChangesAsync();
+            }
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             return Results.Ok(new { mutual = c.Mutual(id), isDemo = c.IsDemo(id) });
         });
@@ -179,7 +190,8 @@ public static partial class Api
             var q = db.Homes.AsNoTracking().Where(h => h.GoneAt == null && h.Beds >= hb.Beds);
             if (hb.Areas.Count > 0) q = q.Where(h => h.Area != null && hb.Areas.Contains(h.Area));
             var candidates = (await q.ToListAsync(http.RequestAborted)).Where(h => !stopped.Contains(h.Source)).Select(h => h.ToListing()).ToList();
-            var ranked = HomeFit.Rank(hb, lo, hi, candidates, 24);
+            // Up to 200, so the group can filter, sort and chart them in the browser (Session 16 design review).
+            var ranked = HomeFit.Rank(hb, lo, hi, candidates, 200);
             return Results.Ok(new
             {
                 considered = candidates.Count,

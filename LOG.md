@@ -2,6 +2,29 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 16: design review, homes and matches explorers
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Product and the Builder and Tester (B-049), and the CEO (D-037)
+**Mode:** Build (D-023), within D-027 and D-035 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 15. Sam: "Run a design review. I want this website to look amazing, inspiring, and analytical (meaning like it has lots of data; reactive to filters and requirements). Think of any improvements you can to the UI to make this the gold standard of new house finding platforms."
+**Goals:** 1. Design review note. 2. Build the top items. 3. Tests pass, files current, commit.
+**Needs Sam:** the go to deploy (B-049); nothing new in the founder queue.
+**Did**
+- Ran the app locally (SQLite in the session's scratch folder, outside the repository) and screenshotted every screen at 1280 and 390 px, light and dark. Review: `product/2026-11-22-design-review.md` (14 findings; 9 done, 5 proposed).
+- Built (B-049), front end only plus one API limit:
+  - Homes explorer on the group page: filters (dual-handle price slider, minimum size, bedrooms, type, area, energy, confirmed must-haves, real adverts only), five sorts, "show 12 more"; stat tiles (homes shown, median price, median €/m² with its change against all that fit, median size, best fit); a price histogram (tap a bar to filter), a price-against-size scatter with the median €/m² line (tap a dot to jump to the home) and median €/m² by area, all redrawn as filters change; each home gets a floor-plan sketch drawn from its facts (labelled as not the real plan; no photos, D-035), an energy badge, a fit ring and its €/m² against the median.
+  - Matches explorer: stat tiles, an affinity histogram (tap a bar to set the minimum), filters by status (with counts), minimum affinity and name.
+  - A house-with-two-doors logo, a hero band, loading placeholders, gentle hover lift (off for reduced motion). All new wording in Spanish and English (`i18n.js`, 471 keys in each).
+  - `GET /api/groups/{id}/homes` returns up to 200 homes that fit (was 24) so the browser can filter them.
+  - B-045 item 5: the double-like race. Like, pass and undo buttons disable on click, and the reactions endpoint updates the row when another request inserted it first. It had failed the browser test in both of this session's first runs.
+- D-037 (CEO): homes, not people, can be filtered by price, in the browser and unstored; people only by status, affinity and name.
+- Charts follow the dataviz rules: one accent over a grey context series with a legend, hairline grids, 4px rounded bar ends, a tooltip on every mark; drawn at the container's real width so labels stay readable on phones; coloured from CSS classes under the strict CSP. A first tooltip class (`.tip`) clashed with the existing "Idea" tags and was renamed.
+
+**Decided:** D-037 (CEO). **Approvals used:** none needed (Build mode, local only); nothing deployed or pushed.
+**Learned:** the price histogram and scatter are thin with made-up homes for a big group (9 to 12 points); they will mean more with the live index's real homes. On a 390 px headless window the action bar's second button runs off the edge on the group page; it did before this session too (B-025 notes headless lays phones out wider than the screen), so not confirmed on a real phone.
+**Open or blocked:** B-049 deploy waits for Sam's go. Proposed follow-ups are in the review and the B-049 row.
+**Saved and checked:** `dotnet test` (39 passed); browser test 34 of 34 against a local run, no script errors; a scratch screenshot script (outside the repository) found no sideways scrolling at 390 px or 1280 px in either theme; `git status` and `git diff` reviewed for STATE, BACKLOG, DECISIONS, the review note, `app/README.md` and `app/`. LOG saved last; its check and the commit are confirmed in the closing report.
+**Next session should start with:** 1. B-049 deploy (on Sam's go) and a live check with real homes. 2. B-047 check the first WebJob crawl. 3. B-042.
+
 ## 2026-11-22 · Session 15: our own index of homes for sale
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Research and Legal & Compliance (sources and law), the CEO (D-035), the Builder and Tester (B-046)
 **Mode:** Build (D-023), within D-027 and D-035 · **Copy used:** canonical repository (D-022)
