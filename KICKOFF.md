@@ -5,8 +5,8 @@ For Sam: how to start, or restart, an AI session on this project. Written on 202
 ## Before the first session
 | # | What | Why | Status |
 |---|---|---|---|
-| 1 | **Push to your private repository (F-012)** | Decided on 2026-11-22: the project lives in a private repository, project-juntos, on your personal GitHub account, and runs on your personal AI subscription (D-021, D-022). Push it, then delete the copies on your work OneDrive. The steps are in FOUNDER-QUEUE.md | Do this first |
-| 2 | **Employer check, last step (F-001)** | The policy was checked on 2026-11-21: side projects are fine outside work devices, accounts, systems and working time. Read your employment agreement for an approval requirement, exclusivity or IP terms | Open |
+| 1 | **Push to your private repository (F-012)** | Decided on 2026-11-22: the project lives in a private repository, project-juntos, on your personal GitHub account, and runs on your personal AI subscription (D-021, D-022). Done 2026-11-22 (F-012) | Done |
+| 2 | **Employer check (F-001)** | Cleared 2026-11-22 (D-023); where the project runs is your choice (D-026) | Done |
 | 3 | **Confirm the modes (F-011)** | The rules for what the AI may do on its own (AGENTS.md section 3) | Open |
 | 4 | **Time and money (F-002)** | Sets your weekly hours and the spending cap the plans are costed against | Open |
 | 5 | **Choose Opus if your tool offers it** | The instructions are tuned for it. Pick the newest Opus in the model picker; if the tool offers an effort setting, leave the default. Another capable model works too: the first-session prompt checks the pack with it | Every session |

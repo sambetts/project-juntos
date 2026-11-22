@@ -9,13 +9,13 @@ Sam cleared F-001 and switched to Build mode on 2026-11-22 (D-023). Agents may b
 None. At the start of a session, list its goals here as a checklist; clear it at the end.
 
 ## In short
-The idea: help compatible strangers buy one home together in Spain, starting with the social side (matching plus a joint "what our home needs" brief). On public evidence, no rival lets strangers form a group before choosing a whole home, but affinity questionnaires, co-ownership shares with a notarised pact, and exit services already exist, so the group-first idea is what we must test. Nothing is public, nothing has been bought and no money has been spent. The project runs on Sam's personal resources, as the private GitHub repository project-juntos (D-021, D-022). Sam's plan (2026-11-21): build a small product and see if it gains interest. The product is Spanish first, because it's for Spain, with English supported for international residents and for Sam; project documents stay in English (D-024). The pilot can't run until every gate in section 2 of its plan is met.
+The idea: help compatible strangers buy one home together in Spain, starting with the social side (matching plus a joint "what our home needs" brief). On public evidence, no rival lets strangers form a group before choosing a whole home, but affinity questionnaires, co-ownership shares with a notarised pact, and exit services already exist, so the group-first idea is what we must test. Nothing is public, nothing has been bought and no money has been spent. The project is the private GitHub repository project-juntos (D-022), and is also a proof of concept for building a new company with AI (D-026). Sam's plan (2026-11-21): build a small product and see if it gains interest. The product is Spanish first, because it's for Spain, with English supported for international residents and for Sam; project documents stay in English (D-024). The pilot can't run until every gate in section 2 of its plan is met.
 
 ## Phase
 **Phase 0: explore and set up**, now in Build mode. The gate to Phase 1 is every gate in section 2 of `product/phase1-validation-plan.md`, then Sam's dated go-ahead (`project/roadmap.md`).
 
 ## AI set-up
-Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief of Staff, started with the prompts in `KICKOFF.md`. Sessions 8 to 10 ran in Claude Code in the repository on Sam's own machine ("WOD2"), signed in with his work account and joined to the employer's Entra ID tenant, which Sam accepts as long as no work cloud or AI resources are used (D-025); GitHub Copilot works too, using the custom agents in `.github/agents/`. Canonical copy: this repository, private on Sam's personal GitHub account (D-022). Sessions commit; Sam pushes. Don't edit other copies.
+Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief of Staff, started with the prompts in `KICKOFF.md`. Sessions 8 to 11 ran in Claude Code in the repository on Sam's machine; any machine, account or tool Sam chooses is fine (D-026); GitHub Copilot works too, using the custom agents in `.github/agents/`. Canonical copy: this repository, private on Sam's personal GitHub account (D-022). Sessions commit; Sam pushes. Don't edit other copies.
 
 ## What exists
 | Asset | File | Status |
@@ -36,7 +36,7 @@ Sessions run on the newest Opus where Sam's tool offers it (D-019), as the Chief
 | Budget, experiments, partners | `project/budget.md`, `project/experiments.md`, `project/partners.md` | First pilot estimate in the budget; EXP-001 to EXP-003 planned; no partners yet |
 
 ## Decided
-D-001 Spain only · D-002 groups, not just pairs · D-003 social side first · D-004 link out to listings, no scraping (amendment proposed: D-015) · D-005 prototype first · D-006 AI-run, Sam approves · D-014 Spanish first (amended by D-024) · D-016 canonical copy (now D-022) · D-017 working positioning (internal) · D-019 sessions run on Opus · D-020 operating modes · D-021 personal resources, off work systems · D-013 where the project lives · D-022 private repository project-juntos · D-023 F-001 cleared, Build mode from 2026-11-22 · D-024 Spanish-first product with English supported; English documents · D-007 Compicasa as the provisional name · D-025 own machine with work sign-in is fine; no work cloud or AI resources
+D-001 Spain only · D-002 groups, not just pairs · D-003 social side first · D-004 link out to listings, no scraping (amendment proposed: D-015) · D-005 prototype first · D-006 AI-run, Sam approves · D-014 Spanish first (amended by D-024) · D-016 canonical copy (now D-022) · D-017 working positioning (internal) · D-019 sessions run on Opus · D-020 operating modes · D-021 personal resources (restriction superseded by D-026) · D-013 where the project lives · D-022 private repository project-juntos · D-023 F-001 cleared, Build mode from 2026-11-22 · D-024 Spanish-first product with English supported; English documents · D-007 Compicasa as the provisional name · D-026 any machine, account or tool Sam chooses, Microsoft and work ones included
 
 ## Waiting on Sam
 F-002 time and budget · F-004 first customer group · F-005 pilot measures · F-006 send the lawyer brief (unblocked by F-001) · F-008 advisers · F-009 amend the listings decision · F-010 approve the pilot design · F-011 confirm the operating modes · F-014 trademark search, then the domains; B-025 (phone and native-speaker checks) is parked until user tests come closer
@@ -49,11 +49,9 @@ F-002 time and budget · F-004 first customer group · F-005 pilot measures · F
 
 ## Watch out
 - A waitlist or any website run by Sam as an individual may have to show his name and postal address (LSSI art. 10.1); that's a question for the lawyer before anything is published (B-013, A6).
-- Sessions run on Sam's own machine under his work sign-in, which he's fine with (D-025). The line: no work cloud or AI resources (the employer's OneDrive, tenant storage, Copilot and similar) for this project.
-- F-012 closed 2026-11-22: the work copies are deleted.
-- Nothing for this project on Sam's work devices, accounts, systems or tools, or in his working time; no employer confidential information or work; no approaching colleagues or his employer's customers through work (F-001, D-021).
+- No employer confidential information or work product, and no recruiting the job's colleagues or customers (AGENTS.md section 4). Where the project runs is Sam's choice (D-026).
 - Build mode allows building, not publishing: no hosting, deploys, domains, sign-ups, analytics or forms that send data without Sam's dated approval.
-- Real participants' data must never land in this repository (git history keeps it), on work systems or in an AI session without approved terms (R-020). Only pseudonymised IDs and totals belong here.
+- Real participants' data must never land in this repository (git history keeps it) or in an AI session without approved terms (R-020). Only pseudonymised IDs and totals belong here.
 - Spanish first: Spanish is the default and the reference wording, and English must also exist for every user-facing string (D-024); the tests fail if one is missing or a screen mixes languages. The Spanish hasn't had a native speaker's review yet (B-025).
 - The pilot's commitment step involves no money. A refundable deposit needs the lawyer's clearance first (D-010; lawyer brief A5).
 - Don't use household type or money to filter real people before D-009 and the lawyer's answers (A3). The prototype's household filter is demo-only, with made-up people.

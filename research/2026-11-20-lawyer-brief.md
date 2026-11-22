@@ -9,7 +9,6 @@ _2026-11-20 · Legal & Compliance (AI) · Draft for Sam to send (F-006) · **Not
 - **How to send:** paste section 8 (in Spanish) as the email, and attach sections 1–7, from "The service in brief" to Annex B.
 - **Choose** a lawyer or firm that covers property law and data protection, gives fixed fees and acts for no rival or estate agency we might partner with. Partnerships can shortlist candidates without contacting anyone (B-021).
 - **Budget:** guides put a first consultation in Madrid at about €60–150 before VAT; our questions need specialists, so expect more. Get two or three written quotes; spending needs your approval (F-002).
-- **Do F-001 first.** Sending this shares material made on your work systems.
 
 **Before you send**
 1. Use a personal email address and leave your employer out of it. The brief is about the business only.

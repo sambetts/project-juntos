@@ -2,10 +2,10 @@
 
 Private codename for a new company, run mostly by AI agents with Sam Betts as founder. The idea: **help compatible people in Spain buy one home together**, matched dating-style, then help with the joint home brief, the search and, later, the legal set-up and exits.
 
-- **Status:** Phase 0 (explore and set up), in Plan mode. Nothing public, nothing bought, €0 spent. Done so far: research, a playable prototype, an independent review, a map of rivals, a lawyer brief and a pilot plan. Instructions tuned for Opus and a kickoff guide added on 2026-11-20. On 2026-11-21 Sam checked his employer's side-project policy and moved the project to his personal resources (D-021); on 2026-11-22 it became this private repository (D-022). Last updated 2026-11-22.
-- **Employer rules:** Sam is employed full time. His employer's side-project policy allows this project outside work devices, accounts, systems and working time, so it lives on his personal resources (F-001, D-021); reading his employment agreement is the last step of F-001. AI sessions stay in Plan mode (research, plans and drafts only; nothing registered or published) until Sam writes a dated switch to Build mode (AGENTS.md section 3).
+- **Status:** Phase 0 (explore and set up), in Build mode since 2026-11-22 (D-023). Nothing public, nothing bought, €0 spent. Done so far: research, a bilingual playable prototype and landing-page draft under the provisional name Compicasa (D-007), an independent review, a map of rivals, a lawyer brief, a pilot plan and privacy groundwork. Last updated 2026-11-22.
+- **Where it runs:** on any machine, account or tool Sam chooses, including Microsoft and work ones; the project is also a proof of concept for building a new company with AI (D-026). Build mode since 2026-11-22 (D-023): prototypes and code, nothing published (AGENTS.md section 3).
 - **Name:** not chosen. Provisional favourite **Compicasa**, pending a proper clearance search (`research/2026-11-20-naming-screen.md`). "project-juntos" is only this repository's codename: "Juntos" itself isn't available, as its .es and .com domains are taken.
-- **Canonical copy:** this repository, private on Sam's personal GitHub account (D-022). The copies on his work OneDrive are retired, and Sam deletes them (D-021, F-012). Keep it private: only Sam changes its visibility or collaborators.
+- **Canonical copy:** this repository, private on Sam's personal GitHub account (D-022). Keep it private: only Sam changes its visibility or collaborators.
 
 ## Start here
 | You are | Read |

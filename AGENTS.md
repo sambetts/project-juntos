@@ -17,7 +17,7 @@ The mode sets what agents may do without asking. Only Sam changes it, by writing
 | **Build** | From Sam's switch, after F-001 clears and F-007 settles where the project lives | Everything in Plan, plus prototypes, code and unpublished drafts in the approved workspace | Anything public, paid or sent |
 | **Pilot** | From Sam's dated go-ahead, once every gate in section 2 of `product/phase1-validation-plan.md` is met | Everything in Build, plus the pilot steps Sam approved, using only the approved tools and storage | Anything outside the approved pilot design |
 
-Why Plan mode now: Sam is employed full time. His employer's side-project policy, checked on 2026-11-21 (F-001), allows a project like this only outside work devices, accounts, systems and working time, so the project now runs on his personal resources: a private GitHub repository, project-juntos (D-021, D-022). His employment agreement may add conditions, so until Sam switches mode, agents research, plan and draft only.
+The project is in Build mode from 2026-11-22 (D-023). It's also a proof of concept for how to build a new company with AI, so it may run and be developed on whatever machines, accounts and tools Sam chooses, including Microsoft and work ones (D-026).
 
 ## 4. Who decides what
 **Agents decide alone**, within the current mode, and record anything significant in DECISIONS.md:
@@ -41,7 +41,7 @@ Why Plan mode now: Sam is employed full time. His employer's side-project policy
 - filtering or ranking real people by household type or money before D-009 is decided and a lawyer has reviewed it; made-up prototype profiles are fine
 - inventing data, quotes, sources, test results or user feedback (every decision rests on these files being true)
 - acting or speaking as Sam without his approval
-- using Sam's work devices, accounts, systems or tools, his employer's confidential information or work, or his job's contacts (colleagues and customers) for this project (his employer's side-project policy, F-001; D-021)
+- using his employer's confidential information or work product, or his job's contacts (colleagues and customers), for this project (confidentiality and IP duties; D-026)
 - putting passwords, keys, or personal data about participants, contacts or other private individuals in this repository (R-020): git history keeps whatever is committed, even after it's deleted. Sam's name and organisations' public business details are fine
 
 If you're unsure whether something needs Sam, treat it as his.
@@ -133,7 +133,7 @@ If your tool can run subagents or custom agents, use them only for big pieces of
 The canonical copy is the private GitHub repository **project-juntos** on Sam's personal account (D-022). Sessions run on his personal AI subscription.
 - **A coding assistant working in the repository**, such as GitHub Copilot in VS Code or GitHub Copilot's coding agent: the files in `.github/agents/` are its custom agents, and every session starts as the Chief of Staff. Once the session's files are saved and checked, commit them with the message "Session <n>: <theme>". Leave pushing to Sam unless he has said you may push; if your tool works through a pull request, say in your closing report that it's waiting for his review. "Saved and checked" then means `git status` shows nothing uncommitted and the commit is in `git log`. The repository's settings, visibility and collaborators are Sam's.
 - **An AI tool that can't change the repository:** give Sam each changed file in full, or an exact patch, and list them in your closing report; "saved and checked" then means Sam has confirmed he committed them.
-- **Never on Sam's work systems.** Sessions 1 to 7 ran in Microsoft 365 Copilot on his work OneDrive; those copies are retired (D-021). Don't use work accounts, devices or tools for this project.
+- **Any machine or tool Sam chooses** (D-026), including Microsoft 365 Copilot, which ran Sessions 1 to 7. Work from the canonical repository wherever it is.
 - **Anywhere you can't write to the canonical repository:** propose patches instead of editing another copy.
 
 ## 11. Changing these instructions

@@ -22,7 +22,7 @@ _Draft v0.1, 2026-11-20 · Validation, with Product and Legal & Compliance (AI) 
 | Gate | What it needs | Status on 2026-11-21 | Owner |
 |---|---|---|---|
 | F-001 | Positive employer clearance, in writing if needed | Policy checked on 2026-11-21; Sam's employment agreement still to read | Sam |
-| F-007, D-013 | Where the project and the participants' data live (never on work systems) | Project: the private repository project-juntos (D-021, D-022). Participants' data: restricted storage chosen under B-013 | Sam |
+| F-007, D-013 | Where the project and the participants' data live | Project: the private repository project-juntos (D-021, D-022). Participants' data: restricted storage chosen under B-013 | Sam |
 | F-002 | Time and budget for Phase 1 | Open | Sam |
 | F-004, D-008 | The first customer group, area and price band | Open | Sam |
 | F-005, D-012 | The measures and decision rules in section 8 | Open | Sam |
@@ -118,7 +118,7 @@ Interviews explain the numbers; they aren't success measures.
 - **Output:** pseudonymised notes, and themes in a dated research note.
 
 ## 10. Data handling (summary; B-013 has the detail)
-- Real participants' data lives only in restricted storage Sam chooses (F-007, B-013): never in this repository or on work systems. This repository holds only pseudonymised IDs (H-01, H-02 and so on) and totals.
+- Real participants' data lives only in restricted storage Sam chooses (F-007, B-013): never in this repository. This repository holds only pseudonymised IDs (H-01, H-02 and so on) and totals.
 - Collect the minimum: Annex A of the lawyer brief. No date of birth, photos, identity documents, nationality, income or details about children.
 - Proposed retention: delete within 90 days of the pilot ending, except for people who ask to hear about next steps. The lawyer and B-013 confirm.
 - People can see, correct or delete their data, and withdraw, at any time.
