@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Juntos – find the people to buy a home with (prototype)</title>
+<title>Juntos – encuentra con quién comprar casa (prototipo)</title>
 <style>
 :root{
   --bg:#f5f6fa;--surface:#ffffff;--surface-2:#eef1f7;--text:#1b2230;--muted:#5b6476;--border:#dfe4ee;
@@ -150,10 +150,10 @@ footer.note{color:var(--muted);font-size:12.5px;padding-block:4px 24px}
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap"><div class="logo" aria-hidden="true">J</div><div class="brand"><h1>Juntos</h1><p>Find the people to buy a home with (working name)</p></div><span class="badge">Prototype · made-up people · simulated replies · Madrid</span></div></header>
-<nav class="tabs" aria-label="Steps"><div class="wrap" id="tabs" role="tablist"></div></nav>
+<header class="top"><div class="wrap"><div class="logo" aria-hidden="true">J</div><div class="brand"><h1>Juntos</h1><p id="tagline"></p></div><span class="badge" id="badge"></span><button type="button" class="btn small" id="lang-switch" data-action="lang"></button></div></header>
+<nav class="tabs" id="steps"><div class="wrap" id="tabs" role="tablist"></div></nav>
 <main class="wrap" id="app" role="tabpanel" aria-labelledby="tab-you"></main>
-<footer class="wrap note">Prototype with made-up people and simulated replies. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.</footer>
+<footer class="wrap note" id="footnote"></footer>
 <div id="actionbar" class="actionbar"><div class="wrap"></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"><div></div></div>
 <script>
@@ -161,45 +161,257 @@ footer.note{color:var(--muted);font-size:12.5px;padding-block:4px 24px}
 'use strict';
 window.addEventListener('error',function(e){document.documentElement.setAttribute('data-error',String(e.message));});
 /* ===== LOGIC START ===== */
+/* Language: 'es' (Spanish, Spain) or 'en'. Every word users see comes from STR or a {en,es} label. */
+let LANG='es';
+function setLang(l){LANG=l==='en'?'en':'es';return LANG;}
+function tx(v){return v&&typeof v==='object'?(v[LANG]!==undefined?v[LANG]:v.es):(v===undefined?'':v);}
+function t(k){const v=STR[LANG][k]!==undefined?STR[LANG][k]:STR.es[k];return typeof v==='function'?v.apply(null,Array.prototype.slice.call(arguments,1)):v;}
+function pl(n,one,many){return n+' '+(n===1?one:many);}
+
 const MAX_BEDROOMS=6;
 const AREAS=[
-  {id:'centre',label:'Central Madrid',hint:'inside the M-30'},
-  {id:'city',label:'Rest of Madrid city',hint:'outside the M-30'},
-  {id:'north',label:'North & west towns',hint:'Las Rozas, Pozuelo, Alcobendas, Tres Cantos'},
-  {id:'south',label:'South towns',hint:'Getafe, Leganés, Alcorcón, Móstoles'},
-  {id:'east',label:'East corridor',hint:'Alcalá, Torrejón, Coslada'}
+  {id:'centre',label:{en:'Central Madrid',es:'Madrid centro'},hint:{en:'inside the M-30',es:'dentro de la M-30'}},
+  {id:'city',label:{en:'Rest of Madrid city',es:'Resto de Madrid capital'},hint:{en:'outside the M-30',es:'fuera de la M-30'}},
+  {id:'north',label:{en:'North & west towns',es:'Municipios del norte y oeste'},hint:'Las Rozas, Pozuelo, Alcobendas, Tres Cantos'},
+  {id:'south',label:{en:'South towns',es:'Municipios del sur'},hint:'Getafe, Leganés, Alcorcón, Móstoles'},
+  {id:'east',label:{en:'East corridor',es:'Corredor del Henares'},hint:'Alcalá, Torrejón, Coslada'}
 ];
-const TYPES=[{id:'flat',label:'Flat',hint:'piso'},{id:'house',label:'House',hint:'chalet or adosado'}];
+const TYPES=[{id:'flat',label:{en:'Flat',es:'Piso'},hint:{en:'piso',es:''}},{id:'house',label:{en:'House',es:'Casa'},hint:{en:'chalet or adosado',es:'chalet o adosado'}}];
 const HOUSEHOLDS=[
-  {id:'single',label:'Single',plural:'singles'},
-  {id:'couple',label:'Couple',plural:'couples'},
-  {id:'family',label:'Family with kids',plural:'families with kids'},
-  {id:'singleParent',label:'Single parent',plural:'single parents'}
+  {id:'single',label:{en:'Single',es:'Persona sola'},plural:{en:'singles',es:'personas solas'}},
+  {id:'couple',label:{en:'Couple',es:'Pareja'},plural:{en:'couples',es:'parejas'}},
+  {id:'family',label:{en:'Family with kids',es:'Familia con hijos'},plural:{en:'families with kids',es:'familias con hijos'}},
+  {id:'singleParent',label:{en:'Single parent',es:'Familia monoparental'},plural:{en:'single parents',es:'familias monoparentales'}}
 ];
 const FEATURES=[
-  {id:'parking',label:'Parking / driveway'},
-  {id:'garden',label:'Garden'},
-  {id:'terrace',label:'Terrace or balcony'},
-  {id:'pool',label:'Shared pool'},
-  {id:'lift',label:'Lift'},
-  {id:'stepfree',label:'Step-free access'},
-  {id:'schools',label:'Near good schools'},
-  {id:'transport',label:'Near Metro / Cercanías'},
-  {id:'quiet',label:'Quiet street'},
-  {id:'storage',label:'Storage room (trastero)'}
+  {id:'parking',label:{en:'Parking / driveway',es:'Garaje o plaza de aparcamiento'}},
+  {id:'garden',label:{en:'Garden',es:'Jardín'}},
+  {id:'terrace',label:{en:'Terrace or balcony',es:'Terraza o balcón'}},
+  {id:'pool',label:{en:'Shared pool',es:'Piscina comunitaria'}},
+  {id:'lift',label:{en:'Lift',es:'Ascensor'}},
+  {id:'stepfree',label:{en:'Step-free access',es:'Acceso sin escalones'}},
+  {id:'schools',label:{en:'Near good schools',es:'Cerca de buenos colegios'}},
+  {id:'transport',label:{en:'Near Metro / Cercanías',es:'Cerca de Metro o Cercanías'}},
+  {id:'quiet',label:{en:'Quiet street',es:'Calle tranquila'}},
+  {id:'storage',label:{en:'Storage room (trastero)',es:'Trastero'}}
 ];
-const HORIZONS=[{id:'2-4',label:'2–4 years'},{id:'5-9',label:'5–9 years'},{id:'10+',label:'10+ years'}];
+const HORIZONS=[{id:'2-4',label:{en:'2–4 years',es:'2–4 años'}},{id:'5-9',label:{en:'5–9 years',es:'5–9 años'}},{id:'10+',label:{en:'10+ years',es:'10 años o más'}}];
 const SLIDERS=[
-  {id:'sleep',label:'Daily rhythm',lo:'Early bird',hi:'Night owl',w:0.25},
-  {id:'tidy',label:'Tidiness',lo:'Relaxed',hi:'Very tidy',w:0.25},
-  {id:'social',label:'Home atmosphere',lo:'Quiet',hi:'Lively',w:0.20},
-  {id:'guests',label:'Guests over',lo:'Rarely',hi:'Often',w:0.15},
-  {id:'meals',label:'Meals',lo:'Own thing',hi:'Cook and eat together',w:0.15}
+  {id:'sleep',label:{en:'Daily rhythm',es:'Ritmo diario'},lo:{en:'Early bird',es:'Madrugar'},hi:{en:'Night owl',es:'Trasnochar'},w:0.25},
+  {id:'tidy',label:{en:'Tidiness',es:'Orden'},lo:{en:'Relaxed',es:'Flexible'},hi:{en:'Very tidy',es:'Muy exigente'},w:0.25},
+  {id:'social',label:{en:'Home atmosphere',es:'Ambiente en casa'},lo:{en:'Quiet',es:'Tranquilo'},hi:{en:'Lively',es:'Animado'},w:0.20},
+  {id:'guests',label:{en:'Guests over',es:'Visitas'},lo:{en:'Rarely',es:'Casi nunca'},hi:{en:'Often',es:'A menudo'},w:0.15},
+  {id:'meals',label:{en:'Meals',es:'Comidas'},lo:{en:'Own thing',es:'Cada cual a su aire'},hi:{en:'Cook and eat together',es:'Cocinar y comer en compañía'},w:0.15}
 ];
 const WEIGHTS={lifestyle:0.50,place:0.20,plans:0.20,home:0.10};
-const PART_LABELS={lifestyle:'How you live',place:'Where & what',plans:'Time horizon',home:'Shared priorities'};
+const PART_LABELS={lifestyle:{en:'How you live',es:'Forma de vivir'},place:{en:'Where & what',es:'Dónde y qué'},plans:{en:'Time horizon',es:'Horizonte'},home:{en:'Shared priorities',es:'Prioridades comunes'}};
 const ACCESS_FEATURES=['lift','stepfree'];
 const NUM_FIELDS=['bedrooms','kids','cars','maxHouseholds','sleep','tidy','social','guests','meals'];
+const PET_WORDS={dog:{en:'a dog',es:'un perro'},cat:{en:'a cat',es:'un gato'}};
+
+/* Every sentence users see, in both languages. Spanish uses tú for the user and vosotros for the group, and avoids gendered words where it can. */
+const STR={
+en:{
+  and:'and',or:'or',you:'you',youName:'You',vs:'vs',
+  title:'Juntos – find the people to buy a home with (prototype)',
+  tagline:'Find the people to buy a home with (working name)',
+  badge:'Prototype · made-up people · simulated replies · Madrid',
+  footnote:'Prototype with made-up people and simulated replies. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.',
+  steps:'Steps',langOther:'Español',langOtherCode:'es',langOtherAria:'Ver en español',tLang:'Showing the English version',
+  kids:n=>pl(n,'kid','kids'),
+  hhFamily:(a,k)=>'Family · '+a+' adults + '+k,hhSingleParent:k=>'Single parent + '+k,
+  typeBoth:'flat or house',typeNone:'home',
+  homeLine:(type,beds)=>beds+'-bedroom '+type,
+  bedroomsN:n=>pl(n,'bedroom','bedrooms'),bathsN:n=>pl(n,'bathroom','bathrooms'),parkingN:n=>'parking for '+n,parkingSpaces:n=>pl(n,'parking space','parking spaces'),
+  notOpen:p=>"You're not looking to share with "+p,smokeIn:'They smoke indoors',smokeOut:"They smoke outside, and you'd rather nobody smoked",
+  petsNo:p=>'They have '+p+', and you said no pets',pickArea:'Pick at least one area',noArea:l=>'No area in common (they want '+l+')',
+  pickType:'Pick at least one type of home',onlyType:l=>'They only want a '+l,
+  bedsPair:(b,m)=>'Together you would need '+b+' bedrooms; this prototype caps a home at '+m,
+  theirsPrivate:"Doesn't fit their own preferences (their reasons stay private)",
+  has:p=>'Has '+p,smokesOut:'Smokes (outside only)',smokesIn:'Smokes indoors',
+  bothLarks:'Both early birds',bothOwls:'Both night owls',similarRhythm:'Similar daily rhythm',lateHours:'Keeps late hours',veryEarly:'Up very early',
+  similarTidy:'Similar tidiness',tidier:'Tidier than you',relaxed:'More relaxed about tidiness',
+  cookTogether:'Both love cooking together',ownMeals:'Both like their own mealtimes',mealsDiffer:'Different ideas about shared meals',
+  guestsOften:'Often has guests over',guestsRarely:'Rarely has guests over',likesLively:'Likes a lively home',likesQuiet:'Likes a quiet home',
+  youWfh:'You work from home; they like a lively home',theyWfh:'They work from home; you like a lively home',
+  sameHorizon:l=>'Both planning '+l,diffHorizon:(a,b)=>'Different time horizons ('+a+' vs '+b+')',bothWant:f=>'Both want: '+f,kidsInHome:k=>k+' in the household',
+  maxHH:(m,n)=>'At most '+m+' households in the home, for '+n,bedsGroup:(b,m)=>'That needs '+b+' bedrooms; this prototype caps a home at '+m,
+  clash:p=>p+' clash on a dealbreaker',noAreaAll:'No area that everyone accepts',noTypeAll:'No type of home that everyone accepts',
+  twice:'Someone is listed twice',notMutual:n=>n+" isn't a mutual match with you any more",othersReject:p=>p+" wouldn't both accept each other (simulated)",
+  secondLiving:'A second living space (a snug or playroom)',secondWhyKidless:'Gives the adults without kids a calm space while the kids play',secondWhy:'Lets each household have its own downtime',
+  bigKitchen:'A big kitchen-diner',bigKitchenWhy:'Most of you like cooking and eating together',
+  twoKitchen:'A kitchen where two households can cook at once, with separate fridge shelves',twoKitchenWhy:'You mostly cook your own meals',
+  desks:n=>n===1?'A quiet workspace':n+' quiet workspaces',wfhWho:n=>'Working from home: '+n,
+  outdoor:'Outdoor space or a park nearby',dogWho:n=>'Dog owners: '+n,
+  guestWC:'A guest WC near the living area',guestWCWhy:'Everyone has their own bathroom, so visitors need one',
+  keepYours:'Keep your rooms together, ideally on one floor or in one wing.',keepTheirs:n=>'Keep '+n+"'s rooms together, ideally on one floor or in one wing.",
+  clusters:n=>'Give each household with several rooms ('+n+') its own cluster: one floor or one wing each.',
+  owlsLarks:(o,l)=>'Night owls ('+o+') and early birds ('+l+'): put their bedrooms at opposite ends or on different floors.',
+  wfhAway:many=>'Keep the workspace'+(many?'s':'')+' away from the kids’ rooms and the playroom.',
+  ensuite:n=>'En-suite bedrooms: '+n+'; the others share a bathroom.',similarNeeds:'Your needs are similar, so draw lots or take turns for first pick of rooms.',
+  agCleaning:['Cleaning','A rota, or a cleaner shared between households?','Your tidiness standards differ'],
+  agGuests:['Guests','How often people can stay over, and how much notice to give','Very different habits with guests'],
+  agHours:['Early & late','Showers, kitchen use and noise late at night or early in the morning','Night owls and early birds under one roof'],
+  agQuiet:['Quiet hours','For example 23:00 to 08:00, plus quiet during home-working hours','Lively and quiet people sharing'],
+  agFood:['Food','Shared staples or separate shelves? Any regular shared dinners?','Different ideas about shared meals'],
+  agPets:['Pets','Which spaces pets can use, and who covers any damage',''],petWho:n=>'Pet owners: '+n,
+  agSmoking:['Smoking','Where it is allowed (garden or terrace only?)',''],smokerWho:n=>'Smokers: '+n,
+  agKids:['Kids','Noisy-play times, toys in shared spaces, any babysitting swaps','There will be kids in the house'],
+  agParking:['Parking','Who uses which space, and where visitors park',''],carsTotal:n=>n+' cars between you',
+  agGarden:['Garden & pool','Who looks after them, and when you pay someone instead','You want outdoor space'],
+  agDecisions:['Decisions','How you decide on repairs and changes, with a tie-break if you split down the middle','Every group needs this'],
+  agExit:['Moving on','Notice period, and how the group chooses a new co-owner','Money and legal detail come later; agree the principle now'],
+  tabYou:'1 · Your profile',tabMatches:'2 · Matches',tabHome:'3 · Your home together',srCompatible:'compatible',srInGroup:'households in your group',
+  profileH:'Your profile',profileLead:'Who is buying, how you live and what the home needs. Your matches update as you go.',startFrom:'Start from an example:',
+  whoBuying:"Who's buying",yourHousehold:'Your household',kidsLabel:'Kids',privateSpace:'Your private space',bedroomsLabel:'Bedrooms just for your household',
+  ownBath:'I want my own bathroom',parkingLabel:'Parking spaces you need',petsLabel:'Pets you have',dog:'Dog',cat:'Cat',
+  howLive:'How you live',wfhLabel:'I work from home and need a quiet workspace',smokeQ:'Do you smoke?',smokeNo:'No',smokeOutOpt:'Yes, outside only',smokeInOpt:'Yes, indoors too',
+  shareWith:"Who you'd share with",happyShare:'Happy to share a home with',demoHousehold:'Demo only: whether a real service may let people choose by household type is being checked with a lawyer.',
+  maxHHLabel:'Households in the home, at most',maxHH2:'2 (for example, half each)',maxHH4:'4 (co-living)',okPets:'Happy to live with pets',
+  smokersQ:'Smokers in the house',smokersNone:'No smokers',smokersOut:'Fine if they smoke outside',smokersAny:"Don't mind",
+  whereHow:'Where and how long',areasLabel:'Areas you would consider (Madrid region)',typesLabel:'Type of home',horizonLabel:'How long you plan to live there',
+  needsH:'What the home needs',needsHint:'Tap once for <b>nice to have</b>, twice for <b>must-have</b>, a third time to clear. Accessibility needs, such as a lift or step-free access, shape the home brief and never your match scores.',
+  lvMust:'Must-have',lvNice:'Nice to have',lvNone:'Not needed',
+  ownBathFact:'own bathroom',sharesBath:'shares a bathroom',wfhFact:'works from home',staying:l=>'staying '+l,
+  inGroup:'✓ In your group',remove:'Remove',passedS:'Passed',undo:'Undo',pass:'Pass',like:'♥ Like',mutualS:'✓ Mutual match',simReply:'(simulated reply)',addGroup:'Add to group',likedNo:'Liked · no match',
+  ringAria:s=>s+'% compatible (demo score)',together:(line,rest)=>"Together you'd need a <b>"+line+'</b> · '+rest,why:s=>'Why '+s+'%?',
+  demoScoreHint:"Demo score with uncalibrated weights: it can't predict how living together will go.",
+  weakestAvg:a=>'weakest pair · '+a+'% average',needsIn:(line,areas)=>'Needs a '+line+' in '+areas,previewBtn:'Preview the home',propose:'Propose this group',
+  topSugg:'Top suggestion · ',pairOf:'Pair',groupOf:n=>'Group of '+n+' households',
+  groupsHint:'Made only from your mutual matches who would also accept each other (simulated). Previewing changes nothing; proposing asks everyone.',
+  noGroupYet:'No group works yet among your mutual matches: they clash with each other or with the whole-group checks.',
+  groupsAppear:'Groups appear here once you have mutual matches. Like the people you would consider: a group only forms when everyone accepts each other.',
+  matchesH:'People who could buy with you',
+  matchesLead:n=>n+' compatible '+(n===1?'person':'people')+", best first. Like the ones you'd consider. In this demo their replies are simulated from their own settings; in a real service, a match needs both sides to say yes.",
+  howScore:'How the score works',
+  howScoreText:"Dealbreakers come first: who you'd share with, smoking, pets, areas, type of home and total bedrooms. Anyone who fails one is hidden, and the other side's reasons stay private. Everyone else gets a demo score: 50% how you live (daily rhythm, tidiness, atmosphere, guests, meals), 20% where and what kind of home, 20% how long you plan to stay and 10% shared priorities for the home. Household type and accessibility needs never change the score. The weights are a first guess, not calibrated. A group is only as strong as its weakest pair. Protected traits are never used.",
+  groupsH:'Groups that could work',everyoneH:'Everyone who fits your dealbreakers',nobody:"Nobody passes all your dealbreakers yet. Try more areas, or widen who you'd share with.",
+  hiddenN:n=>n+' hidden by dealbreakers',seeWhy:'(see why)',
+  homeH:'Your home together',homeEmpty:'Form a group from your mutual matches, or preview a suggested group, to see what a shared home would need.',goMatches:'Go to matches →',
+  removeAria:n=>'Remove '+n,attentionLead:'This group needs attention before a home brief can be drawn.',doesntWork:"This group doesn't work as it stands:",
+  doesntWorkFix:'Remove someone, or change your profile back, to see the brief again.',
+  tagMust:'Must',tagNice:'Nice',mustFor:(m,n)=>'Must-have for '+m+(n?'; nice for '+n:''),niceFor:n=>'Nice to have for '+n,
+  headline:(line,baths,cars)=>line+' with '+baths+(cars?' and '+cars:''),
+  previewOnly:'Preview only.',previewNote:'Nobody has joined: this is a suggested group from your mutual matches.',closePreview:'Close preview',
+  sizeLabel:"Your group's target, useful area in m²",from:'From',to:'to',
+  leadPreview:'What this suggested group would need from one home.',leadGroup:'A draft brief for your group: every household would need to approve it before it is used.',
+  leadScope:'It covers people and space only: money, ownership shares and the legal agreement come later.',
+  fitH:'How well you fit together',weakestK:'Weakest pair: ',compatK:'Compatibility: ',avgOf:n=>'Average of '+n+' pairs',weakDetail:'Weakest pair in detail',breakdown:'Score breakdown',
+  demoScores:'Demo scores with uncalibrated weights, and simulated replies.',
+  homeNeedH:"The home you'd need",kBeds:'Bedrooms',kBaths:'Bathrooms',kNone:'None',kParking:'Parking spaces',kArea:'Useful area, rough',kAdultsKids:'Adults + kids',kAdults:'Adults',
+  areaHint:'A rough starting point to agree together. Listings often quote built area (superficie construida), which is larger than useful area (superficie útil), so compare like with like.',
+  whereB:'Where:',mustsH:'Must-haves',nicesH:'Nice to have',worthH:'Worth looking for',tipTag:'Tip',
+  roomsH:'Who gets which rooms',roomsOf:(r,b)=>r+' of the '+b+' bedrooms',plusOwnBath:' + own bathroom',placementH:'Room placement',
+  illustrative:"Illustrative bedroom allocation only; it doesn't determine ownership, payments or use rights.",
+  agreeH:'House agreement starters',agreeHint:"Talk these through before you buy. They're prompts for a lawyer-reviewed agreement, not the agreement itself.",
+  barYou:(n,h)=>n+' compatible <span>· '+h+' hidden by dealbreakers</span>',attention:'· ⚑ your group needs attention',seeMatches:'See matches →',
+  barGroup:(g,l)=>'Your group: '+pl(g,'household','households')+' <span>· '+l+' liked</span>',seeHome:'See your home together →',editProfile:'Edit your profile',backMatches:'Back to matches',
+  tMutual:n=>'Mutual match with '+n+' (simulated reply). You can add them to your group.',tNoMatch:n=>'You liked '+n+'. Their simulated reply: not a match this time.',
+  tAlready:n=>n+' is already in your group',tCantAdd:(n,i)=>"Can't add "+n+': '+i,tAdded:n=>n+' added to your group',
+  tCantForm:i=>"This group can't form: "+i,pickOne:'pick at least one person',tFormed:'Group formed: everyone accepted (simulated replies)',
+  tExample:l=>'Example loaded: '+l,tRemoved:'Removed from your group',tPreview:'Preview only: nobody has joined'
+},
+es:{
+  and:'y',or:'o',you:'tú',youName:'Tú',vs:'frente a',
+  title:'Juntos – encuentra con quién comprar casa (prototipo)',
+  tagline:'Encuentra con quién comprar casa (nombre provisional)',
+  badge:'Prototipo · personas inventadas · respuestas simuladas · Madrid',
+  footnote:'Prototipo con personas inventadas y respuestas simuladas. Solo cubre la afinidad y el espacio: el dinero, las cuotas de propiedad, el pacto de copropiedad y los anuncios reales llegarán más adelante. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud. Un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
+  steps:'Pasos',langOther:'English',langOtherCode:'en',langOtherAria:'View in English',tLang:'Mostrando la versión en español',
+  kids:n=>pl(n,'hijo','hijos'),
+  hhFamily:(a,k)=>'Familia · '+a+' adultos + '+k,hhSingleParent:k=>'Familia monoparental · '+k,
+  typeBoth:'piso o casa',typeNone:'vivienda',
+  homeLine:(type,beds)=>type+' de '+pl(beds,'dormitorio','dormitorios'),
+  bedroomsN:n=>pl(n,'dormitorio','dormitorios'),bathsN:n=>pl(n,'baño','baños'),parkingN:n=>pl(n,'plaza de garaje','plazas de garaje'),parkingSpaces:n=>pl(n,'plaza de garaje','plazas de garaje'),
+  notOpen:p=>'No buscas compartir con '+p,smokeIn:'Fuma dentro de casa',smokeOut:'Fuma fuera, y prefieres que no fume nadie',
+  petsNo:p=>'Tiene '+p+', y prefieres vivir sin mascotas',pickArea:'Elige al menos una zona',noArea:l=>'Ninguna zona en común (busca en '+l+')',
+  pickType:'Elige al menos un tipo de vivienda',onlyType:l=>'Solo busca '+l,
+  bedsPair:(b,m)=>'Sumáis '+b+' dormitorios; este prototipo admite como máximo '+m+' por vivienda',
+  theirsPrivate:'No encaja con sus propias preferencias (sus motivos son privados)',
+  has:p=>'Tiene '+p,smokesOut:'Fuma (solo fuera)',smokesIn:'Fuma dentro de casa',
+  bothLarks:'Os gusta madrugar',bothOwls:'Os gusta trasnochar',similarRhythm:'Ritmo diario parecido',lateHours:'Se acuesta tarde',veryEarly:'Madruga mucho',
+  similarTidy:'Orden parecido',tidier:'Más exigente con el orden',relaxed:'Menos exigente con el orden',
+  cookTogether:'Os encanta cocinar en compañía',ownMeals:'Preferís comer cada cual a su aire',mealsDiffer:'Ideas distintas sobre las comidas compartidas',
+  guestsOften:'Recibe visitas a menudo',guestsRarely:'Casi nunca recibe visitas',likesLively:'Le gusta una casa animada',likesQuiet:'Le gusta una casa tranquila',
+  youWfh:'Teletrabajas y le gusta una casa animada',theyWfh:'Teletrabaja y a ti te gusta una casa animada',
+  sameHorizon:l=>'Mismo horizonte: '+l,diffHorizon:(a,b)=>'Horizontes distintos ('+a+' frente a '+b+')',bothWant:f=>'Prioridad común: '+f.toLowerCase(),kidsInHome:k=>k+' en su hogar',
+  maxHH:(m,n)=>'Máximo de '+m+' hogares en la vivienda, según '+n,bedsGroup:(b,m)=>'Hacen falta '+b+' dormitorios; este prototipo admite como máximo '+m+' por vivienda',
+  clash:p=>p+' chocan en un innegociable',noAreaAll:'Ninguna zona que acepte todo el grupo',noTypeAll:'Ningún tipo de vivienda que acepte todo el grupo',
+  twice:'Alguien aparece dos veces',notMutual:n=>'Ya no hay match mutuo entre '+n+' y tú',othersReject:p=>p+' no se aceptarían mutuamente (simulado)',
+  secondLiving:'Una segunda zona de estar (salita o cuarto de juegos)',secondWhyKidless:'Da a los adultos sin hijos un espacio tranquilo mientras los niños juegan',secondWhy:'Cada hogar tiene su propio rato de descanso',
+  bigKitchen:'Una cocina grande con zona de comedor',bigKitchenWhy:'A la mayoría os gusta cocinar y comer en compañía',
+  twoKitchen:'Una cocina donde puedan cocinar dos hogares a la vez, con baldas separadas en la nevera',twoKitchenWhy:'Soléis cocinar cada cual lo suyo',
+  desks:n=>n===1?'Un espacio de trabajo tranquilo':n+' espacios de trabajo tranquilos',wfhWho:n=>'Trabajo desde casa: '+n,
+  outdoor:'Espacio exterior o un parque cerca',dogWho:n=>'Con perro: '+n,
+  guestWC:'Un aseo de cortesía junto a la zona de estar',guestWCWhy:'Cada hogar tiene su propio baño, así que las visitas necesitan uno',
+  keepYours:'Mantén tus habitaciones juntas, a ser posible en la misma planta o en la misma ala.',keepTheirs:n=>'Mantén juntas las habitaciones de '+n+', a ser posible en la misma planta o en la misma ala.',
+  clusters:n=>'Da a cada hogar con varias habitaciones ('+n+') su propia zona: una planta o un ala para cada hogar.',
+  owlsLarks:(o,l)=>'Quien trasnocha ('+o+') y quien madruga ('+l+'): poned sus dormitorios en extremos opuestos o en plantas distintas.',
+  wfhAway:many=>(many?'Alejad los espacios de trabajo':'Alejad el espacio de trabajo')+' de los dormitorios de los niños y del cuarto de juegos.',
+  ensuite:n=>'Dormitorios con baño propio: '+n+'; el resto comparte baño.',similarNeeds:'Vuestras necesidades se parecen: echadlo a suertes o turnaos para elegir habitación.',
+  agCleaning:['Limpieza','¿Turnos de limpieza, o una persona que limpie, pagada entre todos los hogares?','Vuestros niveles de orden son distintos'],
+  agGuests:['Visitas','Con qué frecuencia puede quedarse alguien a dormir y con cuánta antelación avisar','Costumbres muy distintas con las visitas'],
+  agHours:['Horarios','Duchas, uso de la cocina y ruido a última hora de la noche o a primera de la mañana','Gente que trasnocha y gente que madruga bajo el mismo techo'],
+  agQuiet:['Horas de silencio','Por ejemplo, de 23:00 a 08:00, y silencio durante las horas de teletrabajo','Conviven personas animadas y tranquilas'],
+  agFood:['Comida','¿Básicos compartidos o baldas separadas? ¿Alguna cena en común fija?','Ideas distintas sobre las comidas compartidas'],
+  agPets:['Mascotas','Qué espacios pueden usar las mascotas y quién paga los posibles daños',''],petWho:n=>'Con mascotas: '+n,
+  agSmoking:['Tabaco','Dónde se puede fumar (¿solo en el jardín o en la terraza?)',''],smokerWho:n=>'Quién fuma: '+n,
+  agKids:['Niños','Horarios para jugar con ruido, juguetes en las zonas comunes, turnos para cuidar de los niños','Habrá niños en casa'],
+  agParking:['Aparcamiento','Quién usa cada plaza y dónde aparcan las visitas',''],carsTotal:n=>n+' coches en total',
+  agGarden:['Jardín y piscina','Quién se ocupa de su cuidado y cuándo conviene pagar a alguien','Queréis espacio exterior'],
+  agDecisions:['Decisiones','Cómo decidís reparaciones y cambios, y cómo se desempata si estáis divididos a partes iguales','Todo grupo lo necesita'],
+  agExit:['Salida','Plazo de preaviso y cómo elige el grupo a quien entre como nueva persona copropietaria','El dinero y los detalles legales llegarán después; acordad ahora el principio'],
+  tabYou:'1 · Tu perfil',tabMatches:'2 · Personas afines',tabHome:'3 · Vuestra casa en común',srCompatible:'compatibles',srInGroup:'hogares en tu grupo',
+  profileH:'Tu perfil',profileLead:'Quién compra, cómo vives y qué necesita la casa. Tus personas afines se actualizan sobre la marcha.',startFrom:'Empieza con un ejemplo:',
+  whoBuying:'Quién compra',yourHousehold:'Tu hogar',kidsLabel:'Hijos',privateSpace:'Tu espacio privado',bedroomsLabel:'Dormitorios solo para tu hogar',
+  ownBath:'Quiero baño propio',parkingLabel:'Plazas de garaje que necesitas',petsLabel:'Mascotas que tienes',dog:'Perro',cat:'Gato',
+  howLive:'Cómo vives',wfhLabel:'Trabajo desde casa y necesito un espacio tranquilo',smokeQ:'¿Fumas?',smokeNo:'No',smokeOutOpt:'Sí, solo fuera',smokeInOpt:'Sí, también dentro',
+  shareWith:'Con quién compartirías',happyShare:'Me parece bien compartir casa con',demoHousehold:'Solo en esta demo: un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
+  maxHHLabel:'Máximo de hogares en la vivienda',maxHH2:'2 (por ejemplo, mitad y mitad)',maxHH4:'4 (coliving)',okPets:'Me parece bien vivir con mascotas',
+  smokersQ:'¿Se puede fumar en casa?',smokersNone:'Prefiero que no fume nadie',smokersOut:'Sí, si se fuma fuera',smokersAny:'Me da igual',
+  whereHow:'Dónde y cuánto tiempo',areasLabel:'Zonas que te plantearías (Comunidad de Madrid)',typesLabel:'Tipo de vivienda',horizonLabel:'Cuánto tiempo piensas vivir allí',
+  needsH:'Qué necesita la casa',needsHint:'Toca una vez para marcarlo como <b>deseable</b>, dos para <b>imprescindible</b> y una tercera para quitarlo. Las necesidades de accesibilidad, como un ascensor o el acceso sin escalones, dan forma a la ficha de la casa y nunca cambian tus puntuaciones.',
+  lvMust:'Imprescindible',lvNice:'Deseable',lvNone:'No hace falta',
+  ownBathFact:'baño propio',sharesBath:'comparte baño',wfhFact:'teletrabaja',staying:l=>'horizonte: '+l,
+  inGroup:'✓ En tu grupo',remove:'Quitar',passedS:'Descartado',undo:'Deshacer',pass:'Pasar',like:'♥ Me interesa',mutualS:'✓ Match mutuo',simReply:'(respuesta simulada)',addGroup:'Añadir al grupo',likedNo:'Te interesa · sin match',
+  ringAria:s=>s+'% de compatibilidad (puntuación de demo)',together:(line,rest)=>'Para vivir en común necesitaríais: <b>'+line+'</b> · '+rest,why:s=>'¿Por qué '+s+'%?',
+  demoScoreHint:'Puntuación de demo con pesos sin calibrar: no puede predecir cómo irá la convivencia.',
+  weakestAvg:a=>'pareja más débil · '+a+'% de media',needsIn:(line,areas)=>'Necesita: '+line+' en '+areas,previewBtn:'Ver la casa',propose:'Proponer este grupo',
+  topSugg:'Mejor sugerencia · ',pairOf:'Dos hogares',groupOf:n=>'Grupo de '+n+' hogares',
+  groupsHint:'Formados solo con tus matches mutuos que también se aceptarían entre sí (simulado). Ver la casa no cambia nada; al proponer el grupo, se pregunta a cada persona.',
+  noGroupYet:'Todavía no hay ningún grupo posible entre tus matches mutuos: chocan entre sí o con las comprobaciones de grupo.',
+  groupsAppear:'Los grupos aparecen aquí cuando tienes matches mutuos. Marca «Me interesa» en las personas que te plantearías: un grupo solo se forma si cada persona acepta a las demás.',
+  matchesH:'Personas con quienes podrías comprar',
+  matchesLead:n=>(n===1?'1 persona compatible':n+' personas compatibles')+', de más a menos afín. Marca «Me interesa» en las que te plantearías. En esta demo sus respuestas se simulan a partir de sus propios ajustes; en un servicio real, un match necesita el sí de las dos partes.',
+  howScore:'Cómo funciona la puntuación',
+  howScoreText:'Primero van los innegociables: con quién compartirías, tabaco, mascotas, zonas, tipo de vivienda y número total de dormitorios. Quien no cumple alguno queda oculto, y los motivos de la otra parte son privados. El resto recibe una puntuación de demo: un 50 % por cómo vivís (ritmo diario, orden, ambiente, visitas, comidas), un 20 % por dónde y qué tipo de vivienda, un 20 % por cuánto tiempo pensáis quedaros y un 10 % por las prioridades comunes para la casa. El tipo de hogar y las necesidades de accesibilidad nunca cambian la puntuación. Los pesos son una primera estimación, sin calibrar. Un grupo es tan fuerte como su pareja más débil. Nunca se usan rasgos protegidos.',
+  groupsH:'Grupos que podrían funcionar',everyoneH:'Todas las personas que cumplen tus innegociables',nobody:'Todavía nadie cumple todos tus innegociables. Prueba con más zonas o amplía con quién compartirías.',
+  hiddenN:n=>(n===1?'1 persona oculta':n+' personas ocultas')+' por innegociables',seeWhy:'(ver por qué)',
+  homeH:'Vuestra casa en común',homeEmpty:'Forma un grupo con tus matches mutuos, o mira un grupo sugerido, para ver qué necesitaría una casa compartida.',goMatches:'Ir a personas afines →',
+  removeAria:n=>'Quitar a '+n,attentionLead:'Este grupo necesita atención antes de poder preparar la ficha de la casa.',doesntWork:'Este grupo no funciona tal como está:',
+  doesntWorkFix:'Quita a alguien del grupo, o deshaz el cambio en tu perfil, para volver a ver la ficha.',
+  tagMust:'Imprescindible',tagNice:'Deseable',mustFor:(m,n)=>'Imprescindible: '+m+(n?'; deseable: '+n:''),niceFor:n=>'Deseable: '+n,
+  headline:(line,baths,cars)=>line+' con '+baths+(cars?' y '+cars:''),
+  previewOnly:'Solo vista previa.',previewNote:'Nadie se ha unido: es un grupo sugerido a partir de tus matches mutuos.',closePreview:'Cerrar vista previa',
+  sizeLabel:'Superficie útil que busca tu grupo, en m²',from:'De',to:'a',
+  leadPreview:'Lo que necesitaría este grupo sugerido de una sola vivienda.',leadGroup:'Borrador de ficha para tu grupo: cada hogar tendría que aprobarla antes de usarla.',
+  leadScope:'Solo cubre personas y espacio: el dinero, las cuotas de propiedad y el pacto legal llegarán más adelante.',
+  fitH:'Cómo encajáis',weakestK:'Pareja más débil: ',compatK:'Compatibilidad: ',avgOf:n=>'Media de '+n+' parejas',weakDetail:'La pareja más débil, en detalle',breakdown:'Desglose de la puntuación',
+  demoScores:'Puntuaciones de demo con pesos sin calibrar, y respuestas simuladas.',
+  homeNeedH:'La casa que necesitaríais',kBeds:'Dormitorios',kBaths:'Baños',kNone:'Ninguna',kParking:'Plazas de garaje',kArea:'Superficie útil, aprox.',kAdultsKids:'Adultos + niños',kAdults:'Adultos',
+  areaHint:'Un punto de partida aproximado para acordarlo entre todos. Los anuncios suelen indicar la superficie construida, que es mayor que la útil, así que compara siempre la misma medida.',
+  whereB:'Dónde:',mustsH:'Imprescindibles',nicesH:'Deseables',worthH:'Conviene buscar',tipTag:'Idea',
+  roomsH:'Quién ocupa cada dormitorio',roomsOf:(r,b)=>r+' de los '+b+' dormitorios',plusOwnBath:' + baño propio',placementH:'Dónde va cada dormitorio',
+  illustrative:'Reparto de dormitorios solo orientativo: no determina la propiedad, los pagos ni los derechos de uso.',
+  agreeH:'Temas para el acuerdo de convivencia',agreeHint:'Habladlo antes de comprar. Son ideas para un acuerdo revisado por un abogado, no el acuerdo en sí.',
+  barYou:(n,h)=>(n===1?'1 compatible':n+' compatibles')+' <span>· '+(h===1?'1 oculta':h+' ocultas')+' por innegociables</span>',attention:'· ⚑ tu grupo necesita atención',seeMatches:'Ver personas afines →',
+  barGroup:(g,l)=>'Tu grupo: '+pl(g,'hogar','hogares')+' <span>· '+(l===1?'1 persona te interesa':l+' personas te interesan')+'</span>',seeHome:'Ver vuestra casa en común →',editProfile:'Editar tu perfil',backMatches:'Volver a personas afines',
+  tMutual:n=>'Match mutuo con '+n+' (respuesta simulada). Ya puedes añadir a '+n+' a tu grupo.',tNoMatch:n=>'Te interesa '+n+'. Su respuesta simulada: esta vez no hay match.',
+  tAlready:n=>n+' ya está en tu grupo',tCantAdd:(n,i)=>'No se puede añadir a '+n+': '+i,tAdded:n=>'Has añadido a '+n+' a tu grupo',
+  tCantForm:i=>'Este grupo no puede formarse: '+i,pickOne:'elige al menos a una persona',tFormed:'Grupo formado: cada persona ha aceptado (respuestas simuladas)',
+  tExample:l=>'Ejemplo cargado: '+l,tRemoved:'Se ha quitado del grupo',tPreview:'Solo vista previa: nadie se ha unido'
+}
+};
 
 function P(o){
   return Object.assign({id:'',name:'',household:'single',adults:1,kids:0,bedrooms:1,privateBath:false,cars:0,pets:[],acceptsPets:true,
@@ -212,58 +424,72 @@ const PROFILES=[
   P({id:'marta',name:'Marta & Javi',household:'family',adults:2,kids:2,bedrooms:3,privateBath:true,cars:1,
     sleep:3,tidy:4,social:2,guests:3,meals:4,horizon:'10+',areas:['north','city'],types:['house'],
     needs:{parking:'must',garden:'must',schools:'must',pool:'nice'},open:['family','singleParent','couple'],maxHouseholds:2,pickiness:65,color:'#b3370e',
-    bio:'Teacher and engineer with two kids. We want a garden and good schools, and would happily split a big chalet with another family.'}),
+    bio:{en:'Teacher and engineer with two kids. We want a garden and good schools, and would happily split a big chalet with another family.',
+      es:'Somos maestra e ingeniero, con dos hijos. Queremos jardín y buenos colegios, y compartiríamos encantados un chalet grande con otra familia.'}}),
   P({id:'laura',name:'Laura',household:'singleParent',kids:1,bedrooms:2,cars:1,pets:['cat'],acceptsSmoking:'none',
     sleep:2,tidy:4,social:2,guests:1,meals:3,wfh:true,horizon:'10+',areas:['north','city','centre'],
     needs:{schools:'must',transport:'must',garden:'nice',quiet:'nice'},maxHouseholds:3,pickiness:62,color:'#0f766e',
-    bio:'Single mum with one son. I work from home as a translator. A calm house and early nights.'}),
+    bio:{en:'Single mum with one son. I work from home as a translator. A calm house and early nights.',
+      es:'Madre sola con un hijo. Trabajo desde casa como traductora. Una casa tranquila y a dormir temprano.'}}),
   P({id:'diego',name:'Diego',sleep:5,tidy:3,social:2,guests:2,meals:2,areas:['centre','city','south'],
     needs:{transport:'must'},maxHouseholds:4,color:'#7048e8',
-    bio:'Night-shift nurse at La Paz, so I sleep during the day. Quiet and easy-going. I just need a room near the Metro.'}),
+    bio:{en:'Night-shift nurse at La Paz, so I sleep during the day. Quiet and easy-going. I just need a room near the Metro.',
+      es:'Enfermero del turno de noche en La Paz, así que duermo de día. Tranquilo y fácil de llevar. Solo necesito una habitación cerca del Metro.'}}),
   P({id:'lucia',name:'Lucía',privateBath:true,acceptsPets:false,acceptsSmoking:'none',sleep:2,tidy:5,social:3,guests:2,meals:4,wfh:true,
     types:['flat'],needs:{lift:'must',transport:'must',terrace:'nice'},open:['single','couple'],pickiness:66,color:'#c2255c',
-    bio:'Product designer, remote three days a week. I love cooking for housemates. Prefers a home without pets.'}),
+    bio:{en:'Product designer, remote three days a week. I love cooking for housemates. Prefers a home without pets.',
+      es:'Diseñadora de producto, teletrabajo tres días a la semana. Me encanta cocinar para la gente con la que vivo. Prefiero una casa sin mascotas.'}}),
   P({id:'sofia',name:'Sofía & Pablo',household:'couple',adults:2,bedrooms:2,privateBath:true,cars:1,pets:['dog'],
     sleep:3,tidy:3,social:4,guests:4,meals:4,wfh:true,areas:['north','east','city'],types:['house'],
     needs:{garden:'must',parking:'must',pool:'nice',terrace:'nice'},open:['couple','single','family'],pickiness:64,color:'#1971c2',
-    bio:'Architect and chef with a very friendly labrador. Big Sunday lunches and friends over often. Our second bedroom is a studio.'}),
+    bio:{en:'Architect and chef with a very friendly labrador. Big Sunday lunches and friends over often. Our second bedroom is a studio.',
+      es:'Arquitecta y cocinero, con un labrador muy cariñoso. Grandes comidas los domingos y amigos en casa a menudo. Nuestro segundo dormitorio es un estudio.'}}),
   P({id:'tom',name:'Tom',privateBath:true,wfh:true,
     needs:{transport:'must',terrace:'nice',storage:'nice'},maxHouseholds:4,pickiness:58,color:'#2a7a38',
-    bio:'Software engineer, four years in Madrid. Five-a-side at weekends, otherwise low-key.'}),
+    bio:{en:'Software engineer, four years in Madrid. Five-a-side at weekends, otherwise low-key.',
+      es:'Ingeniero de software, cuatro años en Madrid. Fútbol sala los fines de semana; por lo demás, vida tranquila.'}}),
   P({id:'carmen',name:'Carmen',household:'singleParent',kids:1,bedrooms:2,privateBath:true,cars:1,smoking:'outside',
     sleep:2,tidy:4,social:2,guests:2,meals:2,horizon:'10+',areas:['south','city'],
     needs:{parking:'must',quiet:'must',lift:'nice'},maxHouseholds:2,pickiness:63,color:'#a85500',
-    bio:'Nurse manager, living with my daughter. We want stability and a quiet street. I smoke, outside only.'}),
+    bio:{en:'Nurse manager, living with my daughter. We want stability and a quiet street. I smoke, outside only.',
+      es:'Supervisora de enfermería; vivo con mi hija. Buscamos estabilidad y una calle tranquila. Fumo, solo fuera.'}}),
   P({id:'raul',name:'Raúl',acceptsSmoking:'any',sleep:5,tidy:2,social:5,guests:5,meals:3,horizon:'2-4',areas:['centre'],types:['flat'],
     needs:{transport:'must'},open:['single','couple'],maxHouseholds:4,pickiness:55,color:'#5f3dc4',
-    bio:'Session guitarist (I practise with headphones, promise). Night owl, friends round a lot.'}),
+    bio:{en:'Session guitarist (I practise with headphones, promise). Night owl, friends round a lot.',
+      es:'Guitarrista de sesión (ensayo con cascos, lo prometo). Noctámbulo, con amigos en casa a menudo.'}}),
   P({id:'ana',name:'Ana & Bea',household:'couple',adults:2,privateBath:true,pets:['cat'],acceptsSmoking:'none',
     sleep:2,tidy:4,social:3,guests:3,meals:4,horizon:'10+',types:['flat'],
     needs:{lift:'must',terrace:'must',transport:'must'},open:['single','couple'],pickiness:65,color:'#0b7285',
-    bio:'Physio and civil servant. Plant people with one elderly cat. Looking for a long-term home with a terrace.'}),
+    bio:{en:'Physio and civil servant. Plant people with one elderly cat. Looking for a long-term home with a terrace.',
+      es:'Fisio y funcionaria. Nos encantan las plantas y tenemos un gato mayor. Buscamos una casa para muchos años, con terraza.'}}),
   P({id:'andres',name:'Andrés',household:'singleParent',kids:2,bedrooms:2,cars:1,sleep:2,tidy:3,social:2,guests:2,meals:2,
     areas:['south','east','city'],needs:{parking:'must',garden:'nice',schools:'nice'},color:'#a61e4d',
-    bio:'Logistics manager. My two kids stay every other weekend, so I need a second bedroom and some outdoor space.'}),
+    bio:{en:'Logistics manager. My two kids stay every other weekend, so I need a second bedroom and some outdoor space.',
+      es:'Responsable de logística. Mis dos hijos están conmigo fines de semana alternos, así que necesito un segundo dormitorio y algo de espacio exterior.'}}),
   P({id:'irene',name:'Irene',pets:['dog'],sleep:3,tidy:3,social:4,guests:3,meals:5,wfh:true,areas:['city','north','east'],
     needs:{transport:'must',garden:'nice'},maxHouseholds:4,pickiness:58,color:'#364fc7',
-    bio:'Freelance illustrator with a small, calm dog called Lola. I will cook paella for the whole house.'}),
+    bio:{en:'Freelance illustrator with a small, calm dog called Lola. I will cook paella for the whole house.',
+      es:'Ilustradora autónoma, con una perrita pequeña y tranquila que se llama Lola. Haré paella para toda la casa.'}}),
   P({id:'elena',name:'Elena & Javier',household:'family',adults:2,kids:1,bedrooms:2,privateBath:true,cars:2,acceptsPets:false,acceptsSmoking:'none',
     sleep:1,tidy:4,social:2,guests:2,meals:2,wfh:true,horizon:'10+',areas:['north','east'],types:['house'],
     needs:{parking:'must',garden:'must',schools:'nice',pool:'nice',stepfree:'nice'},open:['family','couple','singleParent'],maxHouseholds:2,pickiness:66,color:'#087f5b',
-    bio:'New parents. We want a chalet with a garden and room for two cars. Up early, in bed early.'}),
+    bio:{en:'New parents. We want a chalet with a garden and room for two cars. Up early, in bed early.',
+      es:'Acabamos de ser padres. Queremos un chalet con jardín y sitio para dos coches. Madrugamos y nos acostamos temprano.'}}),
   P({id:'nuria',name:'Nuria',privateBath:true,acceptsSmoking:'none',sleep:1,tidy:5,social:1,guests:1,meals:2,horizon:'10+',types:['flat'],
     needs:{lift:'must',stepfree:'must',transport:'must',quiet:'must'},open:['single','couple'],pickiness:75,color:'#9c36b5',
-    bio:'Former teacher. Early riser, reading, choir on Thursdays. Looking for calm, considerate housemates for the long run.'}),
+    bio:{en:'Former teacher. Early riser, reading, choir on Thursdays. Looking for calm, considerate housemates for the long run.',
+      es:'Maestra jubilada. Madrugo, leo y canto en un coro los jueves. Busco gente tranquila y considerada con quien convivir muchos años.'}}),
   P({id:'karim',name:'Karim',cars:1,smoking:'outside',tidy:4,guests:2,areas:['south','east','city'],
     needs:{parking:'must',storage:'nice'},maxHouseholds:4,pickiness:58,color:'#495057',
-    bio:'Electrician, happy to fix things around the house. I smoke, outside only. Weekend mountain biker, so bike storage is a plus.'})
+    bio:{en:'Electrician, happy to fix things around the house. I smoke, outside only. Weekend mountain biker, so bike storage is a plus.',
+      es:'Electricista: encantado de arreglar cosas de la casa. Fumo, solo fuera. Bici de montaña los fines de semana, así que un sitio para guardarla es un plus.'}})
 ];
 
 const PRESETS={
-  family:{label:'Family wanting half a house',user:P({id:'you',name:'You',household:'family',adults:2,kids:2,bedrooms:3,privateBath:true,cars:1,
+  family:{label:{en:'Family wanting half a house',es:'Familia que busca media casa'},user:P({id:'you',name:'',household:'family',adults:2,kids:2,bedrooms:3,privateBath:true,cars:1,
     sleep:2,tidy:4,social:2,guests:2,meals:2,wfh:true,horizon:'10+',areas:['north','city'],types:['house'],
     needs:{parking:'must',garden:'must',schools:'must',quiet:'nice',pool:'nice',storage:'nice'},open:['family','singleParent'],maxHouseholds:2,color:'#1b2230'})},
-  room:{label:'Just a room, open to anyone',user:P({id:'you',name:'You',household:'single',
+  room:{label:{en:'Just a room, open to anyone',es:'Solo una habitación, con quien sea'},user:P({id:'you',name:'',household:'single',
     areas:['centre','city','north','south','east'],needs:{transport:'must'},maxHouseholds:4,color:'#1b2230'})}
 };
 
@@ -272,45 +498,51 @@ function hh(id){return HOUSEHOLDS.find(h=>h.id===id)||HOUSEHOLDS[0];}
 function inter(a,b){return a.filter(x=>b.indexOf(x)>=0);}
 function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
 function sum(arr,f){return arr.reduce((s,m)=>s+f(m),0);}
-function listJoin(items,word){items=items.filter(Boolean);if(items.length<=1)return items.join('');return items.slice(0,-1).join(', ')+' '+word+' '+items[items.length-1];}
-function listAnd(items){return listJoin(items,'and');}
-function listOr(items){return listJoin(items,'or');}
+/* Spanish: "y" becomes "e" before an /i/ sound (Irene, hijos) and "o" becomes "u" before an /o/ sound */
+function conj(word,next){if(LANG!=='es')return word;const s=String(next).toLowerCase();if(word==='y'&&/^h?[ií](?![aeiouáéó])/.test(s))return 'e';if(word==='o'&&/^h?[oó]/.test(s))return 'u';return word;}
+function listJoin(items,word){items=items.filter(Boolean);if(items.length<=1)return items.join('');const last=items[items.length-1];return items.slice(0,-1).join(', ')+' '+conj(word,last)+' '+last;}
+function listAnd(items){return listJoin(items,t('and'));}
+function listOr(items){return listJoin(items,t('or'));}
 function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
-function nm(m){return m.id==='you'?'you':m.name;}
-function names(arr){return listAnd(arr.map(nm));}
-function verb(arr,one,many){return (arr.length===1&&arr[0].id!=='you'&&arr[0].name.indexOf(' & ')<0)?one:many;}
-function areaLabel(id){const a=AREAS.find(x=>x.id===id);return a?a.label:id;}
-function typeLabel(id){const t=TYPES.find(x=>x.id===id);return t?t.label:id;}
-function featLabel(id){const f=FEATURES.find(x=>x.id===id);return f?f.label:id;}
+/* The user's display name depends on the language; everyone else keeps their own name */
+function dn(m){return m.id==='you'?t('youName'):m.name;}
+function nm(m){return m.id==='you'?t('you'):m.name;}
+/* "Laura and you" / "Laura y tú": the user goes last */
+function names(arr){return listAnd(arr.filter(m=>m.id!=='you').concat(arr.filter(m=>m.id==='you')).map(nm));}
+function areaLabel(id){const a=AREAS.find(x=>x.id===id);return a?tx(a.label):id;}
+function typeLabel(id){const x=TYPES.find(y=>y.id===id);return x?tx(x.label):id;}
+function featLabel(id){const f=FEATURES.find(x=>x.id===id);return f?tx(f.label):id;}
 function hIndex(p){const i=HORIZONS.findIndex(h=>h.id===p.horizon);return i<0?1:i;}
+function hLabel(p){return tx(HORIZONS[hIndex(p)].label);}
 function hhLabel(p){
-  const k=p.kids+' kid'+(p.kids===1?'':'s');
-  if(p.household==='family')return 'Family · '+p.adults+' adults + '+k;
-  if(p.household==='singleParent')return 'Single parent + '+k;
-  return hh(p.household).label;
+  if(p.household==='family')return t('hhFamily',p.adults,t('kids',p.kids));
+  if(p.household==='singleParent')return t('hhSingleParent',t('kids',p.kids));
+  return tx(hh(p.household).label);
 }
-function initials(n){if(n==='You')return 'You';const parts=n.split(' & ');return parts.length>1?parts.map(s=>s.trim().charAt(0)).join(''):n.charAt(0);}
+function initials(n){if(n===STR.en.youName||n===STR.es.youName)return n;const parts=n.split(' & ');return parts.length>1?parts.map(s=>s.trim().charAt(0)).join(''):n.charAt(0);}
 function smokeAccepts(acc,s){return s==='no'||(s==='outside'&&acc!=='none')||(s==='inside'&&acc==='any');}
 function petsOk(acc,pets){return !pets.length||acc;}
-function petText(pets){return listAnd(pets.map(p=>'a '+p));}
+function petText(pets){return listAnd(pets.map(p=>tx(PET_WORDS[p])||p));}
+function homeType(types){return types.length===1?typeLabel(types[0]).toLowerCase():(types.length?t('typeBoth'):t('typeNone'));}
+function homeLine(hb){return t('homeLine',hb.type,hb.beds);}
 
 /* Dealbreakers: checked both ways, from a's point of view. The other side's reasons stay private. */
 function hard(a,b){
   const mine=[],theirs=[],both=[];
-  if(a.open.indexOf(b.household)<0)mine.push("You're not looking to share with "+hh(b.household).plural);
+  if(a.open.indexOf(b.household)<0)mine.push(t('notOpen',tx(hh(b.household).plural)));
   if(b.open.indexOf(a.household)<0)theirs.push('household');
-  if(!smokeAccepts(a.acceptsSmoking,b.smoking))mine.push(b.smoking==='inside'?'They smoke indoors':"They smoke outside, and you'd rather live with non-smokers");
+  if(!smokeAccepts(a.acceptsSmoking,b.smoking))mine.push(b.smoking==='inside'?t('smokeIn'):t('smokeOut'));
   if(!smokeAccepts(b.acceptsSmoking,a.smoking))theirs.push('smoking');
-  if(!petsOk(a.acceptsPets,b.pets))mine.push('They have '+petText(b.pets)+', and you said no pets');
+  if(!petsOk(a.acceptsPets,b.pets))mine.push(t('petsNo',petText(b.pets)));
   if(!petsOk(b.acceptsPets,a.pets))theirs.push('pets');
-  if(!a.areas.length)mine.push('Pick at least one area');
-  else if(!inter(a.areas,b.areas).length)both.push('No area in common (they want '+listOr(b.areas.map(areaLabel))+')');
-  if(!a.types.length)mine.push('Pick at least one type of home');
-  else if(!inter(a.types,b.types).length)both.push('They only want a '+listOr(b.types.map(t=>typeLabel(t).toLowerCase())));
+  if(!a.areas.length)mine.push(t('pickArea'));
+  else if(!inter(a.areas,b.areas).length)both.push(t('noArea',listOr(b.areas.map(areaLabel))));
+  if(!a.types.length)mine.push(t('pickType'));
+  else if(!inter(a.types,b.types).length)both.push(t('onlyType',listOr(b.types.map(x=>typeLabel(x).toLowerCase()))));
   const beds=a.bedrooms+b.bedrooms;
-  if(beds>MAX_BEDROOMS)both.push('Together you would need '+beds+' bedrooms; this prototype caps a home at '+MAX_BEDROOMS);
+  if(beds>MAX_BEDROOMS)both.push(t('bedsPair',beds,MAX_BEDROOMS));
   const reasons=mine.concat(both);
-  if(theirs.length)reasons.push("Doesn't fit their own preferences (their reasons stay private)");
+  if(theirs.length)reasons.push(t('theirsPrivate'));
   return {ok:!(mine.length||theirs.length||both.length),reasons:reasons,mine:mine,theirs:theirs,both:both};
 }
 
@@ -339,33 +571,33 @@ function score(a,b){
   const plans=pv===undefined?0.2:pv;
   const hs=homeScore(a,b);
   const parts={lifestyle:life,place:place,plans:plans,home:hs.v};
-  let t=0;Object.keys(WEIGHTS).forEach(k=>{t+=WEIGHTS[k]*parts[k];});
-  return {total:Math.round(100*t),parts:parts,both:hs.both,wfhClash:wfhClash};
+  let tot=0;Object.keys(WEIGHTS).forEach(k=>{tot+=WEIGHTS[k]*parts[k];});
+  return {total:Math.round(100*tot),parts:parts,both:hs.both,wfhClash:wfhClash};
 }
 
 /* Why you click / what to talk about, from u's point of view */
 function explain(u,p){
   const sc=score(u,p),clicks=[],talks=[];
   const d=k=>Math.abs(u[k]-p[k]);
-  if(p.pets.length)talks.push('Has '+petText(p.pets));
-  if(p.smoking==='outside')talks.push('Smokes (outside only)');
-  if(p.smoking==='inside')talks.push('Smokes indoors');
-  if(d('sleep')<=1)clicks.push(u.sleep<=2&&p.sleep<=2?'Both early birds':(u.sleep>=4&&p.sleep>=4?'Both night owls':'Similar daily rhythm'));
-  else if(d('sleep')>=3)talks.push(p.sleep>u.sleep?'Keeps late hours':'Up very early');
-  if(d('tidy')<=1)clicks.push('Similar tidiness');
-  else if(d('tidy')>=2)talks.push(p.tidy>u.tidy?'Tidier than you':'More relaxed about tidiness');
-  if(u.meals>=4&&p.meals>=4)clicks.push('Both love cooking together');
-  else if(u.meals<=2&&p.meals<=2)clicks.push('Both like their own mealtimes');
-  else if(d('meals')>=3)talks.push('Different ideas about shared meals');
-  if(d('guests')>=3)talks.push(p.guests>u.guests?'Often has guests over':'Rarely has guests over');
-  if(d('social')>=3)talks.push(p.social>u.social?'Likes a lively home':'Likes a quiet home');
-  if(u.wfh&&p.social>=4)talks.push('You work from home; they like a lively home');
-  else if(p.wfh&&u.social>=4)talks.push('They work from home; you like a lively home');
+  if(p.pets.length)talks.push(t('has',petText(p.pets)));
+  if(p.smoking==='outside')talks.push(t('smokesOut'));
+  if(p.smoking==='inside')talks.push(t('smokesIn'));
+  if(d('sleep')<=1)clicks.push(u.sleep<=2&&p.sleep<=2?t('bothLarks'):(u.sleep>=4&&p.sleep>=4?t('bothOwls'):t('similarRhythm')));
+  else if(d('sleep')>=3)talks.push(p.sleep>u.sleep?t('lateHours'):t('veryEarly'));
+  if(d('tidy')<=1)clicks.push(t('similarTidy'));
+  else if(d('tidy')>=2)talks.push(p.tidy>u.tidy?t('tidier'):t('relaxed'));
+  if(u.meals>=4&&p.meals>=4)clicks.push(t('cookTogether'));
+  else if(u.meals<=2&&p.meals<=2)clicks.push(t('ownMeals'));
+  else if(d('meals')>=3)talks.push(t('mealsDiffer'));
+  if(d('guests')>=3)talks.push(p.guests>u.guests?t('guestsOften'):t('guestsRarely'));
+  if(d('social')>=3)talks.push(p.social>u.social?t('likesLively'):t('likesQuiet'));
+  if(u.wfh&&p.social>=4)talks.push(t('youWfh'));
+  else if(p.wfh&&u.social>=4)talks.push(t('theyWfh'));
   const hd=Math.abs(hIndex(u)-hIndex(p));
-  if(hd===0)clicks.push('Both planning '+HORIZONS[hIndex(u)].label);
-  else if(hd===2)talks.push('Different time horizons ('+HORIZONS[hIndex(u)].label+' vs '+HORIZONS[hIndex(p)].label+')');
-  sc.both.slice(0,2).forEach(f=>clicks.push('Both want: '+featLabel(f)));
-  if(p.kids>0&&u.kids===0)talks.push(p.kids+' kid'+(p.kids>1?'s':'')+' in the household');
+  if(hd===0)clicks.push(t('sameHorizon',hLabel(u)));
+  else if(hd===2)talks.push(t('diffHorizon',hLabel(u),hLabel(p)));
+  sc.both.slice(0,2).forEach(f=>clicks.push(t('bothWant',featLabel(f))));
+  if(p.kids>0&&u.kids===0)talks.push(t('kidsInHome',t('kids',p.kids)));
   return {score:sc,clicks:clicks.slice(0,4),talks:talks.slice(0,4)};
 }
 
@@ -385,26 +617,26 @@ function groupMembers(user,ids){return [user].concat(ids.map(byId).filter(Boolea
 function groupCheck(all){
   const issues=[];
   const maxH=Math.min.apply(null,all.map(m=>m.maxHouseholds));
-  if(all.length>maxH){const w=all.filter(m=>m.maxHouseholds===maxH);issues.push(cap(names(w))+' '+verb(w,'wants','want')+' at most '+maxH+' households in the home');}
+  if(all.length>maxH){const w=all.filter(m=>m.maxHouseholds===maxH);issues.push(t('maxHH',maxH,names(w)));}
   const beds=sum(all,m=>m.bedrooms);
-  if(beds>MAX_BEDROOMS)issues.push('That needs '+beds+' bedrooms; this prototype caps a home at '+MAX_BEDROOMS);
+  if(beds>MAX_BEDROOMS)issues.push(t('bedsGroup',beds,MAX_BEDROOMS));
   for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){
     const h=hard(all[i],all[j]);
-    if(!h.ok)issues.push(all[i].id==='you'?(all[j].name+': '+h.reasons[0]):(all[i].name+' and '+all[j].name+' clash on a dealbreaker'));
+    if(!h.ok)issues.push(all[i].id==='you'?(all[j].name+': '+h.reasons[0]):t('clash',listAnd([all[i].name,all[j].name])));
   }
-  if(!all.reduce((acc,m)=>inter(acc,m.areas),AREAS.map(a=>a.id)).length)issues.push('No area that everyone accepts');
-  if(!all.reduce((acc,m)=>inter(acc,m.types),TYPES.map(t=>t.id)).length)issues.push('No type of home that everyone accepts');
+  if(!all.reduce((acc,m)=>inter(acc,m.areas),AREAS.map(a=>a.id)).length)issues.push(t('noAreaAll'));
+  if(!all.reduce((acc,m)=>inter(acc,m.types),TYPES.map(x=>x.id)).length)issues.push(t('noTypeAll'));
   return {ok:!issues.length,issues:issues};
 }
 
 /* Can this group stand? Everyone must be a mutual match with you, accept each other, and pass the whole-group checks. */
 function groupStatus(user,ids,liked){
   const issues=[],seen={};
-  ids.forEach(id=>{if(seen[id])issues.push('Someone is listed twice');seen[id]=1;});
+  ids.forEach(id=>{if(seen[id])issues.push(t('twice'));seen[id]=1;});
   const others=ids.map(byId).filter(Boolean);
-  others.forEach(p=>{if(!mutual(user,p,liked))issues.push(p.name+" isn't a mutual match with you any more");});
+  others.forEach(p=>{if(!mutual(user,p,liked))issues.push(t('notMutual',p.name));});
   const oa=othersAccept(others);
-  if(!oa.ok)issues.push(oa.a.name+' and '+oa.b.name+" wouldn't both accept each other (simulated)");
+  if(!oa.ok)issues.push(t('othersReject',listAnd([oa.a.name,oa.b.name])));
   const all=issues.concat(groupCheck([user].concat(others)).issues);
   return {ok:!all.length,issues:all};
 }
@@ -450,73 +682,73 @@ function houseBrief(all){
   const wfh=all.filter(m=>m.wfh);
   const kids=sum(all,m=>m.kids),adults=sum(all,m=>m.adults);
   const areas=all.reduce((acc,m)=>inter(acc,m.areas),AREAS.map(a=>a.id));
-  const types=all.reduce((acc,m)=>inter(acc,m.types),TYPES.map(t=>t.id));
+  const types=all.reduce((acc,m)=>inter(acc,m.types),TYPES.map(x=>x.id));
   const feats=FEATURES.map(f=>{
     const must=all.filter(m=>m.needs[f.id]==='must'),nice=all.filter(m=>m.needs[f.id]==='nice');
     return {f:f,level:must.length?'must':(nice.length?'nice':''),must:must,nice:nice};
   }).filter(x=>x.level);
   const extras=[];
   const second=all.length>=2&&kids>0;
-  if(second)extras.push({label:'A second living space (a snug or playroom)',why:all.some(m=>m.kids===0)?'Gives the adults without kids a calm space while the kids play':'Lets each household have its own downtime'});
+  if(second)extras.push({label:t('secondLiving'),why:all.some(m=>m.kids===0)?t('secondWhyKidless'):t('secondWhy')});
   const avgMeals=sum(all,m=>m.meals)/all.length;
-  if(avgMeals>=3.5)extras.push({label:'A big kitchen-diner',why:'Most of you like cooking and eating together'});
-  else if(all.length>=2)extras.push({label:'A kitchen where two households can cook at once, with separate fridge shelves',why:'You mostly cook your own meals'});
-  if(wfh.length)extras.push({label:wfh.length+' quiet workspace'+(wfh.length>1?'s':''),why:cap(names(wfh))+' '+verb(wfh,'works','work')+' from home'});
+  if(avgMeals>=3.5)extras.push({label:t('bigKitchen'),why:t('bigKitchenWhy')});
+  else if(all.length>=2)extras.push({label:t('twoKitchen'),why:t('twoKitchenWhy')});
+  if(wfh.length)extras.push({label:t('desks',wfh.length),why:t('wfhWho',names(wfh))});
   const dogOwners=all.filter(m=>m.pets.indexOf('dog')>=0);
-  if(dogOwners.length)extras.push({label:'Outdoor space or a park nearby',why:'For '+listAnd(dogOwners.map(m=>m.id==='you'?'your':m.name+"'s"))+' dog'+(dogOwners.length>1?'s':'')});
+  if(dogOwners.length)extras.push({label:t('outdoor'),why:t('dogWho',names(dogOwners))});
   const guestWC=privateBaths===all.length&&all.length>=2;
-  if(guestWC)extras.push({label:'A guest WC near the living area',why:'Everyone has their own bathroom, so visitors need one'});
+  if(guestWC)extras.push({label:t('guestWC'),why:t('guestWCWhy')});
   const est=(beds*12+baths*5+30+12+wfh.length*5+(second?12:0)+(guestWC?3:0))*1.15,r5=x=>Math.round(x/5)*5;
   const m2=r5(est),m2min=r5(est*0.9),m2max=r5(est*1.1);
-  const type=types.length===1?typeLabel(types[0]).toLowerCase():(types.length?'flat or house':'home');
+  const type=homeType(types);
   return {beds:beds,baths:baths,privateBaths:privateBaths,sharedBaths:sharedBaths,cars:cars,desks:wfh.length,kids:kids,adults:adults,areas:areas,types:types,type:type,feats:feats,extras:extras,m2:m2,m2min:m2min,m2max:m2max,guestWC:guestWC};
 }
 function roomPlan(all){const beds=sum(all,m=>m.bedrooms)||1;return all.map(m=>({m:m,rooms:m.bedrooms,bath:m.privateBath,pct:Math.round(100*m.bedrooms/beds)}));}
 function placementTips(all){
-  const t=[];
+  const r=[];
   const multi=all.filter(m=>m.bedrooms>=2);
-  if(all.length>=2&&multi.length===1)t.push(multi[0].id==='you'?'Keep your rooms together, ideally on one floor or in one wing.':'Keep '+multi[0].name+"'s rooms together, ideally on one floor or in one wing.");
-  else if(all.length>=2&&multi.length>1)t.push('Give each household with several rooms ('+names(multi)+') its own cluster: one floor or one wing each.');
+  if(all.length>=2&&multi.length===1)r.push(multi[0].id==='you'?t('keepYours'):t('keepTheirs',multi[0].name));
+  else if(all.length>=2&&multi.length>1)r.push(t('clusters',names(multi)));
   const owls=all.filter(m=>m.sleep>=4),larks=all.filter(m=>m.sleep<=2);
-  if(owls.length&&larks.length)t.push('Night owls ('+names(owls)+') and early birds ('+names(larks)+'): put their bedrooms at opposite ends or on different floors.');
+  if(owls.length&&larks.length)r.push(t('owlsLarks',names(owls),names(larks)));
   const wfh=all.filter(m=>m.wfh);
-  if(wfh.length&&all.some(m=>m.kids>0))t.push('Keep the workspace'+(wfh.length>1?'s':'')+' away from the kids’ rooms and the playroom.');
+  if(wfh.length&&all.some(m=>m.kids>0))r.push(t('wfhAway',wfh.length>1));
   const en=all.filter(m=>m.privateBath);
-  if(en.length&&en.length<all.length)t.push('En-suite bedrooms go to '+names(en)+'; the others share a bathroom.');
-  if(!t.length)t.push('Your needs are similar, so draw lots or take turns for first pick of rooms.');
-  return t;
+  if(en.length&&en.length<all.length)r.push(t('ensuite',names(en)));
+  if(!r.length)r.push(t('similarNeeds'));
+  return r;
 }
 function agreementTopics(all){
-  const t=[];
+  const r=[],ag=(k,why)=>{const a=t(k);r.push({topic:a[0],q:a[1],why:why||a[2]});};
   const rng=k=>Math.max.apply(null,all.map(m=>m[k]))-Math.min.apply(null,all.map(m=>m[k]));
-  if(rng('tidy')>=2)t.push({topic:'Cleaning',q:'A rota, or a cleaner shared between households?',why:'Your tidiness standards differ'});
-  if(rng('guests')>=3)t.push({topic:'Guests',q:'How often people can stay over, and how much notice to give',why:'Very different habits with guests'});
-  if(rng('sleep')>=3)t.push({topic:'Early & late',q:'Showers, kitchen use and noise late at night or early in the morning',why:'Night owls and early birds under one roof'});
+  if(rng('tidy')>=2)ag('agCleaning');
+  if(rng('guests')>=3)ag('agGuests');
+  if(rng('sleep')>=3)ag('agHours');
   const wfh=all.filter(m=>m.wfh);
-  if(rng('social')>=3||wfh.length)t.push({topic:'Quiet hours',q:'For example 23:00 to 08:00, plus quiet during home-working hours',why:wfh.length?cap(names(wfh))+' '+verb(wfh,'works','work')+' from home':'Lively and quiet people sharing'});
-  if(rng('meals')>=3)t.push({topic:'Food',q:'Shared staples or separate shelves? Any regular shared dinners?',why:'Different ideas about shared meals'});
+  if(rng('social')>=3||wfh.length)ag('agQuiet',wfh.length?t('wfhWho',names(wfh)):'');
+  if(rng('meals')>=3)ag('agFood');
   const petOwners=all.filter(m=>m.pets.length);
-  if(petOwners.length)t.push({topic:'Pets',q:'Which spaces pets can use, and who covers any damage',why:cap(names(petOwners))+' '+verb(petOwners,'has','have')+' pets'});
+  if(petOwners.length)ag('agPets',t('petWho',names(petOwners)));
   const smokers=all.filter(m=>m.smoking!=='no');
-  if(smokers.length)t.push({topic:'Smoking',q:'Where it is allowed (garden or terrace only?)',why:cap(names(smokers))+' '+verb(smokers,'smokes','smoke')});
-  if(all.some(m=>m.kids>0))t.push({topic:'Kids',q:'Noisy-play times, toys in shared spaces, any babysitting swaps',why:'There will be kids in the house'});
+  if(smokers.length)ag('agSmoking',t('smokerWho',names(smokers)));
+  if(all.some(m=>m.kids>0))ag('agKids');
   const cars=sum(all,m=>m.cars);
-  if(cars>=2)t.push({topic:'Parking',q:'Who uses which space, and where visitors park',why:cars+' cars between you'});
-  if(all.some(m=>m.needs.garden||m.needs.pool))t.push({topic:'Garden & pool',q:'Who looks after them, and when you pay someone instead',why:'You want outdoor space'});
-  t.push({topic:'Decisions',q:'How you decide on repairs and changes, with a tie-break if you split down the middle',why:'Every group needs this'});
-  t.push({topic:'Moving on',q:'Notice period, and how the group chooses a new co-owner',why:'Money and legal detail come later; agree the principle now'});
-  return t;
+  if(cars>=2)ag('agParking',t('carsTotal',cars));
+  if(all.some(m=>m.needs.garden||m.needs.pool))ag('agGarden');
+  ag('agDecisions');
+  ag('agExit');
+  return r;
 }
 /* ===== LOGIC END ===== */
 
-const KEY='juntos-prototype-v2';
+const KEY='juntos-prototype-v3';
 const app=document.getElementById('app');
 const tabsEl=document.getElementById('tabs');
 const barEl=document.querySelector('#actionbar .wrap');
 const toastEl=document.querySelector('#toast div');
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
 function clone(o){return JSON.parse(JSON.stringify(o));}
-function fresh(preset){return {tab:'you',preset:preset,user:clone(PRESETS[preset].user),likes:{},passes:{},group:[],sizeTarget:{}};}
+function fresh(preset){return {tab:'you',lang:LANG,preset:preset,user:clone(PRESETS[preset].user),likes:{},passes:{},group:[],sizeTarget:{}};}
 function load(){
   try{
     const s=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -529,16 +761,21 @@ function load(){
   }catch(e){}
   return null;
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
-let state=load()||fresh('family');
+function save(){state.lang=LANG;try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+/* Language: a saved choice first, then the browser's language; a #lang= link overrides both (applyHash) */
+const saved=load();
+function browserLang(){try{const l=(navigator.languages&&navigator.languages[0])||navigator.language||'';return /^es\b/i.test(l)?'es':(/^en\b/i.test(l)?'en':'es');}catch(e){return 'es';}}
+setLang(saved&&saved.lang?saved.lang:browserLang());
+let state=saved||fresh('family');
 let preview=null; /* a suggested group shown read-only; never saved */
 
 function applyHash(){
   let h;try{h=new URLSearchParams((location.hash||'').replace(/^#/,''));}catch(e){return;}
+  const lg=h.get('lang');if(lg==='en'||lg==='es')setLang(lg);
   const pr=h.get('preset');if(pr&&PRESETS[pr])state=fresh(pr);
   if(h.get('like')==='all')lists().ok.forEach(o=>{state.likes[o.p.id]=true;});
   if(h.get('group')==='best'){const g=topGroup(bestGroups(state.user,state.likes,Object.keys(state.passes),3));if(g)state.group=g.ids.slice();}
-  const t=h.get('tab');if(t==='you'||t==='matches'||t==='home')state.tab=t;
+  const tb=h.get('tab');if(tb==='you'||tb==='matches'||tb==='home')state.tab=tb;
 }
 function lists(){
   const u=state.user,ok=[],hidden=[];
@@ -548,7 +785,8 @@ function lists(){
 }
 
 /* ---------- small view helpers ---------- */
-function avatar(p,size){return `<span class="avatar" style="background:${p.color};inline-size:${size}px;block-size:${size}px;font-size:${Math.round(size*0.36)}px" aria-hidden="true">${esc(initials(p.name))}</span>`;}
+function loc(opts){return opts.map(o=>({id:o.id,label:tx(o.label),hint:tx(o.hint)}));}
+function avatar(p,size){return `<span class="avatar" style="background:${p.color};inline-size:${size}px;block-size:${size}px;font-size:${Math.round(size*0.36)}px" aria-hidden="true">${esc(initials(dn(p)))}</span>`;}
 function bar(label,v){const pct=Math.round(v*100);return `<div class="bar"><span>${esc(label)}</span><div class="track"><div class="fill" style="inline-size:${pct}%"></div></div><span>${pct}%</span></div>`;}
 function kp(v,k){return `<div class="kpi"><div class="v">${v}</div><div class="k">${k}</div></div>`;}
 function radioGroup(field,opts,val,label){
@@ -565,49 +803,49 @@ function selectField(field,label,opts,val){
   return `<div class="field"><label for="f-${field}">${esc(label)}</label><select id="f-${field}" data-field="${field}">${o2.map(o=>`<option value="${esc(o.id)}"${String(o.id)===String(val)?' selected':''}>${esc(o.label)}</option>`).join('')}</select></div>`;
 }
 function slider(s,val){
-  return `<div class="slider"><label for="f-${s.id}">${esc(s.label)}</label><input id="f-${s.id}" type="range" min="1" max="5" step="1" value="${val}" data-field="${s.id}"><div class="ends"><span>${esc(s.lo)}</span><span>${esc(s.hi)}</span></div></div>`;
+  return `<div class="slider"><label for="f-${s.id}">${esc(tx(s.label))}</label><input id="f-${s.id}" type="range" min="1" max="5" step="1" value="${val}" data-field="${s.id}"><div class="ends"><span>${esc(tx(s.lo))}</span><span>${esc(tx(s.hi))}</span></div></div>`;
 }
 function featBtn(f,level){
-  const lv=level||'none',txt=lv==='must'?'Must-have':(lv==='nice'?'Nice to have':'Not needed');
-  return `<button type="button" class="fbtn" data-action="feat" data-id="${f.id}" data-level="${lv}" aria-label="${esc(f.label)}: ${txt}">${esc(f.label)}<small>${txt}</small></button>`;
+  const lv=level||'none',txt=lv==='must'?t('lvMust'):(lv==='nice'?t('lvNice'):t('lvNone'));
+  return `<button type="button" class="fbtn" data-action="feat" data-id="${f.id}" data-level="${lv}" aria-label="${esc(tx(f.label))}: ${txt}">${esc(tx(f.label))}<small>${txt}</small></button>`;
 }
 
 /* ---------- views ---------- */
 function viewYou(){
   const u=state.user,hasKids=u.household==='family'||u.household==='singleParent';
-  return `<h2>Your profile</h2>
-<p class="lead">Who is buying, how you live and what the home needs. Your matches update as you go.</p>
-<div class="card presets"><b>Start from an example:</b>${Object.keys(PRESETS).map(k=>`<button type="button" class="btn small${state.preset===k?' primary':''}" data-action="preset" data-id="${k}">${esc(PRESETS[k].label)}</button>`).join('')}</div>
+  return `<h2>${t('profileH')}</h2>
+<p class="lead">${t('profileLead')}</p>
+<div class="card presets"><b>${t('startFrom')}</b>${Object.keys(PRESETS).map(k=>`<button type="button" class="btn small${state.preset===k?' primary':''}" data-action="preset" data-id="${k}">${esc(tx(PRESETS[k].label))}</button>`).join('')}</div>
 <div class="grid cols-2 mt">
-<section class="card"><h3>Who's buying</h3>
-${radioGroup('household',HOUSEHOLDS,u.household,'Your household')}
-${hasKids?selectField('kids','Kids',[1,2,3,4,5],u.kids):''}
+<section class="card"><h3>${t('whoBuying')}</h3>
+${radioGroup('household',loc(HOUSEHOLDS),u.household,t('yourHousehold'))}
+${hasKids?selectField('kids',t('kidsLabel'),[1,2,3,4,5],u.kids):''}
 </section>
-<section class="card"><h3>Your private space</h3>
-${selectField('bedrooms','Bedrooms just for your household',[1,2,3,4],u.bedrooms)}
-${checkField('privateBath','I want my own bathroom',u.privateBath)}
-${selectField('cars','Parking spaces you need',[0,1,2],u.cars)}
-${checkGroup('pets','Pets you have',[{id:'dog',label:'Dog'},{id:'cat',label:'Cat'}],u.pets)}
+<section class="card"><h3>${t('privateSpace')}</h3>
+${selectField('bedrooms',t('bedroomsLabel'),[1,2,3,4],u.bedrooms)}
+${checkField('privateBath',t('ownBath'),u.privateBath)}
+${selectField('cars',t('parkingLabel'),[0,1,2],u.cars)}
+${checkGroup('pets',t('petsLabel'),[{id:'dog',label:t('dog')},{id:'cat',label:t('cat')}],u.pets)}
 </section>
-<section class="card"><h3>How you live</h3>
+<section class="card"><h3>${t('howLive')}</h3>
 ${SLIDERS.map(s=>slider(s,u[s.id])).join('')}
-${checkField('wfh','I work from home and need a quiet workspace',u.wfh)}
-${selectField('smoking','Do you smoke?',[{id:'no',label:'No'},{id:'outside',label:'Yes, outside only'},{id:'inside',label:'Yes, indoors too'}],u.smoking)}
+${checkField('wfh',t('wfhLabel'),u.wfh)}
+${selectField('smoking',t('smokeQ'),[{id:'no',label:t('smokeNo')},{id:'outside',label:t('smokeOutOpt')},{id:'inside',label:t('smokeInOpt')}],u.smoking)}
 </section>
-<section class="card"><h3>Who you'd share with</h3>
-${checkGroup('open','Happy to share a home with',HOUSEHOLDS,u.open)}
-<p class="hint">Demo only: whether a real service may let people choose by household type is being checked with a lawyer.</p>
-${selectField('maxHouseholds','Households in the home, at most',[{id:2,label:'2 (for example, half each)'},{id:3,label:'3'},{id:4,label:'4 (co-living)'}],u.maxHouseholds)}
-${checkField('acceptsPets','Happy to live with pets',u.acceptsPets)}
-${selectField('acceptsSmoking','Smokers in the house',[{id:'none',label:'No smokers'},{id:'outside',label:'Fine if they smoke outside'},{id:'any',label:"Don't mind"}],u.acceptsSmoking)}
+<section class="card"><h3>${t('shareWith')}</h3>
+${checkGroup('open',t('happyShare'),loc(HOUSEHOLDS),u.open)}
+<p class="hint">${t('demoHousehold')}</p>
+${selectField('maxHouseholds',t('maxHHLabel'),[{id:2,label:t('maxHH2')},{id:3,label:'3'},{id:4,label:t('maxHH4')}],u.maxHouseholds)}
+${checkField('acceptsPets',t('okPets'),u.acceptsPets)}
+${selectField('acceptsSmoking',t('smokersQ'),[{id:'none',label:t('smokersNone')},{id:'outside',label:t('smokersOut')},{id:'any',label:t('smokersAny')}],u.acceptsSmoking)}
 </section>
-<section class="card"><h3>Where and how long</h3>
-${checkGroup('areas','Areas you would consider (Madrid region)',AREAS,u.areas)}
-${checkGroup('types','Type of home',TYPES,u.types)}
-${radioGroup('horizon',HORIZONS,u.horizon,'How long you plan to live there')}
+<section class="card"><h3>${t('whereHow')}</h3>
+${checkGroup('areas',t('areasLabel'),loc(AREAS),u.areas)}
+${checkGroup('types',t('typesLabel'),loc(TYPES),u.types)}
+${radioGroup('horizon',loc(HORIZONS),u.horizon,t('horizonLabel'))}
 </section>
-<section class="card"><h3>What the home needs</h3>
-<p class="hint">Tap once for <b>nice to have</b>, twice for <b>must-have</b>, a third time to clear. Accessibility needs, such as a lift or step-free access, shape the home brief and never your match scores.</p>
+<section class="card"><h3>${t('needsH')}</h3>
+<p class="hint">${t('needsHint')}</p>
 <div class="feat">${FEATURES.map(f=>featBtn(f,u.needs[f.id])).join('')}</div>
 </section>
 </div>`;
@@ -616,21 +854,22 @@ ${radioGroup('horizon',HORIZONS,u.horizon,'How long you plan to live there')}
 function personCard(p,ex){
   const u=state.user,s=ex.score.total,cls=s>=80?'hi':(s>=65?'mid':'lo');
   const liked=!!state.likes[p.id],passed=!!state.passes[p.id],inGroup=state.group.indexOf(p.id)>=0,isMutual=liked&&likesBack(u,p);
-  const facts=[p.bedrooms+' bedroom'+(p.bedrooms>1?'s':''),p.privateBath?'own bathroom':'shares a bathroom',p.cars?'parking for '+p.cars:'',p.wfh?'works from home':'','staying '+HORIZONS[hIndex(p)].label].filter(Boolean);
+  const facts=[t('bedroomsN',p.bedrooms),p.privateBath?t('ownBathFact'):t('sharesBath'),p.cars?t('parkingN',p.cars):'',p.wfh?t('wfhFact'):'',t('staying',hLabel(p))].filter(Boolean);
   const hb=houseBrief([u,p]);
   let act;
-  if(inGroup)act=`<span class="status ok">✓ In your group</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="remove" data-id="${p.id}">Remove</button>`;
-  else if(passed)act=`<span class="status wait">Passed</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${p.id}">Undo</button>`;
-  else if(!liked)act=`<button type="button" class="btn small" data-action="pass" data-id="${p.id}">Pass</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="like" data-id="${p.id}">♥ Like</button>`;
-  else if(isMutual)act=`<span class="status ok">✓ Mutual match <span class="hint">(simulated reply)</span></span><span class="spacer"></span><button type="button" class="btn small primary" data-action="add" data-id="${p.id}">Add to group</button>`;
-  else act=`<span class="status wait">Liked · no match <span class="hint">(simulated reply)</span></span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${p.id}">Undo</button>`;
+  if(inGroup)act=`<span class="status ok">${t('inGroup')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="remove" data-id="${p.id}">${t('remove')}</button>`;
+  else if(passed)act=`<span class="status wait">${t('passedS')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${p.id}">${t('undo')}</button>`;
+  else if(!liked)act=`<button type="button" class="btn small" data-action="pass" data-id="${p.id}">${t('pass')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="like" data-id="${p.id}">${t('like')}</button>`;
+  else if(isMutual)act=`<span class="status ok">${t('mutualS')} <span class="hint">${t('simReply')}</span></span><span class="spacer"></span><button type="button" class="btn small primary" data-action="add" data-id="${p.id}">${t('addGroup')}</button>`;
+  else act=`<span class="status wait">${t('likedNo')} <span class="hint">${t('simReply')}</span></span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${p.id}">${t('undo')}</button>`;
+  const rest=t('bathsN',hb.baths)+(hb.cars?' · '+t('parkingN',hb.cars):'');
   return `<article class="card pcard${passed?' passed':''}">
-<div class="phead">${avatar(p,46)}<div><div class="pname">${esc(p.name)}</div><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls}" style="--p:${s}" role="img" aria-label="${s}% compatible (demo score)"><b>${s}%</b></div></div>
-<p class="bio">${esc(p.bio)}</p>
+<div class="phead">${avatar(p,46)}<div><div class="pname">${esc(p.name)}</div><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls}" style="--p:${s}" role="img" aria-label="${esc(t('ringAria',s))}"><b>${s}%</b></div></div>
+<p class="bio">${esc(tx(p.bio))}</p>
 <div class="facts">${facts.map(f=>`<span class="fact">${esc(f)}</span>`).join('')}</div>
 <div class="chips">${ex.clicks.map(c=>`<span class="chip good">✓ ${esc(c)}</span>`).join('')}${ex.talks.map(c=>`<span class="chip warn">⚑ ${esc(c)}</span>`).join('')}</div>
-<div class="together">Together you'd need a <b>${hb.beds}-bedroom ${esc(hb.type)}</b> · ${hb.baths} bathroom${hb.baths>1?'s':''}${hb.cars?' · parking for '+hb.cars:''}</div>
-<details class="why"><summary>Why ${s}%?</summary><div class="bars">${Object.keys(WEIGHTS).map(k=>bar(PART_LABELS[k],ex.score.parts[k])).join('')}</div><p class="hint">Demo score with uncalibrated weights: it can't predict how living together will go.</p></details>
+<div class="together">${t('together',esc(homeLine(hb)),esc(rest))}</div>
+<details class="why"><summary>${esc(t('why',s))}</summary><div class="bars">${Object.keys(WEIGHTS).map(k=>bar(tx(PART_LABELS[k]),ex.score.parts[k])).join('')}</div><p class="hint">${esc(t('demoScoreHint'))}</p></details>
 <div class="pactions">${act}</div>
 </article>`;
 }
@@ -639,118 +878,129 @@ function groupCard(g,label){
   const all=groupMembers(state.user,g.ids),hb=houseBrief(all);
   return `<article class="card gcard"><div class="hint"><b>${esc(label)}</b></div>
 <div class="stack">${all.map(m=>avatar(m,38)).join('')}</div>
-<div><b>${esc(all.map(m=>m.name).join(' + '))}</b></div>
-<div><span class="gscore">${g.min}%</span> <span class="hint">weakest pair · ${g.avg}% average</span></div>
-<div class="hint">Needs a ${hb.beds}-bedroom ${esc(hb.type)} in ${esc(listOr(hb.areas.map(areaLabel)))}</div>
-<div class="pactions"><button type="button" class="btn small" data-action="preview-group" data-id="${g.ids.join(',')}">Preview the home</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="propose" data-id="${g.ids.join(',')}">Propose this group</button></div></article>`;
+<div><b>${esc(all.map(dn).join(' + '))}</b></div>
+<div><span class="gscore">${g.min}%</span> <span class="hint">${esc(t('weakestAvg',g.avg))}</span></div>
+<div class="hint">${esc(t('needsIn',homeLine(hb),listOr(hb.areas.map(areaLabel))))}</div>
+<div class="pactions"><button type="button" class="btn small" data-action="preview-group" data-id="${g.ids.join(',')}">${t('previewBtn')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="propose" data-id="${g.ids.join(',')}">${t('propose')}</button></div></article>`;
 }
 
 function viewMatches(){
   const L=lists(),u=state.user;
   const nMutual=L.ok.filter(o=>mutual(u,o.p,state.likes)).length;
   const sugg=bestGroups(u,state.likes,Object.keys(state.passes),3);
-  const label=(g,i)=>(i===0?'Top suggestion · ':'')+(g.size===2?'Pair':'Group of '+g.size+' households');
-  const groupsBlock=sugg.length?`<p class="hint">Made only from your mutual matches who would also accept each other (simulated). Previewing changes nothing; proposing asks everyone.</p><div class="grid groups">${sugg.map((g,i)=>groupCard(g,label(g,i))).join('')}</div>`
-    :`<div class="card hint">${nMutual?'No group works yet among your mutual matches: they clash with each other or with the whole-group checks.':'Groups appear here once you have mutual matches. Like the people you would consider: a group only forms when everyone accepts each other.'}</div>`;
-  return `<h2>People who could buy with you</h2>
-<p class="lead">${L.ok.length} compatible ${L.ok.length===1?'person':'people'}, best first. Like the ones you'd consider. In this demo their replies are simulated from their own settings; in a real service, a match needs both sides to say yes.</p>
-<details class="card mb"><summary><b>How the score works</b></summary><p class="hint">Dealbreakers come first: who you'd share with, smoking, pets, areas, type of home and total bedrooms. Anyone who fails one is hidden, and the other side's reasons stay private. Everyone else gets a demo score: 50% how you live (daily rhythm, tidiness, atmosphere, guests, meals), 20% where and what kind of home, 20% how long you plan to stay and 10% shared priorities for the home. Household type and accessibility needs never change the score. The weights are a first guess, not calibrated. A group is only as strong as its weakest pair. Protected traits are never used.</p></details>
-<section class="mb"><h3>Groups that could work</h3>${groupsBlock}</section>
-<h3>Everyone who fits your dealbreakers</h3>
-<div class="grid people">${L.ok.length?L.ok.map(o=>personCard(o.p,o.ex)).join(''):`<div class="card empty">Nobody passes all your dealbreakers yet. Try more areas, or widen who you'd share with.</div>`}</div>
-${L.hidden.length?`<details class="card mt"><summary><b>${L.hidden.length} hidden by dealbreakers</b> <span class="hint">(see why)</span></summary><ul class="clean mt">${L.hidden.map(h=>`<li>${avatar(h.p,32)}<div><b>${esc(h.p.name)}</b> <span class="hint">· ${esc(hhLabel(h.p))}</span><div class="who">${esc(h.reasons.join(' · '))}</div></div></li>`).join('')}</ul></details>`:''}`;
+  const label=(g,i)=>(i===0?t('topSugg'):'')+(g.size===2?t('pairOf'):t('groupOf',g.size));
+  const groupsBlock=sugg.length?`<p class="hint">${esc(t('groupsHint'))}</p><div class="grid groups">${sugg.map((g,i)=>groupCard(g,label(g,i))).join('')}</div>`
+    :`<div class="card hint">${esc(nMutual?t('noGroupYet'):t('groupsAppear'))}</div>`;
+  return `<h2>${t('matchesH')}</h2>
+<p class="lead">${esc(t('matchesLead',L.ok.length))}</p>
+<details class="card mb"><summary><b>${t('howScore')}</b></summary><p class="hint">${esc(t('howScoreText'))}</p></details>
+<section class="mb"><h3>${t('groupsH')}</h3>${groupsBlock}</section>
+<h3>${t('everyoneH')}</h3>
+<div class="grid people">${L.ok.length?L.ok.map(o=>personCard(o.p,o.ex)).join(''):`<div class="card empty">${esc(t('nobody'))}</div>`}</div>
+${L.hidden.length?`<details class="card mt"><summary><b>${esc(t('hiddenN',L.hidden.length))}</b> <span class="hint">${t('seeWhy')}</span></summary><ul class="clean mt">${L.hidden.map(h=>`<li>${avatar(h.p,32)}<div><b>${esc(h.p.name)}</b> <span class="hint">· ${esc(hhLabel(h.p))}</span><div class="who">${esc(h.reasons.join(' · '))}</div></div></li>`).join('')}</ul></details>`:''}`;
 }
 
 function matrix(all){
   const cell=s=>`<td class="${s>=80?'c-hi':(s>=65?'c-mid':'c-lo')}">${s}%</td>`;
-  return `<div class="scroll"><table class="matrix"><thead><tr><th></th>${all.map(m=>`<th>${esc(m.name)}</th>`).join('')}</tr></thead><tbody>${all.map((a,i)=>`<tr><th>${esc(a.name)}</th>${all.map((b,j)=>i===j?'<td class="c-self">–</td>':cell(score(a,b).total)).join('')}</tr>`).join('')}</tbody></table></div>`;
+  return `<div class="scroll"><table class="matrix"><thead><tr><th></th>${all.map(m=>`<th>${esc(dn(m))}</th>`).join('')}</tr></thead><tbody>${all.map((a,i)=>`<tr><th>${esc(dn(a))}</th>${all.map((b,j)=>i===j?'<td class="c-self">–</td>':cell(score(a,b).total)).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
 function viewHome(){
   const isPreview=!!preview,ids=isPreview?preview:state.group;
   const all=groupMembers(state.user,ids);
-  if(all.length<2)return `<div class="card empty"><h2>Your home together</h2><p class="lead">Form a group from your mutual matches, or preview a suggested group, to see what a shared home would need.</p><button type="button" class="btn primary" data-action="goto" data-id="matches">Go to matches →</button></div>`;
+  if(all.length<2)return `<div class="card empty"><h2>${t('homeH')}</h2><p class="lead">${esc(t('homeEmpty'))}</p><button type="button" class="btn primary" data-action="goto" data-id="matches">${t('goMatches')}</button></div>`;
   const st=groupStatus(state.user,ids,state.likes);
-  const chips=`<div class="card members">${all.map(m=>`<span class="member">${avatar(m,32)}<span><b>${esc(m.name)}</b><br><span class="hint">${esc(hhLabel(m))}</span></span>${m.id!=='you'&&!isPreview?`<button type="button" class="x" data-action="remove" data-id="${m.id}" aria-label="Remove ${esc(m.name)}">×</button>`:''}</span>`).join('')}</div>`;
-  if(!st.ok)return `<h2>Your home together</h2>
-<p class="lead">This group needs attention before a home brief can be drawn.</p>
+  const chips=`<div class="card members">${all.map(m=>`<span class="member">${avatar(m,32)}<span><b>${esc(dn(m))}</b><br><span class="hint">${esc(hhLabel(m))}</span></span>${m.id!=='you'&&!isPreview?`<button type="button" class="x" data-action="remove" data-id="${m.id}" aria-label="${esc(t('removeAria',m.name))}">×</button>`:''}</span>`).join('')}</div>`;
+  if(!st.ok)return `<h2>${t('homeH')}</h2>
+<p class="lead">${esc(t('attentionLead'))}</p>
 ${chips}
-<div class="card warnbox mt"><b>This group doesn't work as it stands:</b> ${esc(st.issues.join(' · '))}<p class="mt">Remove someone, or change your profile back, to see the brief again.</p></div>`;
+<div class="card warnbox mt"><b>${esc(t('doesntWork'))}</b> ${esc(st.issues.join(' · '))}<p class="mt">${esc(t('doesntWorkFix'))}</p></div>`;
   const gs=groupScore(all),hb=houseBrief(all),plan=roomPlan(all),tips=placementTips(all),topics=agreementTopics(all);
   const wp=score(gs.weakest.a,gs.weakest.b);
   const musts=hb.feats.filter(x=>x.level==='must'),nices=hb.feats.filter(x=>x.level==='nice');
-  const featLi=x=>`<li><span class="tag ${x.level}">${x.level==='must'?'Must':'Nice'}</span><div>${esc(x.f.label)}<div class="who">${x.level==='must'?'Must-have for '+esc(names(x.must))+(x.nice.length?'; nice for '+esc(names(x.nice)):''):'Nice to have for '+esc(names(x.nice))}</div></div></li>`;
-  const where=hb.areas.length?listOr(hb.areas.map(areaLabel)):'No area that everyone accepts';
-  const headline=hb.beds+'-bedroom '+hb.type+' with '+hb.baths+' bathroom'+(hb.baths>1?'s':'')+(hb.cars?' and parking for '+hb.cars:'');
+  const featLi=x=>`<li><span class="tag ${x.level}">${x.level==='must'?t('tagMust'):t('tagNice')}</span><div>${esc(tx(x.f.label))}<div class="who">${esc(x.level==='must'?t('mustFor',names(x.must),x.nice.length?names(x.nice):''):t('niceFor',names(x.nice)))}</div></div></li>`;
+  const where=hb.areas.length?listOr(hb.areas.map(areaLabel)):t('noAreaAll');
+  const headline=t('headline',homeLine(hb),t('bathsN',hb.baths),hb.cars?t('parkingN',hb.cars):'');
   const key=ids.slice().sort().join(',')+'|'+hb.m2,tgt=state.sizeTarget[key]||{min:hb.m2min,max:hb.m2max};
-  const banner=isPreview?`<div class="card notice mt"><b>Preview only.</b> Nobody has joined: this is a suggested group from your mutual matches.<div class="row"><button type="button" class="btn small primary" data-action="propose" data-id="${ids.join(',')}">Propose this group</button><button type="button" class="btn small ghost" data-action="close-preview">Close preview</button></div></div>`:'';
-  const sizeEdit=isPreview?'':`<div class="field mt"><span class="label" id="size-label">Your group's target, useful area in m²</span><div class="range-edit" role="group" aria-labelledby="size-label"><label>From <input type="number" min="20" max="900" step="5" data-size="min" data-key="${esc(key)}" value="${tgt.min}"></label><label>to <input type="number" min="20" max="900" step="5" data-size="max" data-key="${esc(key)}" value="${tgt.max}"></label></div></div>`;
-  return `<h2>Your home together</h2>
-<p class="lead">${isPreview?'What this suggested group would need from one home.':'A draft brief for your group: every household would need to approve it before it is used.'} It covers people and space only: money, ownership shares and the legal agreement come later.</p>
+  const banner=isPreview?`<div class="card notice mt"><b>${t('previewOnly')}</b> ${esc(t('previewNote'))}<div class="row"><button type="button" class="btn small primary" data-action="propose" data-id="${ids.join(',')}">${t('propose')}</button><button type="button" class="btn small ghost" data-action="close-preview">${t('closePreview')}</button></div></div>`:'';
+  const sizeEdit=isPreview?'':`<div class="field mt"><span class="label" id="size-label">${esc(t('sizeLabel'))}</span><div class="range-edit" role="group" aria-labelledby="size-label"><label>${t('from')} <input type="number" min="20" max="900" step="5" data-size="min" data-key="${esc(key)}" value="${tgt.min}"></label><label>${t('to')} <input type="number" min="20" max="900" step="5" data-size="max" data-key="${esc(key)}" value="${tgt.max}"></label></div></div>`;
+  return `<h2>${t('homeH')}</h2>
+<p class="lead">${esc(isPreview?t('leadPreview'):t('leadGroup'))} ${esc(t('leadScope'))}</p>
 ${chips}
 ${banner}
 <div class="grid cols-2 mt">
-<section class="card"><h3>How well you fit together</h3>
-<div class="kpis">${kp(gs.min+'%',(all.length>2?'Weakest pair: ':'Compatibility: ')+esc(gs.weakest.a.name)+' + '+esc(gs.weakest.b.name))}${all.length>2?kp(gs.avg+'%','Average of '+gs.pairs.length+' pairs'):''}</div>
+<section class="card"><h3>${t('fitH')}</h3>
+<div class="kpis">${kp(gs.min+'%',(all.length>2?t('weakestK'):t('compatK'))+esc(dn(gs.weakest.a))+' + '+esc(dn(gs.weakest.b)))}${all.length>2?kp(gs.avg+'%',esc(t('avgOf',gs.pairs.length))):''}</div>
 ${all.length>2?matrix(all):''}
-<h4>${all.length>2?'Weakest pair in detail':'Score breakdown'}</h4>
-<div class="bars">${Object.keys(WEIGHTS).map(k=>bar(PART_LABELS[k],wp.parts[k])).join('')}</div>
-<p class="hint mt">Demo scores with uncalibrated weights, and simulated replies.</p>
+<h4>${all.length>2?t('weakDetail'):t('breakdown')}</h4>
+<div class="bars">${Object.keys(WEIGHTS).map(k=>bar(tx(PART_LABELS[k]),wp.parts[k])).join('')}</div>
+<p class="hint mt">${esc(t('demoScores'))}</p>
 </section>
-<section class="card"><h3>The home you'd need</h3>
+<section class="card"><h3>${t('homeNeedH')}</h3>
 <p class="headline">${esc(cap(headline))}</p>
-<div class="kpis">${kp(hb.beds,'Bedrooms')}${kp(hb.baths,'Bathrooms')}${kp(hb.cars||'None','Parking spaces')}${kp(hb.m2min+'–'+hb.m2max+' m²','Useful area, rough')}${kp(hb.adults+(hb.kids?' + '+hb.kids:''),hb.kids?'Adults + kids':'Adults')}</div>
+<div class="kpis">${kp(hb.beds,t('kBeds'))}${kp(hb.baths,t('kBaths'))}${kp(hb.cars||t('kNone'),t('kParking'))}${kp(hb.m2min+'–'+hb.m2max+' m²',t('kArea'))}${kp(hb.adults+(hb.kids?' + '+hb.kids:''),hb.kids?t('kAdultsKids'):t('kAdults'))}</div>
 ${sizeEdit}
-<p class="hint">A rough starting point to agree together. Listings often quote built area (superficie construida), which is larger than useful area (superficie útil), so compare like with like.</p>
-<p class="mt"><b>Where:</b> ${esc(where)}</p>
-${musts.length?`<h4>Must-haves</h4><ul class="clean">${musts.map(featLi).join('')}</ul>`:''}
-${nices.length?`<h4>Nice to have</h4><ul class="clean">${nices.map(featLi).join('')}</ul>`:''}
-${hb.extras.length?`<h4>Worth looking for</h4><ul class="clean">${hb.extras.map(x=>`<li><span class="tag tip">Tip</span><div>${esc(x.label)}<div class="who">${esc(x.why)}</div></div></li>`).join('')}</ul>`:''}
+<p class="hint">${esc(t('areaHint'))}</p>
+<p class="mt"><b>${t('whereB')}</b> ${esc(where)}</p>
+${musts.length?`<h4>${t('mustsH')}</h4><ul class="clean">${musts.map(featLi).join('')}</ul>`:''}
+${nices.length?`<h4>${t('nicesH')}</h4><ul class="clean">${nices.map(featLi).join('')}</ul>`:''}
+${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>`<li><span class="tag tip">${t('tipTag')}</span><div>${esc(x.label)}<div class="who">${esc(x.why)}</div></div></li>`).join('')}</ul>`:''}
 </section>
-<section class="card"><h3>Who gets which rooms</h3>
+<section class="card"><h3>${t('roomsH')}</h3>
 <div class="split" aria-hidden="true">${plan.map(r=>`<span style="inline-size:${r.pct}%;background:${r.m.color}"></span>`).join('')}</div>
-<ul class="clean">${plan.map(r=>`<li>${avatar(r.m,28)}<div><b>${esc(r.m.name)}</b>: ${r.rooms} of the ${hb.beds} bedrooms${r.bath?' + own bathroom':''}${r.m.cars?`<div class="who">${r.m.cars} parking space${r.m.cars>1?'s':''}</div>`:''}</div></li>`).join('')}</ul>
-<h4>Room placement</h4>
-<ul class="clean">${tips.map(t=>`<li><span class="tag tip">Tip</span><div>${esc(t)}</div></li>`).join('')}</ul>
-<p class="hint mt">Illustrative bedroom allocation only; it doesn't determine ownership, payments or use rights.</p>
+<ul class="clean">${plan.map(r=>`<li>${avatar(r.m,28)}<div><b>${esc(dn(r.m))}</b>: ${esc(t('roomsOf',r.rooms,hb.beds))}${r.bath?esc(t('plusOwnBath')):''}${r.m.cars?`<div class="who">${esc(t('parkingSpaces',r.m.cars))}</div>`:''}</div></li>`).join('')}</ul>
+<h4>${t('placementH')}</h4>
+<ul class="clean">${tips.map(x=>`<li><span class="tag tip">${t('tipTag')}</span><div>${esc(x)}</div></li>`).join('')}</ul>
+<p class="hint mt">${esc(t('illustrative'))}</p>
 </section>
-<section class="card"><h3>House agreement starters</h3>
-<p class="hint">Talk these through before you buy. They're prompts for a lawyer-reviewed agreement, not the agreement itself.</p>
-<ul class="clean mt">${topics.map(t=>`<li><span class="tag tip">${esc(t.topic)}</span><div>${esc(t.q)}<div class="who">${esc(t.why)}</div></div></li>`).join('')}</ul>
+<section class="card"><h3>${t('agreeH')}</h3>
+<p class="hint">${esc(t('agreeHint'))}</p>
+<ul class="clean mt">${topics.map(x=>`<li><span class="tag tip">${esc(x.topic)}</span><div>${esc(x.q)}<div class="who">${esc(x.why)}</div></div></li>`).join('')}</ul>
 </section>
 </div>`;
 }
 
 /* ---------- render ---------- */
+function renderChrome(){
+  document.documentElement.setAttribute('lang',LANG);
+  document.title=t('title');
+  const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
+  set('tagline',t('tagline'));set('badge',t('badge'));set('footnote',t('footnote'));
+  const nav=document.getElementById('steps');if(nav)nav.setAttribute('aria-label',t('steps'));
+  const sw=document.getElementById('lang-switch');
+  if(sw){sw.textContent=t('langOther');sw.setAttribute('lang',t('langOtherCode'));sw.setAttribute('data-id',t('langOtherCode'));sw.setAttribute('aria-label',t('langOtherAria'));}
+}
 function renderTabs(){
   const n=lists().ok.length,g=1+state.group.length;
-  const tabs=[['you','1 · Your profile','',''],['matches','2 · Matches',String(n),'compatible'],['home','3 · Your home together',g>1?String(g):'','households in your group']];
-  tabsEl.innerHTML=tabs.map(t=>{const sel=state.tab===t[0];return `<button type="button" class="tab" role="tab" id="tab-${t[0]}" aria-controls="app" aria-selected="${sel}" tabindex="${sel?0:-1}" data-tab="${t[0]}">${t[1]}${t[2]?`<span class="count"><span aria-hidden="true">${t[2]}</span><span class="sr">: ${t[2]} ${t[3]}</span></span>`:''}</button>`;}).join('');
+  const tabs=[['you',t('tabYou'),'',''],['matches',t('tabMatches'),String(n),t('srCompatible')],['home',t('tabHome'),g>1?String(g):'',t('srInGroup')]];
+  tabsEl.innerHTML=tabs.map(x=>{const sel=state.tab===x[0];return `<button type="button" class="tab" role="tab" id="tab-${x[0]}" aria-controls="app" aria-selected="${sel}" tabindex="${sel?0:-1}" data-tab="${x[0]}">${x[1]}${x[2]?`<span class="count"><span aria-hidden="true">${x[2]}</span><span class="sr">: ${x[2]} ${x[3]}</span></span>`:''}</button>`;}).join('');
   app.setAttribute('aria-labelledby','tab-'+state.tab);
 }
 function renderBar(){
   const L=lists(),g=1+state.group.length;let h;
   const bad=state.group.length>0&&!groupStatus(state.user,state.group,state.likes).ok;
-  if(state.tab==='you')h=`<div class="stat">${L.ok.length} compatible <span>· ${L.hidden.length} hidden by dealbreakers</span>${bad?' <span class="warnline">· ⚑ your group needs attention</span>':''}</div><span class="spacer"></span><button type="button" class="btn primary" data-action="goto" data-id="matches">See matches →</button>`;
-  else if(state.tab==='matches')h=`<div class="stat">Your group: ${g} household${g>1?'s':''} <span>· ${Object.keys(state.likes).length} liked</span></div><span class="spacer"></span><button type="button" class="btn primary" data-action="goto" data-id="home"${g<2?' disabled':''}>See your home together →</button>`;
-  else h=`<button type="button" class="btn" data-action="goto" data-id="you">Edit your profile</button><span class="spacer"></span><button type="button" class="btn primary" data-action="goto" data-id="matches">Back to matches</button>`;
+  if(state.tab==='you')h=`<div class="stat">${t('barYou',L.ok.length,L.hidden.length)}${bad?` <span class="warnline">${t('attention')}</span>`:''}</div><span class="spacer"></span><button type="button" class="btn primary" data-action="goto" data-id="matches">${t('seeMatches')}</button>`;
+  else if(state.tab==='matches')h=`<div class="stat">${t('barGroup',g,Object.keys(state.likes).length)}</div><span class="spacer"></span><button type="button" class="btn primary" data-action="goto" data-id="home"${g<2?' disabled':''}>${t('seeHome')}</button>`;
+  else h=`<button type="button" class="btn" data-action="goto" data-id="you">${t('editProfile')}</button><span class="spacer"></span><button type="button" class="btn primary" data-action="goto" data-id="matches">${t('backMatches')}</button>`;
   barEl.innerHTML=h;
 }
 function render(){
+  renderChrome();
   renderTabs();
   app.innerHTML=state.tab==='you'?viewYou():(state.tab==='matches'?viewMatches():viewHome());
   renderBar();
   save();
 }
 /* Keep keyboard focus in place when the page redraws */
-function focusKey(){const a=document.activeElement;if(!a||a===document.body||!a.getAttribute)return null;return {action:a.getAttribute('data-action'),id:a.getAttribute('data-id'),tab:a.getAttribute('data-tab')};}
+function focusKey(){const a=document.activeElement;if(!a||a===document.body||!a.getAttribute)return null;return {action:a.getAttribute('data-action'),id:a.getAttribute('data-id'),tab:a.getAttribute('data-tab'),elId:a.id};}
 function focusHeading(){const h=document.querySelector('#app h2');if(h){h.setAttribute('tabindex','-1');if(h.focus)h.focus();}}
 function focusTab(){const b=document.getElementById('tab-'+state.tab);if(b&&b.focus)b.focus();}
 function restoreFocus(k){
   if(!k)return;
   let el=null;
   if(k.tab){focusTab();return;}
-  if(k.id)el=document.querySelector('[data-action="'+k.action+'"][data-id="'+k.id+'"]')||document.querySelector('#app [data-id="'+k.id+'"]');
+  if(k.elId==='lang-switch')el=document.getElementById('lang-switch');
+  else if(k.id)el=document.querySelector('[data-action="'+k.action+'"][data-id="'+k.id+'"]')||document.querySelector('#app [data-id="'+k.id+'"]');
   else if(k.action)el=document.querySelector('[data-action="'+k.action+'"]');
   if(el&&el.focus)el.focus({preventScroll:true});else focusHeading();
 }
@@ -760,24 +1010,25 @@ function profileChanged(){renderTabs();renderBar();app.querySelectorAll('[data-a
 
 let toastTimer=0;
 function toast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2800);}
+function switchLang(l){setLang(l);rerender();toast(t('tLang'));}
 function like(id){
   const p=byId(id);if(!p)return;
   state.likes[id]=true;delete state.passes[id];
-  toast(likesBack(state.user,p)?'Mutual match with '+p.name+' (simulated reply). You can add them to your group.':'You liked '+p.name+'. Their simulated reply: not a match this time.');
+  toast(likesBack(state.user,p)?t('tMutual',p.name):t('tNoMatch',p.name));
   rerender();
 }
 function addToGroup(id){
   const p=byId(id);if(!p)return;
-  if(state.group.indexOf(id)>=0){toast(p.name+' is already in your group');return;}
+  if(state.group.indexOf(id)>=0){toast(t('tAlready',p.name));return;}
   const st=groupStatus(state.user,state.group.concat([id]),state.likes);
-  if(!st.ok){toast("Can't add "+p.name+': '+st.issues[0]);return;}
-  state.group.push(id);rerender();toast(p.name+' added to your group');
+  if(!st.ok){toast(t('tCantAdd',p.name,st.issues[0]));return;}
+  state.group.push(id);rerender();toast(t('tAdded',p.name));
 }
 function proposeGroup(ids){
   ids=ids.filter((id,i)=>!!byId(id)&&ids.indexOf(id)===i);
   const st=groupStatus(state.user,ids,state.likes);
-  if(!ids.length||!st.ok){toast("This group can't form: "+(st.issues[0]||'pick at least one person'));return;}
-  state.group=ids.slice();preview=null;go('home');focusHeading();toast('Group formed: everyone accepted (simulated replies)');
+  if(!ids.length||!st.ok){toast(t('tCantForm',st.issues[0]||t('pickOne')));return;}
+  state.group=ids.slice();preview=null;go('home');focusHeading();toast(t('tFormed'));
 }
 function cycleFeature(btn,id){
   const order=['none','nice','must'],cur=state.user.needs[id]||'none',nx=order[(order.indexOf(cur)+1)%3];
@@ -792,7 +1043,7 @@ app.addEventListener('change',e=>{
   if(el.hasAttribute('data-size')){
     const key=el.getAttribute('data-key'),cur=state.sizeTarget[key]||{};let mn=cur.min,mx=cur.max;
     app.querySelectorAll('input[data-size]').forEach(x=>{const v=parseInt(x.value,10);if(isNaN(v))return;if(x.getAttribute('data-size')==='min')mn=v;else mx=v;});
-    if(mn>mx){const t=mn;mn=mx;mx=t;}
+    if(mn>mx){const tmp=mn;mn=mx;mx=tmp;}
     state.sizeTarget[key]={min:mn,max:mx};save();return;
   }
   const f=el.getAttribute('data-field');if(!f)return;
@@ -813,19 +1064,20 @@ app.addEventListener('change',e=>{
 });
 app.addEventListener('input',e=>{const el=e.target;if(el.type==='range'){state.user[el.getAttribute('data-field')]=parseInt(el.value,10);state.preset=null;profileChanged();}});
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-action],[data-tab]');if(!t||t.disabled)return;
-  if(t.hasAttribute('data-tab')){go(t.getAttribute('data-tab'));focusTab();return;}
-  const id=t.getAttribute('data-id');
-  switch(t.getAttribute('data-action')){
-    case 'preset':state=fresh(id);preview=null;render();window.scrollTo(0,0);toast('Example loaded: '+PRESETS[id].label);break;
-    case 'feat':cycleFeature(t,id);break;
+  const el=e.target.closest('[data-action],[data-tab]');if(!el||el.disabled)return;
+  if(el.hasAttribute('data-tab')){go(el.getAttribute('data-tab'));focusTab();return;}
+  const id=el.getAttribute('data-id');
+  switch(el.getAttribute('data-action')){
+    case 'lang':switchLang(id);break;
+    case 'preset':state=fresh(id);preview=null;render();window.scrollTo(0,0);toast(t('tExample',tx(PRESETS[id].label)));break;
+    case 'feat':cycleFeature(el,id);break;
     case 'goto':go(id);focusHeading();break;
     case 'like':like(id);break;
     case 'pass':state.passes[id]=true;delete state.likes[id];state.group=state.group.filter(x=>x!==id);rerender();break;
     case 'undo':delete state.passes[id];delete state.likes[id];state.group=state.group.filter(x=>x!==id);rerender();break;
     case 'add':addToGroup(id);break;
-    case 'remove':state.group=state.group.filter(x=>x!==id);rerender();toast('Removed from your group');break;
-    case 'preview-group':preview=id.split(',');go('home');focusHeading();toast('Preview only: nobody has joined');break;
+    case 'remove':state.group=state.group.filter(x=>x!==id);rerender();toast(t('tRemoved'));break;
+    case 'preview-group':preview=id.split(',');go('home');focusHeading();toast(t('tPreview'));break;
     case 'propose':proposeGroup(id.split(','));break;
     case 'close-preview':preview=null;go('matches');focusHeading();break;
   }
@@ -839,7 +1091,7 @@ tabsEl.addEventListener('keydown',e=>{
 
 applyHash();
 render();
-window.__juntos={get state(){return state;},get preview(){return preview;},render:render,like:like,addToGroup:addToGroup,proposeGroup:proposeGroup,previewGroup:function(ids){preview=ids.slice();go('home');},go:go,lists:lists};
+window.__juntos={get state(){return state;},get preview(){return preview;},get lang(){return LANG;},setLang:function(l){switchLang(l);},render:render,like:like,addToGroup:addToGroup,proposeGroup:proposeGroup,previewGroup:function(ids){preview=ids.slice();go('home');},go:go,lists:lists};
 })();
 </script>
 </body>

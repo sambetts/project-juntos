@@ -124,7 +124,7 @@ If your tool can run subagents or custom agents, use them only for big pieces of
 
 ## 9. Conventions
 - Dates as YYYY-MM-DD, Madrid time. Money in euros; say whether VAT is included.
-- Project files in English (UK); anything users see is in Spanish (Spain) first.
+- Project files in English (UK); anything users see is in both Spanish (Spain) and English (D-024).
 - IDs are never reused: D-### decisions, B-### backlog, R-### risks, F-### founder requests, EXP-### experiments.
 - File names in lowercase with hyphens; research notes start with the date.
 - Small, reversible steps. Test with real people before building anything big.

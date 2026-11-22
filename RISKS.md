@@ -1,6 +1,6 @@
 # Risks
 
-Likelihood (L) and impact (I) from 1 (low) to 3 (high); score = L × I. Re-scored on 2026-11-20 after the independent review; R-008 re-scored on 2026-11-21 after the employer policy check. Review at the end of each session: each risk's owner updates its row; the Chief of Staff updates Sam's rows and adds new risks.
+Likelihood (L) and impact (I) from 1 (low) to 3 (high); score = L × I. Re-scored on 2026-11-20 after the independent review; R-008 re-scored on 2026-11-21 after the employer policy check, and on 2026-11-22 after F-001 cleared. Review at the end of each session: each risk's owner updates its row; the Chief of Staff updates Sam's rows and adds new risks.
 
 | ID | Risk | L | I | Score | Watch for | Response | Owner |
 |---|---|---|---|---|---|---|---|
@@ -8,7 +8,6 @@ Likelihood (L) and impact (I) from 1 (low) to 3 (high); score = L × I. Re-score
 | R-002 | Banks won't lend to unrelated co-buyers | 3 | 3 | 9 | Brokers decline or set prohibitive terms. iAhorro says banks are wary; habitacion.com avoids mortgages (B-001) | Check early (B-009); broker partners | Finance |
 | R-004 | Exits go wrong over the years of ownership: a co-owner asks to end the co-ownership, forcing a sale if the home is indivisible and no buy-out is agreed (Civil Code arts. 400, 404) | 3 | 3 | 9 | The lawyer finds the agreement hard to enforce | Co-ownership agreement, no-division pact (up to 10 years), buy-out formula, reserves | Legal & Compliance |
 | R-006 | Matching discriminates, directly or through proxies. As built, the prototype filters on household type | 3 | 3 | 9 | Any filter on a protected ground or a proxy for one | D-009; lawyer review; filter audit before real users | Product with Legal & Compliance |
-| R-008 | Employer conflict or unclear IP ownership | 2 | 3 | 6 | Work devices, accounts, systems or time used for the project; conditions in Sam's employment agreement | Policy checked on 2026-11-21 (F-001); project moved to personal resources (D-021, F-012); Sam reads his employment agreement | Sam |
 | R-003 | We count as a property intermediary (anti-money-laundering duties, regional registers) | 2 | 3 | 6 | Any sale-linked fee or activity | No charging in Phase 1 (D-010); the lawyer maps the workflow | Legal & Compliance |
 | R-007 | Personal or financial data leaks, or we breach GDPR | 2 | 3 | 6 | Real data collected before B-013 | Data map, lawful basis, DPIA check | Builder with Legal & Compliance |
 | R-011 | An AI agent acts beyond its authority (publishes, spends, contacts people) | 2 | 3 | 6 | Any external action without a dated approval | Operating modes, decision rights and stop rules (AGENTS.md sections 3 to 5); specific, dated approvals | Chief of Staff |
@@ -23,5 +22,6 @@ Likelihood (L) and impact (I) from 1 (low) to 3 (high); score = L × I. Re-score
 | R-005 | Portals block access or deep links (deferred, not solved) | 2 | 2 | 4 | Phase 2 planning | D-015: licensed or authorised links only | Partnerships |
 | R-016 | Children's data and privacy in family profiles | 2 | 2 | 4 | Family profiles collected | Collect the minimum; no details about children | Legal & Compliance |
 | R-017 | Gaps in insurance between co-owners (home, mortgage protection, liability) | 2 | 2 | 4 | The lawyer or a broker flags gaps | Cover it in the agreement and checklist | Finance |
+| R-008 | Employer conflict or unclear IP ownership | 1 | 3 | 3 | Work devices, accounts, systems or time used for the project; work copies not yet deleted (F-012) | Policy checked on 2026-11-21; Sam read his employment agreement and cleared F-001 on 2026-11-22 (D-023); project on personal resources (D-021, D-022). Re-scored 2026-11-22 | Sam |
 | R-021 | A new model or tool behaves differently from the one the instructions were tuned for: it stops to ask without need, widens the scope, or skips the end-of-session checks | 2 | 2 | 4 | Sessions that end early, do unrequested work, or log saves they didn't check | Cold-start test after any change (B-023); instructions follow the model's published guidance (D-019) | Chief of Staff |
 | R-010 | Fee deals with agencies breach competition law | 1 | 3 | 3 | Any common fee terms | Agree fees agency by agency; never share one agency's terms with another | Partnerships |

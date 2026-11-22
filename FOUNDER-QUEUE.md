@@ -4,33 +4,11 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-012 · Push to your private repository, then delete the work copies · by 2026-11-28
-**Why:** your employer's policy rules out work systems for side projects, so the project moves to a private repository, project-juntos, on your personal GitHub account (D-021, D-022).
-**Ask:**
-1. Unzip project-juntos.zip on your personal computer. Use it rather than any earlier download of the OneDrive folder: it's the version set up for GitHub.
-2. On your personal GitHub account, create a private repository named project-juntos, without a README, .gitignore or licence, so the first push goes in cleanly.
-3. In the unzipped project-juntos folder, run these, with your personal name and email so no work address ends up in the history:
-   - `git init -b main`
-   - `git config user.name "<your name>"` and `git config user.email "<your personal email>"`
-   - `git add -A` and `git commit -m "Import project files (sessions 1 to 7)"`
-   - `git remote add origin https://github.com/<your-username>/project-juntos.git` and `git push -u origin main`
-4. On GitHub, check the repository is private and its front page shows the README.
-5. Delete the work copies: the "Co-buying startup" folder at the root of your work OneDrive, and this project's task folder in its Cowork folder (Tasks › shared-property-co-buying-market-2026-11-18), which holds an older snapshot, the first prototype and project-juntos.zip.
-6. Start the first session with the first-session prompt in `KICKOFF.md`.
-
-**Recommendation:** do this before any new session, so no more work happens on work systems. If you want certainty first, ask HR whether you may take these files; they hold only your own notes and public research.
-**If no answer:** no session can start, as none may run on work systems.
-
-### F-001 · Employer check: last step · by 2026-11-28
-**Checked on 2026-11-21** (Chief of Staff, with Legal & Compliance): your employer's side-project policy, its conflict-of-interest policy and its code of conduct, plus Spanish law. In short:
-- Side projects need no sign-off unless your employment agreement requires it; there's no local supplement for Spain. A board or director role in a for-profit company needs your manager's pre-approval; you plan none.
-- Not on work devices, accounts, systems or tools, and not in working time. Don't use the job to recruit colleagues or win customers, don't use the employer's confidential information or work, don't compete, and don't act as its supplier or customer (personal subscriptions to its products are fine).
-- Your stake in the company is a financial interest: keep it away from decisions in your job, such as dealings with customers you cover, or disclose it through the conflict-of-interest process.
-- Spanish law: a second activity is allowed unless it's unfair competition or you've agreed paid full-time exclusivity (Workers' Statute art. 21). Software written within your job, or on your employer's instructions, belongs to the employer (Intellectual Property Act art. 97.4); work outside your duties isn't covered by that rule.
-
-**ANSWER (Sam, 2026-11-21, in chat):** "Ok so let's wrap-up this, and I'll move it to non-MS resources. I have no intention of being a director or anything - this is just an idea that's a thought experiment right now. I'm thinking of using a personal AI sub to build a product to see if it gains any interest, is all."
-**Still open:** read your employment agreement (HR can send you a copy) for an approval requirement, a full-time exclusivity clause or IP terms.
-**If no answer:** F-001 stays open and sessions stay in Plan mode. You decide when it's cleared: write "F-001 cleared" with the date, then "Build mode from <date>" (AGENTS.md section 3).
+### F-012 · Delete the work copies (last step) · by 2026-11-28
+**Done (seen in Session 8, 2026-11-22):** the repository is pushed: the local clone tracks `github.com/<Sam's account>/project-juntos` and has its first commit ("Initial"), and Session 8 ran in it on Sam's personal machine.
+**Still open:** delete the work copies: the "Co-buying startup" folder at the root of your work OneDrive, and this project's task folder in its Cowork folder (Tasks › shared-property-co-buying-market-2026-11-18), which holds an older snapshot, the first prototype and project-juntos.zip. Also check on GitHub that the repository is private.
+**Recommendation:** do it this week, outside working time, then write "ANSWER: deleted" here.
+**If no answer:** the copies stay on work systems, which the employer's policy rules out (D-021, R-008).
 
 ### F-002 · Time and money for Phase 1 (about six weeks) · by 2026-11-27
 **Options:**
@@ -80,11 +58,24 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ### F-011 · Confirm the operating modes (D-020) · by 2026-11-27
 **Why:** the modes decide what the AI may do on its own, before and after the employer check (AGENTS.md section 3). They were proposed on 2026-11-20 while tuning the instructions for Opus, and only you should be able to loosen them.
-**Options:** A) confirm as written · B) stricter: read-only until F-001 · C) edit
-**Recommendation:** A. Plan mode matches F-001's default (review and plan only), and every later mode needs your dated switch.
-**If no answer:** Plan mode stays in force, and nothing moves to Build mode.
+**Update (2026-11-22):** you've since switched to Build mode (D-023), so this now only confirms the table itself: what Build mode allows (prototypes, code and unpublished drafts in this repository; nothing public, paid or sent) and the gate for Pilot mode.
+**Options:** A) confirm as written · B) edit
+**Recommendation:** A. Every later mode still needs your dated switch.
+**If no answer:** the modes apply as written in AGENTS.md section 3, and Build mode continues.
 
 ## Closed
+
+### F-001 · Employer check · closed 2026-11-22
+**ANSWER (Sam, 2026-11-22, in Claude Code):** selected "F-001 cleared, Build from today": "You confirm you've read the agreement and it has no exclusivity, approval or IP clause that blocks this." Recorded as D-023, Build mode from 2026-11-22.
+
+**Checked on 2026-11-21** (Chief of Staff, with Legal & Compliance): your employer's side-project policy, its conflict-of-interest policy and its code of conduct, plus Spanish law. In short:
+- Side projects need no sign-off unless your employment agreement requires it; there's no local supplement for Spain. A board or director role in a for-profit company needs your manager's pre-approval; you plan none.
+- Not on work devices, accounts, systems or tools, and not in working time. Don't use the job to recruit colleagues or win customers, don't use the employer's confidential information or work, don't compete, and don't act as its supplier or customer (personal subscriptions to its products are fine).
+- Your stake in the company is a financial interest: keep it away from decisions in your job, such as dealings with customers you cover, or disclose it through the conflict-of-interest process.
+- Spanish law: a second activity is allowed unless it's unfair competition or you've agreed paid full-time exclusivity (Workers' Statute art. 21). Software written within your job, or on your employer's instructions, belongs to the employer (Intellectual Property Act art. 97.4); work outside your duties isn't covered by that rule.
+
+**ANSWER (Sam, 2026-11-21, in chat):** "Ok so let's wrap-up this, and I'll move it to non-MS resources. I have no intention of being a director or anything - this is just an idea that's a thought experiment right now. I'm thinking of using a personal AI sub to build a product to see if it gains any interest, is all."
+**Last step done:** Sam read his employment agreement; cleared on 2026-11-22 (answer above).
 
 ### F-007 · Where should the project live? (D-013) · closed 2026-11-21
 **ANSWER (Sam, 2026-11-21, in chat):** move it to non-MS resources and use a personal AI subscription; his full message is quoted in F-001 and D-021.

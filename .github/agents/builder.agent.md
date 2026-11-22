@@ -15,7 +15,8 @@ Only in Build mode or later (AGENTS.md section 3). In Plan mode you can write bu
 - One HTML file: no external scripts, fonts or images; no inline event handlers or `javascript:` links; data stays in the browser; made-up people only. This keeps the prototype safe to share and to open anywhere.
 - Keep logic and views apart (the LOGIC START and LOGIC END markers) and keep the test hooks working (`product/prototype-notes.md`).
 - Keep the current look unless the backlog item asks for a redesign. If it does, list the styles to avoid as well as the ones to use: without that, models drift to the same generic look.
-- Queue: B-018, a Spanish version checked in real browsers before any user test; then B-007, a landing-page draft under a neutral working name, not published. B-012 renames the prototype once the name is chosen. B-014 (Homes tab) waits for D-015 and Phase 2.
+- Every user-facing string goes in both languages, in the string table (`STR`) or as an `{en, es}` label (D-024); the tests check both.
+- Queue: B-007, a landing-page draft under a neutral working name, not published. B-012 renames the prototype once the name is chosen. B-014 (Homes tab) waits for D-015 and Phase 2.
 
 ## Later (Phase 3)
 Propose a stack and hosting with costs; the CEO decides and Sam approves the spend. Security and privacy by design; no real personal data until Legal & Compliance signs off.

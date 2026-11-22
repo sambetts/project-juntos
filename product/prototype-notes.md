@@ -1,4 +1,4 @@
-# Prototype notes: "Juntos" (built 2026-11-18, fixed 2026-11-20)
+# Prototype notes: "Juntos" (built 2026-11-18, fixed 2026-11-20, bilingual 2026-11-22)
 
 - **File:** `prototype/juntos-co-buying-prototype.html`: one file, about 64 KB, with no external resources. Offline behaviour still needs checking on real browsers (B-018).
 - **Name:** "Juntos" is a placeholder and isn't available (juntos.es and juntos.com are taken). Rename it after D-007 (B-012).
@@ -17,8 +17,10 @@
   - an illustrative room allocation and placement tips
   - agreement prompts
   - A broken group shows what's wrong instead of a brief.
-- 14 made-up Madrid profiles. The page language is English (`lang="en"`); make a Spanish version before any user test (B-018).
-- State is saved in the browser (localStorage key `juntos-prototype-v2`). Nothing leaves the browser.
+- 14 made-up Madrid profiles, each with an English and a Spanish bio.
+- **Languages (D-024):** Spanish (Spain) and English, with a switch in the header. It opens in the browser's language (Spanish for anything that isn't English), then remembers the choice; the page's `lang` attribute and title follow it. Spanish addresses the user as tú and the group as vosotros, and avoids gendered words where it can ("Os gusta madrugar", "Quién fuma: …").
+- The Spanish was written by an AI and hasn't been reviewed by a native speaker yet (B-025).
+- State, including the language, is saved in the browser (localStorage key `juntos-prototype-v3`; the old English-only key is ignored). Nothing leaves the browser.
 
 ## For builders
 - **Code layout:** the logic sits between `/* ===== LOGIC START ===== */` and `/* ===== LOGIC END ===== */`:
@@ -34,20 +36,22 @@
   - `like=all`: like everyone compatible
   - `group=best`: form the top suggested group
   - `tab=home`: open a tab
+  - `lang=en` or `lang=es`: choose the language
 
   For example: `#preset=room&like=all&group=best&tab=home`.
-- **Test object:** `window.__juntos` exposes the state and the actions (like, addToGroup, proposeGroup, previewGroup, go, lists).
-- **Tests:** `prototype/test_proto.js` (Node). Run `node test_proto.js` inside `prototype/`; the exit code is 1 if anything fails. 111 checks:
+- **Wording:** every user-facing string is in `STR.en` and `STR.es` (inside the logic block), or an `{en, es}` label on the data (areas, features, bios and so on). `t(key, …)` and `tx(label)` pick the current language. Add new copy to both.
+- **Test object:** `window.__juntos` exposes the state, the language and the actions (like, addToGroup, proposeGroup, previewGroup, go, lists, setLang).
+- **Tests:** `prototype/test_proto.js` (Node). Run `node test_proto.js` inside `prototype/`; the exit code is 1 if anything fails. 193 checks:
   - scoring fairness: symmetry, household type not scored, accessibility needs neutral, must vs nice
   - consent and groups
   - the home brief
   - colour contrast in light and dark mode
   - tab roles
-  - copy
-  - smoke checks of every screen in a simulated page
+  - copy, and both languages: matching string tables, every label and bio in both, Spanish grammar (y/e, o/u, "Laura y tú"), no words from the other language on any screen, and switching language mid-session
+  - smoke checks of every screen in a simulated page, in English and in Spanish
 
-  The checks don't cover a real browser or a screen reader (B-018).
-- **When changing it:** no inline event handlers, no `javascript:` links, no external resources. Keep the dark-mode styles, the page language attribute and 4.5:1 contrast.
+  Checked in headless Microsoft Edge on 2026-11-22: both languages load with no script errors, and the page `lang` and title follow the language. Not yet covered: phones, a screen reader, other browsers, and a native speaker's review of the Spanish (B-025).
+- **When changing it:** no inline event handlers, no `javascript:` links, no external resources. Keep the dark-mode styles, the page language attribute, both languages and 4.5:1 contrast.
 
 ## Ideas parked
 - A "Homes" tab where the group adds homes and sees how each fits its brief (B-014; waits for D-015 and Phase 2).

@@ -2,6 +2,42 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 8: Build mode, bilingual prototype
+**Who:** Sam with Claude Code (Opus 5.5) on his personal machine, as Chief of Staff, with the CEO (D-023, D-024), Builder and Tester (B-018)
+**Mode:** Plan, then Build from 2026-11-22 (D-023) · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md "Last updated 2026-11-22 after Session 7, continued"; newest LOG entry Session 7, continued
+**Goals:** 1. B-018, the Spanish version of the prototype, with the Tester's checks; widened mid-session by Sam to a bilingual version (D-024).
+**Needs Sam:** F-012 updated: the push is done; deleting the work copies is all that's left. F-011 updated: it now only confirms the modes table, since Build mode has started. B-025 new: try the prototype on your phone, or approve a Spanish-speaking reviewer.
+**Did**
+- Opening: Sam asked for the project "to be built". The project was in Plan mode, so I asked whether he meant a Plan-mode session or Build mode. He chose "F-001 cleared, Build from today", confirming he'd read his employment agreement and found no approval, exclusivity or IP clause that blocks the project. Recorded as D-023; F-001 closed; mode and R-008 (score 6 to 3) updated.
+- F-012: the repository is pushed (the clone tracks the GitHub remote and has its first commit), so only deleting the work copies is left.
+- Cold-start check, first session in Claude Code: nothing stopped me or would have led me to break a rule. AGENTS.md section 10 covers this tool under "a coding assistant working in the repository".
+- B-018 (Builder): first translated the prototype into Spanish in place. Sam then asked mid-session for the site to be "dual lingo, english & spanish", with documents kept in English (D-024). Rebuilt it as one bilingual file, `prototype/juntos-co-buying-prototype.html`:
+  - every user-facing string sits in an English–Spanish string table, or an `{en, es}` label on the data, including all 14 bios
+  - a language switch in the header; the page opens in the browser's language, remembers the choice, and `#lang=en` or `#lang=es` forces one
+  - the page's `lang` attribute and title follow the language
+  - Spanish uses tú and vosotros, avoids gendered words where it can, and follows the y/e and o/u rules
+  - new storage key `juntos-prototype-v3`
+  - the matching logic is unchanged: the same compatible people, mutual matches and groups as before, for both example profiles
+- B-018 (Tester): rewrote `prototype/test_proto.js`, growing it from 111 to 193 checks.
+  - Every screen check runs in English and in Spanish.
+  - New checks: both string tables have the same keys; every label and bio exists in both languages; Spanish grammar; no words from the other language on any screen; switching language mid-session keeps the group and redraws the page.
+  - Mutation test: words planted on an English screen and on a Spanish screen were both caught.
+  - A first version of the leak check had a bug: its `` boundaries were saved as control characters, so it could never fail. Found because it passed the old English file; fixed and re-proved.
+- Test record (Tester):
+  - `node test_proto.js`: 193 passed, 0 failed.
+  - Headless Microsoft Edge: loaded `#lang=es` (home), `#lang=en` (matches) and `#lang=es` (profile) with no script errors; the page `lang` and title followed the language; desktop screenshot at 1280 px looked right.
+  - A 390 px window rendered wider than the screen, but the English-only version from before this session does the same, so that's how headless Edge lays out narrow windows, not a new bug. Mobile is untested.
+  - Not tested: real phones, Firefox and Safari, a screen reader, and a native speaker's review of the AI-written Spanish. All are in B-025.
+- Updated: `product/prototype-notes.md`, `product/profile-and-matching-model.md`, the Builder and Tester role files, AGENTS.md section 9 (the product is bilingual: an out-of-date fact, within the Chief of Staff's remit), BACKLOG (B-018 done; B-025 new; B-007, B-012, B-006 and B-011 no longer wait on F-001 or Build mode), STATE, RISKS and FOUNDER-QUEUE.
+
+**Decided:** D-023 F-001 cleared, Build mode from 2026-11-22 (Sam) · D-024 bilingual product, English documents; amends D-014 (Sam; built by the Builder)
+**Approvals used:** Sam's choice in Claude Code on 2026-11-22, "F-001 cleared, Build from today", quoted in D-023 and F-001; Sam's message of 2026-11-22, "Keep docs in English; the site should be dual lingo, english & spanish. I work better in English", quoted in D-024. Nothing was published, sent or paid for.
+**Learned:** Node now has a `navigator` object, so the tests saw "en-US" and ran in English until they set the language explicitly. Headless Edge can't stand in for a phone. That many co-buyers in Madrid are international residents is an assumption behind D-024, not checked.
+**Open or blocked:** B-025 waits on Sam (a phone check, or approval for a Spanish-speaking reviewer). F-012's deletion and every pilot item (F-002 to F-011) remain with Sam.
+**Saved and checked:** after saving, re-ran `node test_proto.js` (193 passed) and reviewed `git diff` for every changed document against what I meant to write, which caught two stale lines in F-001 and F-011, now fixed. LOG.md saved last and checked with `git diff`; the commit is confirmed in the closing report.
+**Next session should start with:** 1. B-007 bilingual landing-page draft, not published and storing nothing. 2. B-013 privacy and safety groundwork. 3. Sam's answers, especially F-012 and B-025.
+
 ## 2026-11-22 · Session 7, continued: ready for GitHub as project-juntos
 **Who:** Sam with Microsoft 365 Copilot (as Chief of Staff), still on Sam's work systems, to package the project for its move
 **Mode:** Plan · **Copy used:** canonical folder on the work OneDrive (D-016, D-021), repackaged as the repository

@@ -9,7 +9,7 @@ description: Tester for the co-buying startup. Use to write and run test plans a
 Make sure what we build works, is accessible and doesn't leak data.
 
 ## Today's harness and its limits
-`prototype/test_proto.js` (run `node test_proto.js` in `prototype/`) asserts 111 checks and exits with code 1 if any fails. It covers scoring fairness, consent and groups, the home brief, colour contrast, tab roles, copy, and smoke checks of every screen in a simulated page. It isn't a real-browser or screen-reader test (B-018).
+`prototype/test_proto.js` (run `node test_proto.js` in `prototype/`) asserts 193 checks and exits with code 1 if any fails. It covers scoring fairness, consent and groups, the home brief, colour contrast, tab roles, copy, both languages (matching string tables, Spanish grammar, no words from the other language), and smoke checks of every screen in a simulated page, in English and Spanish. It isn't a mobile or screen-reader test (B-025).
 
 ## Checks for every build
 - **Logic:** fixed test profiles give the expected matches, groups and briefs, as assertions. Includes two-way consent, no duplicates, and stale groups re-checked.
