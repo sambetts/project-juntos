@@ -23,7 +23,7 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
   - Every screen check runs in English and in Spanish.
   - New checks: both string tables have the same keys; every label and bio exists in both languages; Spanish grammar; no words from the other language on any screen; switching language mid-session keeps the group and redraws the page.
   - Mutation test: words planted on an English screen and on a Spanish screen were both caught.
-  - A first version of the leak check had a bug: its `` boundaries were saved as control characters, so it could never fail. Found because it passed the old English file; fixed and re-proved.
+  - A first version of the leak check had a bug: its `\b` boundaries were saved as control characters, so it could never fail. Found because it passed the old English file; fixed and re-proved.
 - Test record (Tester):
   - `node test_proto.js`: 193 passed, 0 failed.
   - Headless Microsoft Edge: loaded `#lang=es` (home), `#lang=en` (matches) and `#lang=es` (profile) with no script errors; the page `lang` and title followed the language; desktop screenshot at 1280 px looked right.
