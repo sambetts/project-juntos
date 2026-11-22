@@ -483,3 +483,63 @@ Object.assign(STR.es,{
   chScoreH:'Tu afinidad con cada persona compatible',chScoreAll:'Todas las compatibles',chClickScore:'Toca una barra para ver solo a quienes tienen esa afinidad o más.',
   chScoreTip:(lo,hi,s,a)=>lo+'–'+hi+' %: '+s+' de '+(a===1?'1 persona':a+' personas')
 });
+
+/* Session 17: the in-app guide (#help, B-050). Kept basic: it will change as the product does. */
+Object.assign(STR.en,{
+  helpLink:'How it works',
+  helpH:'How '+BRAND+' works',
+  helpLead:'A short guide to this proof of concept. It will change as the service grows.',
+  helpSecs:[
+    {h:'The steps',items:[
+      'Fill in your profile: your household, the space you need, how you live, your dealbreakers and where you want to live.',
+      "In Matches, like the people you'd consider buying with. When they like you too, it's a mutual match.",
+      'Put mutual matches into a group of up to four households (you plus three) and propose it. Everyone you invite says yes or no.',
+      'When everyone has said yes, the group is formed. Under "Groups and home" you get a joint brief for the home you need together, and homes for sale that fit it.']},
+    {h:'Likes and matches',items:[
+      '"♥ Like" means you\'d like to explore buying with that person. "Pass" moves them out of the way. "Undo" takes back either.',
+      "Nobody is told that you liked them. They see you in their own Matches like anyone else.",
+      'If they like you too, you both see "✓ Mutual match". Until then, your card says "Liked · waiting for their reply".',
+      "So there's nothing special to do to answer a like: just like the people you're interested in. If they've already liked you, the match appears straight away.",
+      "People who fail a dealbreaker, yours or theirs, never see each other. You don't see their reasons, and they don't see yours.",
+      'Made-up people (tagged "Made up") reply at once, by a simulation of their preferences.']},
+    {h:'Groups and invitations',items:[
+      'You can only invite mutual matches. Start from a suggested group in Matches, or tap "Add to group" on mutual matches to build your own.',
+      '"Preview the home" shows what the group would need and tells nobody. "Propose this group" sends the invitations.',
+      'When someone invites you, the group appears under "Groups and home". Open it to see the group and its home, then choose "Accept" or "Decline". Your answer is final for that group.',
+      "The group forms when everyone has said yes. If anyone declines, or leaves later, it doesn't form: propose a new group without them.",
+      'You can leave a group at any time with "Leave the group".']},
+    {h:'Not here yet',items:[
+      'Notifications: check Matches and "Groups and home" for new matches and invitations.',
+      "Seeing who has liked you, and messages between people.",
+      "Invitations don't expire yet, and a place someone declines can't be filled: start a new group instead.",
+      "Scores and home briefs are a starting point for a conversation, not legal, tax or financial advice."]}]
+});
+Object.assign(STR.es,{
+  helpLink:'Cómo funciona',
+  helpH:'Cómo funciona '+BRAND,
+  helpLead:'Una guía breve de esta prueba de concepto. Irá cambiando a medida que crezca el servicio.',
+  helpSecs:[
+    {h:'Los pasos',items:[
+      'Completa tu perfil: tu hogar, el espacio que necesitas, cómo vives, lo que no es negociable para ti y dónde quieres vivir.',
+      'En «Personas afines», marca «Me interesa» en quienes te plantearías comprar. Si esa persona también te marca, es un match mutuo.',
+      'Reúne a tus matches mutuos en un grupo de hasta cuatro hogares (tú y tres más) y propónlo. Cada persona invitada dice que sí o que no.',
+      'Cuando todo el mundo ha dicho que sí, el grupo queda formado. En «Grupos y casa» tendréis una ficha conjunta de la casa que necesitáis y las viviendas en venta que encajan con ella.']},
+    {h:'«Me interesa» y matches',items:[
+      '«♥ Me interesa» significa que te gustaría explorar comprar con esa persona. «Pasar» la aparta. «Deshacer» anula cualquiera de las dos.',
+      'A nadie se le avisa de que te interesa. Te ve en sus «Personas afines» como a cualquier otra persona.',
+      'Si tú también le interesas, las dos veréis «✓ Match mutuo». Hasta entonces, tu tarjeta dice «Te interesa · esperando su respuesta».',
+      'Así que, para responder a un «Me interesa», no hay que hacer nada especial: marca a las personas que te interesan. Si ya te habían marcado, el match aparece al momento.',
+      'Si alguien no cumple un innegociable, tuyo o suyo, no os veréis. Tú no ves sus motivos, y esa persona no ve los tuyos.',
+      'Las personas inventadas (con la etiqueta «Inventado») responden al momento, con una simulación de sus preferencias.']},
+    {h:'Grupos e invitaciones',items:[
+      'Solo puedes invitar a matches mutuos. Parte de un grupo sugerido en «Personas afines» o toca «Añadir al grupo» en tus matches mutuos para formar el tuyo.',
+      '«Ver la casa» muestra lo que necesitaría el grupo y no avisa a nadie. «Proponer este grupo» envía las invitaciones.',
+      'Cuando alguien te invita, el grupo aparece en «Grupos y casa». Ábrelo para ver el grupo y su casa, y después elige «Aceptar» o «Rechazar». Tu respuesta es definitiva para ese grupo.',
+      'El grupo se forma cuando todo el mundo ha dicho que sí. Si alguien rechaza, o se va más tarde, no se forma: propón un grupo nuevo sin esa persona.',
+      'Puedes salir de un grupo cuando quieras con «Salir del grupo».']},
+    {h:'Lo que aún no hay',items:[
+      'Avisos: entra en «Personas afines» y en «Grupos y casa» para ver matches e invitaciones nuevas.',
+      'Ver a quién le interesas, y mensajes entre personas.',
+      'Las invitaciones aún no caducan, y la plaza de quien rechaza no se puede cubrir: empieza un grupo nuevo.',
+      'Las puntuaciones y la ficha de la casa son un punto de partida para hablar, no asesoramiento legal, fiscal ni financiero.']}]
+});

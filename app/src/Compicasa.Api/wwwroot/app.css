@@ -175,6 +175,8 @@ input[type=email],input[type=text]{inline-size:100%;padding:10px 12px;border-rad
 .wizard .facts{margin-block-start:8px}
 .legal{max-inline-size:760px;margin-inline:auto}
 .legal ol{padding-inline-start:20px;display:grid;gap:10px}
+a.btn{color:var(--text);text-decoration:none;display:inline-block}
+.help h3{margin:18px 0 8px}.help ul{padding-inline-start:20px;display:grid;gap:8px}
 footer.note p{margin:0 0 6px}
 
 .homes{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}

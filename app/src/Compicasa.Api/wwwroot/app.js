@@ -182,6 +182,12 @@ function updateMeter(v){
   l.textContent=v?t('pwMeter',[t('pwShort'),t('pwWeak'),t('pwFair'),t('pwStrong')][lv]):t('passwordHint');
 }
 
+/* The in-app guide (#help, B-050): plain sections from i18n, open signed in or not */
+function viewHelp(){
+  return `<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>
+<section class="card legal help"><h2>${esc(t('helpH'))}</h2><p class="lead">${esc(t('helpLead'))}</p>
+${t('helpSecs').map((x,i)=>`<h3>${esc(x.h)}</h3>${i===0?'<ol>':'<ul>'}${x.items.map(y=>`<li>${esc(y)}</li>`).join('')}${i===0?'</ol>':'</ul>'}`).join('')}</section>`;
+}
 function viewLegal(kind){
   const body=t(kind+'Body');
   return `<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>
@@ -332,7 +338,7 @@ function viewGroups(){
 <div><b>${esc(ids.map(dn).join(' + '))}</b></div>
 <ul class="clean">${g.members.filter(m=>!isMe(m.id)).map(m=>`<li class="who">${esc(dn(m.id))}: ${esc(memberStatus(m.status))}</li>`).join('')}</ul>
 ${invite?`<div class="notice card">${esc(t('invitedBy',dn(g.createdBy)))}</div>`:''}
-<div class="pactions">${invite?`<button type="button" class="btn small" data-action="respond" data-id="${g.id}" data-accept="0">${t('decline')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="respond" data-id="${g.id}" data-accept="1">${t('accept')}</button>`:`<span class="spacer"></span><button type="button" class="btn small primary" data-action="open-group" data-id="${g.id}">${t('openGroup')}</button>`}</div></article>`;
+<div class="pactions">${invite?`<button type="button" class="btn small" data-action="respond" data-id="${g.id}" data-accept="0">${t('decline')}</button><button type="button" class="btn small ghost" data-action="open-group" data-id="${g.id}">${t('openGroup')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="respond" data-id="${g.id}" data-accept="1">${t('accept')}</button>`:`<span class="spacer"></span><button type="button" class="btn small primary" data-action="open-group" data-id="${g.id}">${t('openGroup')}</button>`}</div></article>`;
   }).join('')}</div>`;
 }
 
@@ -640,8 +646,9 @@ function renderChrome(){
   set('brandname',BRAND);
   set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));set('badge',t('badge'));
   const foot=document.getElementById('footnote');
-  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
+  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
   const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('steps'));nav.hidden=!inApp();}
+  set('help-link',t('helpLink'));
   const sw=document.getElementById('lang-switch');
   if(sw){sw.textContent=t('langOther');sw.setAttribute('lang',t('langOtherCode'));sw.setAttribute('data-id',t('langOtherCode'));sw.setAttribute('aria-label',t('langOtherAria'));}
 }
@@ -678,7 +685,7 @@ function renderBar(){
 function render(){
   renderChrome();
   renderTabs();
-  app.innerHTML=S.view?viewLegal(S.view):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(S.tab==='you'?viewYou():(S.tab==='matches'?viewMatches():viewGroups()))));
+  app.innerHTML=S.view?(S.view==='help'?viewHelp():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(S.tab==='you'?viewYou():(S.tab==='matches'?viewMatches():viewGroups()))));
   applyStyles(app);
   if(document.getElementById('hx-results'))updateHomes();
   drawCharts(app);
@@ -716,11 +723,11 @@ async function start(){
   let me=null;try{me=await api('GET','/api/me');}catch(e){}
   if(me){S.tab='matches';await enter(me);}else render();
 }
-/* #terms, #privacy, #authError=code (back from External ID), #lang=en */
+/* #terms, #privacy, #help, #authError=code (back from External ID), #lang=en */
 function readHash(){
   const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
   const prev=S.view;
-  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':null);
+  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':null));
   const err=h.get('authError');
   if(err){S.authError=t('err_'+err)!==undefined&&STR.es['err_'+err]!==undefined?t('err_'+err):t('err_generic');if(err==='noAccount')S.authMode='signup';
     try{history.replaceState(null,'',location.pathname);}catch(e){}}

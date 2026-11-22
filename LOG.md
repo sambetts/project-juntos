@@ -2,6 +2,21 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-22 · Session 17: an in-app guide to likes and groups
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Product and the Builder and Tester (B-050)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 16. Sam: "How does a real person respond to a group or a like? It's not clear this mechanism to me or the mechanics of the site. We need some docs/guide baked in. Keep it basic for now as it'll probably change."
+**Goals:** 1. B-050: an in-app guide. 2. Tests pass, files current, commit.
+**Needs Sam:** the go to deploy (B-050); nothing new in the founder queue.
+**Did**
+- Read the mechanics from the code (`Community.cs`, `Api.cs`, `Views.cs`, `app.js`). A like is silent: the other person isn't told and sees the liker as an ordinary card; it becomes a mutual match only when they like back (made-up people "like back" by simulation). Only mutual matches can be invited, up to three others. An invited real person finds the group under "Groups and home" with Accept and Decline; the answer is final; the group forms when everyone accepts and breaks if anyone declines or leaves. No notifications, "liked you" list, messages or expiry yet (B-036 to B-038).
+- Built B-050: a `#help` page in Spanish and English (the steps, likes and matches, groups and invitations, what isn't there yet), linked from the header and the footer, open signed in or not; the invitation card in the groups list gained an "Open" button, so an invitee can see the group and its home before answering (the group page already showed Accept and Decline). New browser check for the guide; service-worker version bumped.
+**Decided:** nothing new. **Approvals used:** none needed (Build mode, local only); nothing deployed or pushed.
+**Learned:** an invitee could previously only Accept or Decline from the list, without seeing the group first; fixed. Headless Edge at 390 px crops the guide on the right exactly as it crops the existing privacy page (B-025's known artefact); the browser test's no-sideways-scroll check passes. On a phone the header's "How it works" button wraps the language button onto a second line; acceptable for now.
+**Open or blocked:** deploy waits for Sam's go.
+**Saved and checked:** `dotnet test` (40 passed); browser test 35 of 35 against a local run (scratch SQLite outside the repository), twice; screenshots of the guide at 1280 and 390 px; `git status` and `git diff` reviewed for STATE, BACKLOG, `app/README.md` and `app/`. LOG saved last; its check and the commit are confirmed in the closing report.
+**Next session should start with:** 1. B-050 deploy (on Sam's go). 2. B-047 check the first WebJob crawl. 3. B-042.
+
 ## 2026-11-22 · Session 16: design review, homes and matches explorers
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Product and the Builder and Tester (B-049), and the CEO (D-037)
 **Mode:** Build (D-023), within D-027 and D-035 · **Copy used:** canonical repository (D-022)

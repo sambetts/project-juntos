@@ -204,6 +204,13 @@ ok(/Borrador/.test(await text()) && /aepd\.es/.test(await text()), 'privacy noti
 await click('[data-action="legal-back"]');
 await until(`!document.querySelector('.legal')`, 'back from the privacy notice');
 
+// The guide opens from the header, signed in or not (B-050).
+await send('Page.navigate', { url: base + '/#help' });
+await until(`!!document.querySelector('.help')`, 'guide opens');
+ok(/Cómo funciona/.test(await text()) && /Me interesa/.test(await text()) && /Rechazar/.test(await text()), 'guide explains likes and invitations, in Spanish');
+await click('[data-action="legal-back"]');
+await until(`!document.querySelector('.help')`, 'back from the guide');
+
 // Install basics for phones: manifest, icons and service worker.
 const man = await (await fetch(base + '/manifest.webmanifest')).json();
 ok(man.display === 'standalone' && man.icons.some(i => i.sizes === '512x512'), 'installable manifest');
