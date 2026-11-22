@@ -82,6 +82,7 @@ Then, after his sign-up still failed: "Fix production" (Sam, 2026-11-22, in GitH
 **Recommendation:** A, and add the questions to the lawyer brief.
 **If no answer:** C.
 **ANSWER (Sam, 2026-11-22, in Claude Code):** chose "B: crawl agency sites now": "A, plus a daily automated crawl of agency websites (never portals). It would honour robots.txt and store only facts and the link." Recorded as D-035.
+Then, after the closing report offered to deploy, run a first crawl into the live database and set up the daily run (B-047): "deploy and push" (Sam, 2026-11-22, in Claude Code). Read as approval to deploy with `deploy.ps1 -App`, run the first live crawl, and push the repository.
 
 ### F-015 · One Azure region for the PoC: how? · closed 2026-11-22
 **Why:** you asked for everything in one European region (D-031). On 2026-11-22 no EU region offered both free tiers on your subscription. France Central has the free database but no free web-app quota; West Europe has the free web app but accepts no new databases. For now the web app is in West Europe and the database in France Central, the next region over, at €0. It works, and all 24 browser checks pass.

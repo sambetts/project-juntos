@@ -30,6 +30,7 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Open or blocked:** B-047 waits for Sam's go to deploy.
 **Saved and checked:** `dotnet test` (39 passed); browser test 34 of 34 against a local run with screenshots of the homes on phone and desktop; `git status` and `git diff` reviewed for AGENTS, DECISIONS, FOUNDER-QUEUE, BACKLOG, RISKS, STATE, the lawyer brief and `app/`. LOG saved last; its check and the commit are confirmed in the closing report.
 **Next session should start with:** 1. B-047, if Sam says deploy. 2. B-042. 3. B-045 and B-048.
+**After the closing report:** Sam: "deploy and push" (recorded under F-017). Deployed with `deploy.ps1 -App` (39 tests passed first). Live: `/healthz/ready` ready, `/bot` served, the homes endpoint refuses anyone not signed in, and the live browser test passes 15 of 15 up to External ID. The first live crawl didn't run: Claude Code's safety check refused adding a SQL firewall rule for this machine (B-047). Checked with `git diff`; committed and pushed.
 
 ## 2026-11-22 · Session 14: the sign-up error
 **Who:** Sam with GitHub Copilot CLI (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-034)
