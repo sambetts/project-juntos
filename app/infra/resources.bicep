@@ -1,7 +1,7 @@
 // Resources inside rg-compicasa-prod. See main.bicep.
 param location string
-@description('Region for the database: the SQL free offer is not available in Spain Central (D-030).')
-param sqlLocation string
+@description('Region for the database. Ideally the same as location (D-031); see main.bicep for why it may differ.')
+param sqlLocation string = location
 param name string
 param tags object
 param sqlAdminObjectId string
@@ -13,6 +13,8 @@ param budgetStart string
 
 var suffix = substring(uniqueString(resourceGroup().id), 0, 5)
 var dbName = 'sqldb-${name}'
+// The France Central server was created before servers were named by region.
+var sqlServerName = sqlLocation == 'francecentral' ? 'sql-${name}-eu-${suffix}' : 'sql-${name}-${sqlLocation}-${suffix}'
 
 // ---------- monitoring ----------
 resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -40,7 +42,7 @@ resource insights 'Microsoft.Insights/components@2020-02-02' = {
 
 // ---------- database: Azure SQL free offer, Entra ID sign-in only (D-030) ----------
 resource sql 'Microsoft.Sql/servers@2023-08-01-preview' = {
-  name: 'sql-${name}-eu-${suffix}'
+  name: sqlServerName
   location: sqlLocation
   tags: tags
   properties: {
@@ -70,7 +72,7 @@ resource db 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
   location: sqlLocation
   tags: tags
   // The free offer: serverless, 100,000 vCore-seconds and 32 GB a month at no charge. If the allowance runs out
-  // it pauses until next month instead of billing. Refused in Spain Central on 2026-11-22, hence sqlLocation.
+  // it pauses until next month instead of billing. Refused in Spain Central on 2026-11-22, hence another region.
   sku: { name: 'GP_S_Gen5_2', tier: 'GeneralPurpose', family: 'Gen5', capacity: 2 }
   properties: {
     useFreeLimit: true

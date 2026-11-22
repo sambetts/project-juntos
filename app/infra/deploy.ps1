@@ -14,7 +14,8 @@ param(
   [string]$Location = 'spaincentral',
   [switch]$Infra,
   [switch]$App,
-  [switch]$NewInviteCode
+  [switch]$NewInviteCode,
+  [string]$InviteCode  # sets the code, for example to keep the old one when the web app is rebuilt
 )
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
@@ -29,8 +30,8 @@ if ($Infra) {
   $user = Invoke-RestMethod -Headers @{ Authorization = "Bearer $me" } -Uri 'https://graph.microsoft.com/v1.0/me?$select=id,userPrincipalName'
 
   # Keep the existing invite code unless asked for a new one.
-  $invite = $null
-  if (-not $NewInviteCode) {
+  $invite = $InviteCode
+  if (-not $invite -and -not $NewInviteCode) {
     $existing = az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv 2>$null
     if ($existing) { $invite = az webapp config appsettings list -g $rg -n $existing --subscription $Subscription --query "[?name=='Auth__InviteCode'].value | [0]" -o tsv 2>$null }
   }
@@ -55,8 +56,10 @@ if ($Infra) {
   try {
     $token = Invoke-Az account get-access-token --resource https://database.windows.net/ --subscription $Subscription --query accessToken -o tsv
     $sqlText = @"
-IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'$web')
-  CREATE USER [$web] FROM EXTERNAL PROVIDER;
+-- Re-create the user each time: a rebuilt web app has a new identity under the same name.
+IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = N'$web')
+  DROP USER [$web];
+CREATE USER [$web] FROM EXTERNAL PROVIDER;
 ALTER ROLE db_datareader ADD MEMBER [$web];
 ALTER ROLE db_datawriter ADD MEMBER [$web];
 ALTER ROLE db_ddladmin ADD MEMBER [$web];

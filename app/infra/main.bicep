@@ -1,14 +1,19 @@
-// Compicasa PoC, hosted as production (D-027, D-028) on free tiers (D-030). One environment, one resource group:
-// the web app in Spain Central, the database in France Central (the SQL free offer isn't available in Spain).
+// Compicasa PoC, hosted as production (D-027, D-028) on free tiers (D-030): the web app in West Europe, the database
+// in France Central until one region offers both free tiers (D-031).
+// One environment, one resource group. (The group itself was first made in Spain Central; a group's location is
+// only where its metadata lives, and the resources are in West Europe and France Central.)
 // Deploy with app/infra/deploy.ps1. No passwords exist: the app reaches Azure SQL with its managed identity,
 // and the database accepts Entra ID sign-in only.
 targetScope = 'subscription'
 
-@description('Region for the web app.')
-param location string = 'spaincentral'
+@description('Region for every resource. West Europe has App Service F1 quota on this subscription; France Central does not (D-031).')
+param location string = 'westeurope'
 
-@description('Region for the database. The SQL free offer is not available in Spain Central; France Central is the nearest EU region tried (D-030).')
+@description('Region for the database. On 2026-11-22 no EU region offered both App Service F1 and the SQL free offer on this subscription: France Central has the free database but no F1 quota; West Europe has F1 but accepts no new SQL servers; Sweden Central, Italy North and Poland Central fail to create a free database. So the database stays in France Central for now (D-031).')
 param sqlLocation string = 'francecentral'
+
+@description('Region of the resource group record (metadata only). It was created in Spain Central and cannot move.')
+param groupLocation string = 'spaincentral'
 
 @description('Short name used in resource names.')
 param name string = 'compicasa'
@@ -38,7 +43,7 @@ var tags = {
 
 resource rg 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: 'rg-${name}-prod'
-  location: location
+  location: groupLocation
   tags: tags
 }
 

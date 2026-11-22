@@ -35,6 +35,13 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 - The log cap is now 0.1 GB a day, and the budget alert is now €5.
 - All 24 browser checks pass on the free set-up.
 - Updated `app/README.md`, `app/infra/`, budget, risks (R-022), backlog (B-029), STATE and README. Expected cost €0, plus a few cents for the hours on B1 and SQL Basic. Checked with `git diff`; committed.
+Then Sam: "Move everything to Western Europe or somewhere in europe it's all in the same region. Doesn't have to be in spain". Recorded as D-031.
+- App Service resources can't change region, so I deleted the Spain Central web app, plan, Application Insights, its alert rule and the log workspace (no user data in any of them) and recreated them under the same names, which kept the address. The app was offline for about 20 minutes during the move.
+- France Central refused: its F1 quota on this subscription is 0. A validate-only probe found F1 quota in West Europe, Sweden Central, Italy North, Poland Central and Spain Central, but not in North Europe, Germany West Central or France Central.
+- West Europe then refused a new SQL server ("not accepting creation of new … SQL Database servers at this time").
+- In Sweden Central, Italy North and Poland Central the SQL server was created, but the free database failed with an internal error, repeatedly. A second free database on the France Central server worked, so it isn't a subscription limit.
+- Outcome: the web app on F1 in West Europe, the database stays on the free offer in France Central. The invite code is unchanged. The deploy script now re-creates the database user for a rebuilt web app's new identity and takes `-InviteCode`. I deleted the three empty test servers.
+- All 24 browser checks pass. F-015 added: how to get to one region. Checked with `git diff`; committed.
 
 ## 2026-11-22 · Session 11: privacy groundwork, rename, name clearance
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Legal & Compliance (B-013), the Builder and Tester (B-012), and Brand & Marketing (B-024)
