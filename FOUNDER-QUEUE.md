@@ -4,6 +4,10 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-030 · Push Session 26's work to `main` (B-063, B-061, B-060) · CLOSED 2026-11-23: approved in advance
+**Why:** a push to `main` deploys the app (D-041).
+**ANSWER (Sam, 2026-11-23, in Claude Code, after the three items were started):** "push when everything done. Weeee, straight to prod we goooo". Read as approval to push `main` once B-063, B-061 and B-060 are merged and the .NET and browser tests pass, within D-027. Not an approval for anything else (no real users, emails or spending).
+
 ### F-029 · Push *Where homes come from* and the "preview version" wording to `main` (B-062) · CLOSED 2026-11-23: pushed
 **Why:** a push to `main` deploys it (D-041). The new page and endpoint are public like the guide and `/bot`: agency names and counts only. No migration.
 **Options:** A) push now; B) wait and push with the live-in/rent-out work (B-063).
