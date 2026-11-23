@@ -970,10 +970,11 @@ function homeItem(x,medPm2,onGroup){
    homes, from the person's own email app: contacting real agencies needs Sam (F-024). */
 const SL_NOTES=['shortlisted','agreeView','agreeOffer','agreed'];
 /* Assumptions for the cost estimate, shown with it (product/2026-11-23-house-voting.md):
-   deposit 20% (banks usually lend up to 80%), the region's general ITP rate for a resale home (REGIONS in i18n.js, B-059),
-   other costs about 1.5%. A home we can't place uses the highest general rate, 10%, so the estimate isn't too low. */
-const COSTS={deposit:0.20,other:0.015,itpUnknown:10};
-function itpFor(home){const r=home&&areaRegion(home.area);return r?{rate:r.itp,region:tx(r.label)}:{rate:COSTS.itpUnknown,region:null};}
+   deposit 20% (banks usually lend up to 80%), the region's general ITP scale for a resale home at the whole home's price
+   (itpTax and REGIONS in i18n.js, B-059, B-060), other costs about 1.5%. A home we can't place uses the highest tax any
+   region charges at that price, so the estimate isn't too low. */
+const COSTS={deposit:0.20,other:0.015};
+function itpFor(home){const r=home&&areaRegion(home.area),v=itpTax(home&&home.price,r);return {rate:v.rate,region:r?tx(r.label):null};}
 const COPY={};
 async function loadShortlist(gid){
   if(!S.sl||S.sl.gid!==gid)S.sl={gid:gid,loading:true};

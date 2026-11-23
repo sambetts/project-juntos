@@ -7,7 +7,7 @@
 - People choose where they would buy from 56 areas: Madrid's five (kept, so existing profiles and the pilot plan, D-008, are unchanged) and every other province.
 - Homes are placed by postcode. The first two digits of a Spanish postcode are the province's INE code (Reported: Correos' numbering, not rechecked this session).
 - The Tecnocasa crawl keeps homes for sale anywhere in Spain, with the same limit of 3,000 adverts a day, so the rest of Spain fills in over several days.
-- The agreed-home estimate (D-043) uses each region's general ITP rate for a resale home, Verified on 2026-11-23 in each region's consolidated law (Gipuzkoa Reported). It uses the first band only, so it is low for dearer homes in regions with a scale.
+- The agreed-home estimate (D-043) uses each region's general ITP rate for a resale home, Verified on 2026-11-23 in each region's consolidated law (Gipuzkoa Reported). Since Session 26 (B-060) it applies each region's full scale to the home's price: `research/2026-11-23-itp-scales.md`.
 
 ## How it works
 | Part | What | Where |
@@ -20,7 +20,7 @@
 | Matching | Unchanged: shared areas count as before, so people in different provinces share no area | `Matching.cs` |
 
 ## ITP rates used (general rate, resale home)
-**Verified** 2026-11-23 in each region's current consolidated tax law (Research, Session 24): BOE's consolidated texts, which include regional laws, and the provincial governments' own texts for Bizkaia and Álava. The Ministry of Finance's yearly summary (Tributación Autonómica 2026) wasn't reachable (connection refused from two networks). The estimate uses the rate in the first band; "Scale" shows how dearer homes are taxed. The first pass (secondary sources) had Galicia at 9% and Murcia at 8%; both are corrected below.
+**Verified** 2026-11-23 in each region's current consolidated tax law (Research, Session 24): BOE's consolidated texts, which include regional laws, and the provincial governments' own texts for Bizkaia and Álava. The Ministry of Finance's yearly summary (Tributación Autonómica 2026) wasn't reachable (connection refused from two networks). "Rate used" is the first band; since B-060 (Session 26) the estimate applies the whole scale, Verified band by band in `research/2026-11-23-itp-scales.md`. The first pass (secondary sources) had Galicia at 9% and Murcia at 8%; both are corrected below.
 
 | Region | Rate used | Scale for dearer homes | Source (consolidated text; last update shown there) |
 |---|---|---|---|
@@ -47,6 +47,6 @@
 | Home we can't place | 10% | | So the estimate isn't too low |
 
 ## Open questions
-- Use each region's full scale in the estimate (proposed: B-060).
+- Each region's full scale: done in Session 26 (B-060); how a scale applies to co-buyers' shares is a question for the lawyer (`research/2026-11-23-itp-scales.md`).
 - Gipuzkoa's current text, and the 1955 reductions for Ceuta and Melilla.
 - Finer areas inside other big cities (Barcelona, Valencia, Sevilla), as Madrid has: wait for real geography (B-043).
