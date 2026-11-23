@@ -10,6 +10,7 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 **Recommendation:** A.
 **ANSWER (Sam, 2026-11-23, in Claude Code):** "Yes, push it". Read as approval to push `main` (Sessions 20 and 21, including the CI/CD workflow) so GitHub Actions deploys it, within D-027. Not an approval for anything else.
 **ANSWER (Sam, 2026-11-23, in Claude Code):** "You run it". Read as approval for the AI to add one federated credential, `github-main-ids` (subject `repo:sambetts@34576795/project-juntos@1467408746:ref:refs/heads/main`), to the app registration `compicasa-github-deploy`, and to re-run deploy run 45171544394. Not an approval for anything else.
+**ANSWER (Sam, 2026-11-23, in Claude Code):** "Once you've done that, push so it deploys". Read as approval to push `main` once the header menu (B-055) is built and checked, deploying it with the start-up screen fixes. Not an approval for anything else.
 
 ### F-022 · Deploy the Home page (B-053, D-040) · CLOSED 2026-11-23: deployed, see LOG Session 20
 **Why:** built and tested locally (47 .NET tests, 54 browser checks). The logo now opens a Home page: where you are (profile, people, group, home) with one next step, a profile score, and three homes for you and your best match. The "Proof of concept · made-up people" badge is gone from the header; the footer and the "Made up" tags remain. No database change.
