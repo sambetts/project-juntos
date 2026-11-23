@@ -1,0 +1,84 @@
+# The PoC's CI/CD (B-030): tests on every push and pull request; a push to main that changes the app
+# publishes it to Azure, as `app/infra/deploy.ps1 -App` does. Azure sign-in is OpenID Connect through the
+# app registration "compicasa-github-deploy": no stored secret, allowed only from main of this repository,
+# and its only role is Website Contributor on the web app. The infrastructure (Bicep, database access)
+# still deploys from a machine with `deploy.ps1 -Infra`.
+name: App
+
+on:
+  push:
+    paths: ['app/**', '.github/workflows/app.yml']
+  pull_request:
+    paths: ['app/**', '.github/workflows/app.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RESOURCE_GROUP: rg-compicasa-prod
+  WEB_APP: app-compicasa-prod-25yr5
+  DOTNET_NOLOGO: true
+
+jobs:
+  test:
+    # Windows, like the web app and the developers' machines
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Test
+        run: dotnet test app/Compicasa.slnx -c Release -v q
+      - name: Publish
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          dotnet publish app/src/Compicasa.Api/Compicasa.Api.csproj -c Release -o publish -v q
+          Compress-Archive -Path publish/* -DestinationPath app.zip
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        with:
+          name: app
+          path: app.zip
+          retention-days: 7
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    # One deploy at a time; a newer push waits for the one running
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: app
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Production signs in through External ID only (D-034)
+        shell: pwsh
+        run: |
+          $mode = ((az webapp config appsettings list -g $env:RESOURCE_GROUP -n $env:WEB_APP -o json) | ConvertFrom-Json | Where-Object name -eq 'Auth__Mode').value
+          if ($mode -ne 'External') { throw 'The web app is not set up for External ID sign-in (D-034): not deploying.' }
+      - name: Deploy
+        run: az webapp deploy -g ${{ env.RESOURCE_GROUP }} -n ${{ env.WEB_APP }} --src-path app.zip --type zip --restart true --track-status false -o none
+      - name: Wait until ready
+        shell: pwsh
+        run: |
+          $url = "https://$(az webapp show -g $env:RESOURCE_GROUP -n $env:WEB_APP --query defaultHostName -o tsv)/healthz/ready"
+          # The free database may be paused, so the first start can take a minute or two
+          for ($i = 0; $i -lt 30; $i++) {
+            try { $r = Invoke-WebRequest $url -TimeoutSec 30 -SkipHttpErrorCheck; if ($r.StatusCode -eq 200) { "Ready: $url"; exit 0 } } catch {}
+            Start-Sleep -Seconds 10
+          }
+          throw "Not ready after five minutes: $url"
