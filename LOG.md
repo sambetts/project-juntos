@@ -2,6 +2,26 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-23 · Session 26: live in or rent out, full ITP scales, the sheet race, the crawl's wake-up
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; three helpers in their own git worktrees (Product, Builder and Legal & Compliance for B-063; Builder and Tester for B-061; Research and Builder for B-060); the CEO (D-047)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** Session 25 (B-062 pushed on Sam's go, F-029; CI/CD run succeeded; `/api/homes/sources` live with 1,410 Tecnocasa homes). Sam: "push and then work on backlog items in new sesssions", then "push when everything done".
+**Goals:** 1. B-063 live in or rent out. 2. B-061 the flaky sheet step. 3. B-060 full ITP scales. (B-064 waits for Sam's description.)
+**Needs Sam:** F-031 (new): widen AGENTS.md's mission to include renting out; recommendation A.
+**Did**
+- B-047: the 05:00 crawl failed after 51 s (SQL error 40613, the free database waking; the retries give up after about 50 s). `Schema.WakeAsync` now waits up to 5 minutes. Starting today's missed run by hand was refused by the permission check, so it was left.
+- B-063 (D-047): purpose on each profile; same-purpose hard rule; letting path in the wizard, matching, brief and shortlist; Part C (letting) in the lawyer brief, Reported. Reviewed: no budget or protected trait in matching.
+- B-060: seven progressive ITP scales Verified in BOE; Valencia's article re-checked by the Chief of Staff (art. 13.Uno: 9%, 11% above 1 M €; text updated 10/08/2026); three amounts re-worked by hand.
+- B-061: an app race, not a test race (a render between `dialog.close()` and its "close" event lost the close); fixed in `app.js`, with forced-timing checks.
+- Merged the three branches (conflicts only in `sw.js` VERSION and the README test lines, resolved by hand). Records: D-047, D-045 evidence note, B-060/B-061/B-063 done, B-065 to B-070 proposed, F-030 and F-031.
+
+**Decided:** D-047 live in or rent out (Sam's request, recorded by the CEO).
+**Approvals used:** F-029 (push B-062, 2026-11-23); F-030 (push Session 26 when tests pass, 2026-11-23).
+**Learned:** the "intermittent test" was a real bug users could hit. The free database's wake-up outlasts EF's retries. TaskStop may not stop child processes of a shell loop on this Windows set-up (B-061 helper); check for leftover `node` processes. A double vote can return 500 (B-070).
+**Open or blocked:** F-031; B-064 (Sam's description); `WakeAsync` untested against Azure SQL until the 2026-11-24 05:00 run.
+**Saved and checked:** merged `main`: `dotnet test` 83 of 83; `node app/tests/itp/itp-check.mjs` 77 of 77; browser test 85 of 85 three runs in a row against a fresh local database. `git status` and `git diff --stat` checked against the records above before committing.
+**Next session should start with:** 1. The F-030 deploy and the 2026-11-24 05:00 crawl. 2. B-070. 3. B-065, B-068, then Legal's B-066 and B-067.
+
 ## 2026-11-23 · Session 25: where homes come from, and "preview version"
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Product (B-062) and the CEO (D-046)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
