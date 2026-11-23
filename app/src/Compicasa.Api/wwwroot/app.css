@@ -607,3 +607,42 @@ html[lang="en"] .boot [lang="es"]{display:none}
 @keyframes menu-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.menu{animation:none}}
 @media (max-width:720px){.menu{position:fixed;inset-inline:12px;inset-block-start:58px;inline-size:auto}}
+
+/* House voting (B-056): the shortlist, its rounds, votes and the "agreed" pack */
+#shortlist .quietbox{margin-block:8px 14px}
+.cands{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.cand{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cand.agreed{border-color:var(--good)}
+.cand-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.cand-head .price{font-size:21px;letter-spacing:-.02em}
+.cand .card{box-shadow:none;padding:10px 14px;margin:0}
+.stages{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;font-weight:600;color:var(--muted)}
+.stages li{display:flex;align-items:center;gap:6px}
+.stages .dot{display:inline-grid;place-items:center;inline-size:22px;block-size:22px;border-radius:50%;border:2px solid var(--border);font-size:12px}
+.stages .done{color:var(--good)}
+.stages .done .dot{background:var(--good-bg);border-color:var(--good)}
+.stages .now{color:var(--text)}
+.stages .now .dot{border-color:var(--brand);color:var(--brand)}
+.voters{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px 16px}
+.voters li{display:flex;align-items:center;gap:8px;font-size:14px;min-width:0}
+.vchip{border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;background:var(--surface-2);color:var(--muted)}
+.vchip.in{background:var(--teal-soft);color:var(--teal)}
+.vchip.yes{background:var(--good-bg);color:var(--good)}
+.vchip.maybe{background:var(--brand-soft);color:var(--brand)}
+.vchip.no{background:var(--warn-bg);color:var(--warn)}
+.vote{display:flex;flex-direction:column;gap:8px;background:var(--surface-2);border-radius:12px;padding:12px 14px}
+.reasons{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.packs{display:grid;gap:12px}
+.packs .nextstep{margin:0}
+.pack{border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pack h4{margin:0}
+.pack .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tablewrap{overflow-x:auto}
+table.costs{border-collapse:collapse;inline-size:100%;font-size:14px;font-variant-numeric:tabular-nums}
+table.costs th,table.costs td{padding:6px 8px;text-align:end;border-block-end:1px solid var(--border);white-space:nowrap}
+table.costs th[scope=row],table.costs thead th:first-child{text-align:start}
+table.costs tfoot th,table.costs tfoot td{font-weight:700;border-block-end:0}
+table.costs thead th{white-space:normal;vertical-align:bottom}
+.qs{margin:0;padding-inline-start:20px;display:grid;gap:6px}
+.draft{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:14px;background:var(--surface-2);border-radius:10px;padding:10px 12px;margin:0}
+@media (max-width:520px){table.costs .c-price{display:none}table.costs th,table.costs td{padding:6px 4px}}

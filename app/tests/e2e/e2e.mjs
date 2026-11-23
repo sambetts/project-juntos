@@ -63,10 +63,38 @@ async function homesCheck(tag) {
   await click('.subtabs [data-gsub="homes"]');
   await until(`/-homes$/.test(location.hash)`, tag + ': homes view has its own address');
   if (!await until(`document.querySelectorAll('#homes .home').length>0`, tag + ': homes that fit load')) return;
-  ok(await js(`[...document.querySelectorAll('#homes .home')].every(h=>{const a=h.querySelector('a.btn');return a?(a.target==='_blank'&&/noopener/.test(a.rel)&&/^https:/.test(a.href)&&/Ver el anuncio en /.test(a.textContent)):/inventada/.test(h.innerText);})`),
+  ok(await js(`[...document.querySelectorAll('#homes .home')].every(h=>{const a=h.querySelector('a.btn[rel~="external"]');return a?(a.target==='_blank'&&/noopener/.test(a.rel)&&/^https:/.test(a.href)&&/Ver el anuncio en /.test(a.textContent)):/inventada/.test(h.innerText);})`),
     tag + ': every home links to the agency advert in a new tab, or is marked made-up');
   await js(`document.getElementById('homes').scrollIntoView()`);
   await shot(tag + '-5b-homes-es');
+  await js('window.scrollTo(0,0)');
+}
+// House voting (B-056): add a home to the shortlist, vote yes round by round; when everyone agrees, the pack shows.
+async function voteCheck(tag) {
+  await click('.subtabs [data-gsub="homes"]');
+  if (!await until(`!!document.querySelector('#homes [data-action="sl-add"]')`, tag + ': homes offer "Add to shortlist"')) return;
+  await click('#homes [data-action="sl-add"]');
+  await until(`!!document.querySelector('#homes a[href$="-shortlist"]')`, tag + ': the home shows as on the shortlist');
+  await click('.subtabs [data-gsub="shortlist"]');
+  if (!await until(`/-shortlist$/.test(location.hash) && document.querySelectorAll('.cand').length===1`, tag + ': the shortlist is its own view, with the home')) return;
+  ok(await js(`document.querySelectorAll('.cand .stages li').length===3`), tag + ': three voting rounds');
+  for (let i = 0; i < 3; i++) {
+    if (!await js(`!!document.querySelector('.cand [data-action="sl-vote"][data-v="yes"]')`)) break;
+    await click('.cand [data-action="sl-vote"][data-v="yes"]');
+    await sleep(600);
+  }
+  const agreed = await js(`!!document.querySelector('.cand.agreed')`);
+  if (agreed) {
+    ok(await js(`!!document.querySelector('.cand table.costs') && document.querySelectorAll('.cand .qs li').length===9`), tag + ': agreed: cost per person and lawyer questions');
+    ok(await js(`(()=>{const d=document.querySelector('.cand pre.draft');const real=/Ver el anuncio/.test(document.querySelector('.cand').innerText);return real?!d&&/aún no están activados/.test(document.querySelector('.cand').innerText):!!d&&/^mailto:/.test(document.querySelector('.cand a[href^="mailto:"]').href);})()`), tag + ': an email draft for made-up homes only');
+  } else {
+    // A made-up member said maybe or no: their vote shows, with its reason, once everyone has voted.
+    ok(await js(`!!document.querySelector('.cand .vchip.maybe, .cand .vchip.no')`), tag + ': not agreed, and the votes show why');
+  }
+  ok(!EN_ONLY.test(await text()), tag + ': no English on the Spanish shortlist');
+  ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), tag + ': no sideways scrolling on the shortlist');
+  await js(`document.getElementById('shortlist').scrollIntoView()`);
+  await shot(tag + '-5e-shortlist-es');
   await js('window.scrollTo(0,0)');
 }
 async function size(w, h, mobile) { await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: mobile ? 2 : 1, mobile }); }
@@ -233,6 +261,7 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
     await until(`/^#group-[0-9a-f-]{36}$/.test(location.hash) && !document.querySelector('.headline')`, 'Back returns to the group overview');
     await shot(tag + '-5-group-es');
     await homesCheck(tag);
+    await voteCheck(tag);
     // Session 19 (B-036, B-037): the group's chat, Messages, the code of conduct, a scripted reply, the bell
     await click('.subtabs [data-gsub="chat"]');
     await until(`!!document.getElementById('chat-form') && /-chat$/.test(location.hash)`, 'the group chat is its own view');

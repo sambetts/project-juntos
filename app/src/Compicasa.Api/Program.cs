@@ -115,6 +115,7 @@ app.MapGet("/healthz/ready", async (AppDb db, CancellationToken ct) =>
 Accounts.Map(app);
 Api.Map(app);
 Social.Map(app);
+Shortlist.Map(app);
 // What our crawler does and how to block it (D-035); named in its user agent.
 app.MapGet("/bot", (IWebHostEnvironment env) => Results.File(Path.Combine(env.WebRootPath, "bot.html"), "text/html; charset=utf-8"));
 app.MapFallbackToFile("index.html");

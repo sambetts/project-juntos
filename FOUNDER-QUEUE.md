@@ -4,6 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-024 · Email drafts to real agencies once a group agrees on a home (B-056, D-043) · by 2026-12-07
+**Why:** when a group agrees on a home, the app now drafts a viewing request and an offer email for one member to send from their own email. It does this for made-up homes only. For real homes (Tecnocasa adverts) it says the feature is off, because a member could then contact a real company through our draft, which is yours to decide (AGENTS.md section 4).
+**Options:** A) keep it off until Pilot mode and the lawyer's review · B) switch it on now for you only, to try it with one agency yourself · C) switch it on for everyone
+**Recommendation:** A. There are no real users yet, and an agency partner (B-011) would be the better route.
+**If no answer:** it stays off for real homes.
+
 ### F-023 · Push the start-up screen to `main` (B-054) · CLOSED 2026-11-23: pushed and deployed, see LOG Session 21
 **Why:** the start-up screen was committed (27e2735) but not pushed; a push to `main` deploys through CI/CD (D-041). No database change.
 **Options:** A) push now · B) not yet

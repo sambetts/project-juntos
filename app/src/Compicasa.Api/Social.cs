@@ -73,6 +73,7 @@ public static class Threads
         await db.Blocks.Where(b => accounts.Contains(b.FromId) || accounts.Contains(b.ToId)).ExecuteDeleteAsync(ct);
         // Reports someone made go with their account; reports about them are kept for the safety record (B-013).
         await db.Reports.Where(r => accounts.Contains(r.FromId)).ExecuteDeleteAsync(ct);
+        await Shortlist.ForgetAsync(db, accounts, groups, ct);
     }
 }
 

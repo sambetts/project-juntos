@@ -111,6 +111,75 @@ namespace Compicasa.Api.Migrations
                     b.ToTable("Blocks");
                 });
 
+            modelBuilder.Entity("Compicasa.Api.Candidate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("AddedById")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("HomeId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int?>("PriceAtAdd")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId", "HomeId")
+                        .IsUnique();
+
+                    b.ToTable("Candidates");
+                });
+
+            modelBuilder.Entity("Compicasa.Api.CandidateVote", b =>
+                {
+                    b.Property<long>("CandidateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("AccountId")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Choice")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<int?>("Price")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.HasKey("CandidateId", "AccountId", "Stage");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("CandidateVotes");
+                });
+
             modelBuilder.Entity("Compicasa.Api.DemoState", b =>
                 {
                     b.Property<int>("Id")
@@ -436,6 +505,24 @@ namespace Compicasa.Api.Migrations
                     b.ToTable("ThreadReads");
                 });
 
+            modelBuilder.Entity("Compicasa.Api.Candidate", b =>
+                {
+                    b.HasOne("Compicasa.Api.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Compicasa.Api.CandidateVote", b =>
+                {
+                    b.HasOne("Compicasa.Api.Candidate", null)
+                        .WithMany("Votes")
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Compicasa.Api.GroupMember", b =>
                 {
                     b.HasOne("Compicasa.Api.Group", null)
@@ -443,6 +530,11 @@ namespace Compicasa.Api.Migrations
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Compicasa.Api.Candidate", b =>
+                {
+                    b.Navigation("Votes");
                 });
 
             modelBuilder.Entity("Compicasa.Api.Group", b =>

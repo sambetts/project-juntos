@@ -170,6 +170,8 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
     public DbSet<ThreadRead> ThreadReads => Set<ThreadRead>();
     public DbSet<Block> Blocks => Set<Block>();
     public DbSet<Report> Reports => Set<Report>();
+    public DbSet<Candidate> Candidates => Set<Candidate>();
+    public DbSet<CandidateVote> CandidateVotes => Set<CandidateVote>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -252,6 +254,23 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
             e.Property(x => x.Reason).HasMaxLength(16);
             e.Property(x => x.Note).HasMaxLength(1000);
             e.HasIndex(x => x.AboutId);
+        });
+        b.Entity<Candidate>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.HomeId).HasMaxLength(80);
+            e.Property(x => x.AddedById).HasMaxLength(40);
+            e.HasIndex(x => new { x.GroupId, x.HomeId }).IsUnique();
+            e.HasOne<Group>().WithMany().HasForeignKey(x => x.GroupId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Votes).WithOne().HasForeignKey(v => v.CandidateId).OnDelete(DeleteBehavior.Cascade);
+        });
+        b.Entity<CandidateVote>(e =>
+        {
+            e.HasKey(x => new { x.CandidateId, x.AccountId, x.Stage });
+            e.Property(x => x.AccountId).HasMaxLength(40);
+            e.Property(x => x.Choice).HasMaxLength(8);
+            e.Property(x => x.Reason).HasMaxLength(12);
+            e.HasIndex(x => x.AccountId);
         });
         b.Entity<DemoState>(e =>
         {

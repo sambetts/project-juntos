@@ -502,9 +502,11 @@ ${chips}${respond}
   const leave=!isPreview&&myStatus!=='pending'?`<p class="mt"><button type="button" class="btn small ghost danger" data-action="leave" data-id="${h.id}">${t('leave')}</button></p>`:'';
   /* Three views (B-051): Overview (where things stand, and how you fit), Home brief (the home, the rooms, what to agree), Homes */
   const hr=S.homes&&S.homes.gid===h.id&&S.homes.data?S.homes.data:null;
-  const sub=GSUBS.indexOf(S.gsub)>=0&&!(isPreview&&(S.gsub==='homes'||S.gsub==='chat'))?S.gsub:'overview';
+  const sl=S.sl&&S.sl.gid===h.id&&S.sl.data?S.sl.data:null;
+  const sub=GSUBS.indexOf(S.gsub)>=0&&!(isPreview&&(S.gsub==='homes'||S.gsub==='shortlist'||S.gsub==='chat'))?S.gsub:'overview';
   const subs=[['overview',t('gs_overview'),null,'',groupHash(h,'overview')],['brief',t('gs_brief'),null,'',groupHash(h,'brief')],
     ['homes',t('gs_homes'),hr?hr.homes.length:null,isPreview?t('gs_homesLater'):'',isPreview?'':groupHash(h,'homes')],
+    ['shortlist',t('gs_shortlist'),sl?sl.items.length:null,isPreview?t('gs_homesLater'):'',isPreview?'':groupHash(h,'shortlist')],
     ['chat',t('gs_chat'),null,isPreview?t('gs_homesLater'):'',isPreview?'':groupHash(h,'chat')]];
   const fitCard=`<section class="card"><h3>${t('fitH')}</h3>
 <div class="kpis">${kp(gs.min+'%',(ids.length>2?t('weakestK'):t('compatK'))+esc(dn(w.a))+' + '+esc(dn(w.b)))}${ids.length>2?kp(gs.avg+'%',esc(t('avgOf',gs.pairs.length))):''}</div>
@@ -541,6 +543,9 @@ ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>
   let next='';
   if(isPreview)next=banner;
   else if(myStatus==='pending')next='';
+  const agreedH=sl&&sl.items.find(x=>x.stage===3&&!x.gone),myTurn=sl?sl.items.filter(x=>slMyTurn(sl,x)).length:0;
+  if(!isPreview&&myStatus!=='pending'&&agreedH)next=`<div class="nextstep"><span>${esc(t('nextAgreed',euros(agreedH.home.price)))}</span><a class="btn small primary" href="${groupHash(h,'shortlist')}">${esc(t('nextAgreedBtn'))}</a></div>`;
+  else if(!isPreview&&myStatus!=='pending'&&myTurn)next=`<div class="nextstep"><span>${esc(t('nextVote',myTurn))}</span><a class="btn small primary" href="${groupHash(h,'shortlist')}">${esc(t('nextVoteBtn'))}</a></div>`;
   else if(h.state==='formed')next=`<div class="nextstep"><span>${esc(hr&&hr.homes.length?t('nextHomes',hr.homes.length):t('nextFormed'))}</span>${hr&&hr.homes.length?`<a class="btn small primary" href="${groupHash(h,'homes')}">${esc(t('nextHomesBtn'))}</a>`:`<a class="btn small" href="${groupHash(h,'brief')}">${esc(t('nextBriefBtn'))}</a>`}</div>`;
   else if(waiting.length)next=`<div class="nextstep"><span>${esc(t('gWaitingFor',names(waiting)))}</span><a class="btn small" href="${groupHash(h,'brief')}">${esc(t('nextBriefBtn'))}</a></div>`;
   else if(h.state==='broken')next=`<div class="nextstep"><span>${esc(life.canInvite?t('nextBroken'):t('gBrokenLine'))}</span></div>`;
@@ -549,8 +554,9 @@ ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>
   const overview=`${next}<div class="grid cols-2">${fitCard}<div class="stackcol">${chips}${isPreview?'':freePlaces(h,life,ids)}
 ${otile('brief',esc(cap(line)),t('oBrief'),[t('bathsN',hb.baths),h.size.min+'–'+h.size.max+' m²',where].join(' · '))}
 ${isPreview?'':otile('homes',hr?num(hr.homes.length):'…',t('oHomes'),hr?(hr.homes.length?t('oHomesSub',kEur(medP)):t('oHomesNone')):t('loading'))}
+${isPreview?'':otile('shortlist',sl?num(sl.items.length):'…',t('oShortlist'),sl?(sl.items.length?t('oShortlistSub',sl.items.filter(x=>x.stage===3).length,myTurn):t('oShortlistNone')):t('loading'))}
 </div></div>${leave}`;
-  const body={overview:overview,brief:briefView,homes:isPreview?'':homesSection(h.id),chat:isPreview?'':chatPanel({kind:'group',id:h.id})}[sub];
+  const body={overview:overview,brief:briefView,homes:isPreview?'':homesSection(h.id),shortlist:isPreview?'':shortlistSection(h),chat:isPreview?'':chatPanel({kind:'group',id:h.id})}[sub];
   return `${back}<header class="ghead"><div class="stack">${ids.map(id=>avatar(id,36)).join('')}</div><div class="gwho"><h2>${esc(ids.map(dn).join(' + '))}</h2><p class="hint">${stateLine} ${esc(lead)}</p></div></header>
 ${respond}
 ${subTabs(subs,sub,'data-gsub',t('gsAria'))}
@@ -582,6 +588,7 @@ function when(iso){
 function noteLink(n){
   if(n.kind==='like')return '#person-'+n.actor;
   if(n.kind==='match')return '#chat-'+n.actor;
+  if(n.group&&n.groupOpen&&SL_NOTES.indexOf(n.kind)>=0)return '#group-'+n.group+'-shortlist';
   return n.group&&n.groupOpen?'#group-'+n.group:'';
 }
 function viewAlerts(){
@@ -849,7 +856,7 @@ ${areaBars?`<figure class="chartcard"><figcaption><b>${esc(t('chAreaH'))}</b></f
 </div>`;
   if(market)return `${tiles}${charts}<p class="center"><button type="button" class="btn" data-action="hview" data-v="list">${esc(t('hxSeeList',sel.length))}</button></p>`;
   const shown=sel.slice(0,f.show),more=sel.length-shown.length;
-  return `${tiles}<ul class="homes">${shown.map(x=>homeItem(x,medPm2)).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-homes">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`;
+  return `${tiles}<ul class="homes">${shown.map(x=>homeItem(x,medPm2,true)).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-homes">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`;
 }
 function scatter(w,pts,selIds,refPm2){
   if(!pts.length)return '';
@@ -889,7 +896,7 @@ function planSvg(x){
   }
   return `<svg class="plan" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t('planAria',beds,baths))}">${s}</svg>`;
 }
-function homeItem(x,medPm2){
+function homeItem(x,medPm2,onGroup){
   const where=[x.district,x.municipality].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
   const facts=[typeLabel(x.type),x.beds!=null?t('homeBeds',x.beds):'',x.baths!=null?t('homeBaths',x.baths):'',x.m2?x.m2+' m²':''].filter(Boolean).join(' · ');
   /* misses first (they matter most), then confirmed must-haves, then the general fits; three at most */
@@ -907,7 +914,131 @@ function homeItem(x,medPm2){
   return `<li class="home" id="home-${esc(x.id)}"><div class="home-vis">${planSvg(x)}${energy}${x.isDemo?`<span class="demo">${esc(t('demoHomeTag'))}</span>`:''}</div>
 <div class="home-top"><b class="price">${esc(euros(x.price))}</b><div class="ring sm ${cls}" data-p="${x.score}" role="img" aria-label="${esc(t('homeFit',x.score))}"><b>${x.score}</b></div></div>
 <div class="pm2">${x.pm2?esc(num(Math.round(x.pm2))+' €/m²'):''} ${delta}</div>
-<div>${esc(facts)}</div><div class="who">${esc(where)} · ${esc(x.isDemo?t('demoAgency'):x.agency)}</div><div class="home-tags">${tags}</div>${check}<div class="row">${link}</div></li>`;
+<div>${esc(facts)}</div><div class="who">${esc(where)} · ${esc(x.isDemo?t('demoAgency'):x.agency)}</div><div class="home-tags">${tags}</div>${check}<div class="row">${link}${onGroup?slButton(x.id):''}</div></li>`;
+}
+/* ---------- house voting (B-056): a shortlist, three yes rounds, then the "agreed" pack ----------
+   Votes on a stage stay hidden until everyone still in has voted; a price change or a newcomer means voting again.
+   The pack is an estimate and a list of questions, never advice (AGENTS.md section 4). Emails only for made-up
+   homes, from the person's own email app: contacting real agencies needs Sam (F-024). */
+const SL_NOTES=['shortlisted','agreeView','agreeOffer','agreed'];
+/* Assumptions for the cost estimate, shown with it (product/2026-11-23-house-voting.md):
+   deposit 20% (banks usually lend up to 80%), ITP 6% (Comunidad de Madrid, resale), other costs about 1.5% */
+const COSTS={deposit:0.20,itp:0.06,other:0.015};
+const COPY={};
+async function loadShortlist(gid){
+  if(!S.sl||S.sl.gid!==gid)S.sl={gid:gid,loading:true};
+  try{const d=await api('GET','/api/groups/'+gid+'/shortlist');if(S.sl&&S.sl.gid===gid)S.sl={gid:gid,data:d};}
+  catch(e){S.sl={gid:gid,error:errText(e)};}
+  if(S.home&&S.home.id===gid)rerender();
+}
+function slData(){return S.home&&S.sl&&S.sl.gid===S.home.id?S.sl.data:null;}
+function slMine(x){const v=x.votes.find(v=>isMe(v.id));return v&&v.voted?v:null;}
+function slMyTurn(sl,x){return sl.canVote&&!x.gone&&x.stage<3&&!slMine(x);}
+function slButton(homeId){
+  const sl=slData(),h=S.home;if(!sl||!h||h.preview||!sl.canVote)return '';
+  const on=sl.items.some(x=>x.home&&x.home.id===homeId);
+  return on?`<a class="btn small ghost" href="${groupHash(h,'shortlist')}">✓ ${esc(t('slOn'))}</a>`
+    :`<button type="button" class="btn small" data-action="sl-add" data-id="${esc(homeId)}"${sl.items.length>=sl.max?' disabled':''}>+ ${esc(t('slAdd'))}</button>`;
+}
+function shortlistSection(h){
+  const r=S.sl&&S.sl.gid===h.id?S.sl:null;
+  const how=`<details class="quietbox"><summary>${esc(t('slHowH'))}</summary><ul class="tips">${t('slHow').map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details>`;
+  let body;
+  if(!r||r.loading)body=`<div class="skeleton"></div>`;
+  else if(r.error)body=`<p class="error">${esc(r.error)}</p>`;
+  else if(!r.data.items.length)body=`<div class="card empty left"><p><b>${esc(t('slNoneH'))}</b></p><p>${esc(t('slNone'))}</p><a class="btn primary" href="${groupHash(h,'homes')}">${esc(t('slGoHomes'))}</a></div>`;
+  else body=`${r.data.canVote?'':`<p class="hint">${esc(t('slCantVote'))}</p>`}<ul class="cands">${r.data.items.map(x=>candItem(h,r.data,x)).join('')}</ul>`;
+  return `<section id="shortlist"><p class="lead">${esc(t('slLead'))}</p>${how}${body}</section>`;
+}
+function stageBar(x){
+  return `<ol class="stages" aria-label="${esc(t('slStagesAria'))}">${['view','offer','buy'].map((k,i)=>{
+    const st=x.stage>i?'done':(x.stage===i?'now':'later');
+    return `<li class="${st}"${st==='now'?' aria-current="step"':''}><span class="dot" aria-hidden="true">${st==='done'?'✓':i+1}</span>${esc(t('st_'+k))}</li>`;}).join('')}</ol>`;
+}
+function voteChip(v){
+  if(!v.voted)return `<span class="vchip wait">${esc(t('vWaiting'))}</span>`;
+  if(!v.choice)return `<span class="vchip in">${esc(t('vVoted'))}</span>`;
+  return `<span class="vchip ${v.choice}">${esc(t('v_'+v.choice))}${v.reason?' · '+esc(t('r_'+v.reason)):''}</span>`;
+}
+function candItem(h,sl,x){
+  const o=x.home;
+  if(!o)return `<li class="card cand"><p>${esc(t('slMissing'))}</p>${x.canRemove?`<button type="button" class="linkbtn" data-action="sl-remove" data-id="${x.id}">${esc(t('slRemove'))}</button>`:''}</li>`;
+  const where=[o.district,o.municipality].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
+  const facts=[typeLabel(o.type),o.beds!=null?t('homeBeds',o.beds):'',o.baths!=null?t('homeBaths',o.baths):'',o.m2?o.m2+' m²':''].filter(Boolean).join(' · ');
+  const cls=o.score>=85?'hi':(o.score>=70?'mid':'lo');
+  const link=o.url&&!o.isDemo?`<a class="linkbtn" href="${esc(o.url)}" target="_blank" rel="noopener noreferrer external">${esc(t('seeAdvert',o.agency))} ↗</a>`:`<span>${esc(t('demoHome'))}</span>`;
+  const notes=(x.gone?`<p class="card warnbox">${esc(t('slGone'))}</p>`:'')+(x.repriced?`<p class="card notice">${esc(t('slRepriced',euros(x.repriced.from),euros(x.repriced.to)))}</p>`:'');
+  const mine=slMine(x),pick=S.slPick&&S.slPick.cid===x.id?S.slPick.choice:null;
+  let act='';
+  if(x.stage<3&&!x.gone&&sl.canVote){
+    const btn=c=>`<button type="button" class="chipbtn v-${c}" data-action="sl-vote" data-id="${x.id}" data-v="${c}" aria-pressed="${(pick||(mine&&mine.choice))===c}">${esc(t('v_'+c))}</button>`;
+    const reasons=pick?`<div class="reasons" role="group" aria-label="${esc(t('slWhy'))}"><span class="hint">${esc(t('slWhy'))}</span>${sl.reasons.map(r=>`<button type="button" class="chipbtn" data-action="sl-reason" data-id="${x.id}" data-c="${pick}" data-v="${r}">${esc(t('r_'+r))}</button>`).join('')}<button type="button" class="linkbtn" data-action="sl-reason" data-id="${x.id}" data-c="${pick}" data-v="">${esc(t('slSkipWhy'))}</button></div>`:'';
+    act=`<div class="vote"><b>${esc(t('q_'+x.stageName))}</b><div class="seg">${['yes','maybe','no'].map(btn).join('')}</div>${reasons}</div>`;
+  }
+  const people=`<ul class="voters">${x.votes.map(v=>`<li>${avatar(v.id,26)}<span>${esc(dn(v.id))}</span>${voteChip(v)}</li>`).join('')}</ul>${x.stage<3&&!x.revealed?`<p class="hint">${esc(t('slHidden'))}</p>`:''}`;
+  const extra=x.stage===3?agreedPack(h,sl,x):(x.stage>=1&&!x.gone?emailCard(sl,x,'view'):'');
+  const meta=`${esc(t('slAddedBy',dn(x.addedBy)))}${x.canRemove?` · <button type="button" class="linkbtn" data-action="sl-remove" data-id="${x.id}">${esc(t('slRemove'))}</button>`:''}`;
+  return `<li class="card cand${x.stage===3?' agreed':''}" id="cand-${x.id}">
+<div class="cand-head"><div><b class="price">${esc(euros(o.price))}</b> ${x.stage===3?`<span class="pill ok">${esc(t('slAgreedPill'))}</span>`:''}<div>${esc(facts)}</div><div class="who">${esc(where)} · ${esc(o.isDemo?t('demoAgency'):o.agency)}</div></div><div class="ring sm ${cls}" data-p="${o.score}" role="img" aria-label="${esc(t('homeFit',o.score))}"><b>${o.score}</b></div></div>
+${stageBar(x)}${notes}${people}${act}${extra}
+<p class="hint mt">${link} · ${meta}</p></li>`;
+}
+/* Shares for the estimate: equal, or by the rooms each household would have (the brief's room plan) */
+function slShares(h,ids){
+  if(S.slSplit==='rooms'&&h.rooms&&h.rooms.length){const tot=h.rooms.filter(r=>ids.indexOf(r.id)>=0).reduce((a,r)=>a+r.pct,0)||1;
+    return ids.map(id=>{const r=h.rooms.find(z=>z.id===id);return {id:id,share:r?r.pct/tot:0};});}
+  return ids.map(id=>({id:id,share:1/ids.length}));
+}
+function agreedPack(h,sl,x){
+  const o=x.home,P=o.price,ids=sl.voters;
+  let cost='';
+  if(P){
+    const sh=slShares(h,ids),up=COSTS.deposit+COSTS.itp+COSTS.other,loan=1-COSTS.deposit;
+    const row=s=>`<tr><th scope="row">${esc(dn(s.id))}</th><td>${num(Math.round(s.share*100))} %</td><td class="c-price">${esc(euros(Math.round(P*s.share)))}</td><td>${esc(euros(Math.round(P*up*s.share)))}</td><td>${esc(euros(Math.round(P*loan*s.share)))}</td></tr>`;
+    cost=`<section class="pack"><h4>${esc(t('pkCostH'))}</h4>
+<div class="seg2" role="group" aria-label="${esc(t('pkSplit'))}"><button type="button" class="chipbtn" data-action="sl-split" data-v="equal" aria-pressed="${S.slSplit!=='rooms'}">${esc(t('pkEqual'))}</button><button type="button" class="chipbtn" data-action="sl-split" data-v="rooms" aria-pressed="${S.slSplit==='rooms'}">${esc(t('pkRooms'))}</button></div>
+<div class="split" aria-hidden="true">${sh.map(s=>`<span data-w="${(s.share*100).toFixed(1)}" data-bg="${esc((PEOPLE[s.id]||{}).color||'#495057')}"></span>`).join('')}</div>
+<div class="tablewrap"><table class="costs"><thead><tr><th scope="col">${esc(t('pkWho'))}</th><th scope="col">${esc(t('pkShare'))}</th><th scope="col" class="c-price">${esc(t('pkPrice'))}</th><th scope="col">${esc(t('pkUpfront'))}</th><th scope="col">${esc(t('pkLoan'))}</th></tr></thead>
+<tbody>${sh.map(row).join('')}</tbody><tfoot><tr><th scope="row">${esc(t('pkTotal'))}</th><td>100 %</td><td class="c-price">${esc(euros(P))}</td><td>${esc(euros(Math.round(P*up)))}</td><td>${esc(euros(Math.round(P*loan)))}</td></tr></tfoot></table></div>
+<p class="hint">${esc(t('pkCostNote'))}</p></section>`;
+  }
+  const qs=lawyerQuestions(h,ids,P?slShares(h,ids):null);
+  const key='q'+x.id;COPY[key]=t('pkQH')+'\n\n'+qs.map((q,i)=>(i+1)+'. '+q).join('\n');
+  const questions=`<section class="pack"><h4>${esc(t('pkQH'))}</h4><p class="hint">${esc(t('pkQLead'))}</p><ol class="qs">${qs.map(q=>`<li>${esc(q)}</li>`).join('')}</ol>
+<div class="row"><button type="button" class="btn small" data-action="sl-copy" data-id="${key}">${esc(t('pkCopy'))}</button><a class="btn small ghost" href="${groupHash(h,'brief')}">${esc(t('pkBrief'))}</a></div></section>`;
+  return `<div class="packs"><p class="nextstep"><span>${esc(t('pkLead'))}</span></p>${cost}${questions}${emailCard(sl,x,'offer')}</div>`;
+}
+function lawyerQuestions(h,ids,shares){
+  const split=shares?listAnd(shares.map(s=>dn(s.id)+' '+num(Math.round(s.share*100))+' %')):'';
+  const rooms=h.rooms&&h.rooms.length?listAnd(h.rooms.filter(r=>ids.indexOf(r.id)>=0).map(r=>dn(r.id)+' '+r.rooms)):'';
+  return [t('lq_shares',ids.length,split),t('lq_money'),t('lq_mortgage'),t('lq_costs'),t('lq_rooms',rooms),t('lq_decide'),t('lq_leave'),t('lq_life'),t('lq_end')];
+}
+function emailCard(sl,x,kind){
+  const o=x.home,title=t(kind==='view'?'emViewH':'emOfferH');
+  if(!o.isDemo)return `<section class="pack"><h4>${esc(title)}</h4><p class="hint">${esc(t('emRealOff'))}</p></section>`;
+  const facts=[typeLabel(o.type).toLowerCase(),o.beds!=null?t('homeBeds',o.beds):'',o.m2?o.m2+' m²':''].filter(Boolean).join(', ');
+  const where=[o.district,o.municipality].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
+  const subject=t(kind==='view'?'emViewSubj':'emOfferSubj',facts,where);
+  const body=t(kind==='view'?'emViewBody':'emOfferBody',sl.voters.length,facts,where,euros(o.price),o.id,listAnd(sl.voters.map(personName)));
+  const key='e'+kind+x.id;COPY[key]=subject+'\n\n'+body;
+  return `<section class="pack"><h4>${esc(title)}</h4><p class="hint">${esc(t('emLead'))}</p>
+<pre class="draft">${esc(subject)}
+
+${esc(body)}</pre>
+<div class="row"><a class="btn small primary" href="${esc('mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body))}">${esc(t('emOpen'))}</a><button type="button" class="btn small" data-action="sl-copy" data-id="${key}">${esc(t('pkCopy'))}</button></div></section>`;
+}
+async function slCall(method,path,body,msg){
+  const gid=S.home&&S.home.id;if(!gid)return;
+  try{const d=await api(method,'/api/groups/'+gid+'/shortlist'+path,body);S.sl={gid:gid,data:d};S.slPick=null;rerender();if(msg)toast(msg);}
+  catch(e){toast(errText(e));rerender();}
+}
+async function slVote(cid,choice,reason){
+  const gid=S.home&&S.home.id;if(!gid)return;
+  const before=(slData()||{items:[]}).items.find(x=>x.id===cid),st=before?before.stage:0;
+  try{const d=await api('PUT','/api/groups/'+gid+'/shortlist/'+cid+'/vote',{choice:choice,reason:reason||null});S.sl={gid:gid,data:d};S.slPick=null;rerender();
+    const after=d.items.find(x=>x.id===cid);
+    toast(after&&after.stage>st?(after.stage===3?t('tAgreed'):t('tStageOn',t('st_'+after.stageName))):t('tVoted'));}
+  catch(e){toast(errText(e));rerender();}
 }
 function updateHomes(){
   const el=document.getElementById('hx-results');if(!el||!S.hf)return;
@@ -972,6 +1103,7 @@ document.addEventListener('pointermove',e=>{
 });
 document.addEventListener('pointerleave',()=>{tipEl.hidden=true;});
 async function loadHomes(gid){
+  loadShortlist(gid);
   S.homes={gid:gid,loading:true};
   try{const d=await api('GET','/api/groups/'+gid+'/homes');if(S.homes&&S.homes.gid===gid){S.homes={gid:gid,data:d};}}
   catch(e){S.homes={gid:gid,error:errText(e)};}
@@ -1100,7 +1232,7 @@ function render(){
    #people-review|-liked|-matches|-passed · #person-<id> (a sheet over People) · #groups ·
    #group-<id>[-brief|-homes] · #preview[-brief] · #profile · #home (the logo's page, Session 20).
    #help, #terms, #privacy, #lang= and #authError= are read by readHash as before. */
-const GSUBS=['overview','brief','homes','chat'];
+const GSUBS=['overview','brief','homes','shortlist','chat'];
 function groupHash(h,sub){return (h.preview?'#preview':'#group-'+h.id)+(sub&&sub!=='overview'?'-'+sub:'');}
 function routeHash(){
   if(!inApp())return '';
@@ -1124,7 +1256,7 @@ function parseRoute(h){
   if(h==='messages')return {tab:'messages'};
   if((m=/^chat-([A-Za-z0-9_.-]{1,64})$/.exec(h)))return {tab:'messages',chat:m[1]};
   if((m=/^preview(?:-(brief))?$/.exec(h)))return {tab:'groups',preview:true,gsub:m[1]||'overview'};
-  if((m=/^group-([0-9a-f-]{36})(?:-(brief|homes|chat))?$/.exec(h)))return {tab:'groups',gid:m[1],gsub:m[2]||'overview'};
+  if((m=/^group-([0-9a-f-]{36})(?:-(brief|homes|shortlist|chat))?$/.exec(h)))return {tab:'groups',gid:m[1],gsub:m[2]||'overview'};
   return null;
 }
 function syncHash(){
@@ -1396,6 +1528,12 @@ document.addEventListener('click',async e=>{
       f.show=12;rerenderHomes('[data-action="hf"][data-k="'+k+'"][data-v="'+v+'"]');break;}
     case 'hf-reset':if(S.home){S.hf=null;hfFor(S.home.id);rerenderHomes('#hx-filters summary');}break;
     case 'hview':S.hview=el.getAttribute('data-v');rerenderHomes('[data-action="hview"][data-v="'+S.hview+'"]');break;
+    case 'sl-add':el.disabled=true;slCall('POST','',{homeId:id},t('tShortlisted'));break;
+    case 'sl-remove':slCall('DELETE','/'+id,undefined,t('tSlRemoved'));break;
+    case 'sl-vote':{const v=el.getAttribute('data-v'),cid=+id;if(v==='yes')slVote(cid,'yes');else{S.slPick={cid:cid,choice:v};rerender();const f=app.querySelector('#cand-'+cid+' .reasons .chipbtn');if(f)f.focus();}break;}
+    case 'sl-reason':slVote(+id,el.getAttribute('data-c'),el.getAttribute('data-v'));break;
+    case 'sl-split':S.slSplit=el.getAttribute('data-v');rerender();break;
+    case 'sl-copy':try{await navigator.clipboard.writeText(COPY[id]||'');toast(t('tCopied'));}catch(err){toast(t('tCopyFailed'));}break;
     case 'more-homes':if(S.hf){S.hf.show+=12;updateHomes();}break;
     case 'bin':if(S.hf){S.hf.pmin=+el.getAttribute('data-lo');S.hf.pmax=+el.getAttribute('data-hi');const[plo,phi]=priceBounds(homesAll());if(S.hf.pmin<=plo)S.hf.pmin=null;if(S.hf.pmax>=phi)S.hf.pmax=null;S.hf.show=12;rerenderHomes();}break;
     case 'dot':{const f=S.hf;if(!f)break;if(S.hview==='market'){S.hview='list';rerenderHomes();}const list=hfApply(homesAll(),f).sort(HSORTS[f.sort]||HSORTS.fit),i=list.findIndex(x=>x.id===id);if(i>=f.show){f.show=i+1;updateHomes();}
@@ -1403,7 +1541,7 @@ document.addEventListener('click',async e=>{
     case 'more-people':{mfState().show+=12;updateMatches();break;}
     case 'mf-chart':{const f=mfState();f.chart=!f.chart;el.setAttribute('aria-pressed',String(f.chart));updateMatches();break;}
     case 'score-bin':{const f=mfState();f.min=+el.getAttribute('data-lo');const r=document.getElementById('mf-min');if(r)r.value=f.min;const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');updateMatches();break;}
-    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.inbox=null;S.chats=null;S.chat=null;S.chatKey=null;S.blocks=null;S.dashHomes=null;S.counts={alerts:0,messages:0,invites:0};S.authMode='signin';render();break;}
+    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.inbox=null;S.chats=null;S.chat=null;S.chatKey=null;S.blocks=null;S.dashHomes=null;S.sl=null;S.counts={alerts:0,messages:0,invites:0};S.authMode='signin';render();break;}
     case 'delete-account':if(window.confirm(t('deleteConfirm'))){try{await api('DELETE','/api/me');S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];render();}catch(err){toast(errText(err));}}break;
   }
 });

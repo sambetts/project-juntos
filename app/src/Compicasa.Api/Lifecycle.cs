@@ -106,6 +106,14 @@ public static class NoteKind
     /// <summary>Someone was invited into a free place in your group (the actor is the newcomer).</summary>
     public const string Invited = "invited";
     public const string Formed = "formed";
+    /// <summary>A member added a home to the group's shortlist (B-056; the actor added it).</summary>
+    public const string Shortlisted = "shortlisted";
+    /// <summary>Everyone said yes to viewing a shortlisted home.</summary>
+    public const string AgreeView = "agreeView";
+    /// <summary>Everyone said yes to making an offer.</summary>
+    public const string AgreeOffer = "agreeOffer";
+    /// <summary>Everyone said yes to going ahead: the group agrees on a home.</summary>
+    public const string Agreed = "agreed";
 }
 
 /// <summary>An event in someone's in-app inbox (B-037). Only real people get them; wording lives in the front end.</summary>
