@@ -165,42 +165,50 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   }
 
   if (signup) {
-    // The onboarding wizard: nine steps, matches locked until the end.
+    // The onboarding wizard: ten steps to live in the home (eight to rent it out, B-063), matches locked until the end.
     await until(`!!document.querySelector('.wizard')`, 'onboarding wizard starts');
     ok(await js(`!document.querySelector('#tabs [data-tab]')`), 'no tabs until onboarding is done');
-    ok(/Paso 1 de 9/.test(await text()), 'wizard shows its progress');
+    ok(/Paso 1 de 10/.test(await text()), 'wizard shows its progress');
     ok(await js(`document.getElementById('f-name').value`) === 'Prueba', 'wizard starts from the name given at sign-up');
     await shot(tag + '-2-wizard-1-es');
     await click('[data-action="wiz-next"]');
-    await until(`/Paso 2 de 9/.test(document.body.innerText)`, 'wizard step 2');
+    await until(`/Paso 2 de 10/.test(document.body.innerText)`, 'wizard step 2');
+    // B-063: what the home is for. To live in by default; renting it out shortens the wizard.
+    ok(await js(`document.querySelector('input[data-field="purpose"][value="live"]').checked && /Para alquilar/.test(document.body.innerText)`), 'wizard asks what the home is for, to live in by default');
+    await click('input[data-field="purpose"][value="let"]');
+    await until(`/Paso 2 de 8/.test(document.body.innerText) && document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'renting it out skips the living-together steps');
+    await click('input[data-field="purpose"][value="live"]');
+    await until(`/Paso 2 de 10/.test(document.body.innerText) && document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'and living there brings them back');
+    await click('[data-action="wiz-next"]');
+    await until(`/Paso 3 de 10/.test(document.body.innerText)`, 'wizard step 3');
     await click('[data-action="preset"][data-id="room"]');
     await until(`document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'example saved');
     ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), 'no sideways scrolling in the wizard');
-    for (let n = 3; n <= 9; n++) {
+    for (let n = 4; n <= 10; n++) {
       await click('[data-action="wiz-next"]');
-      await until(`/Paso ${n} de 9/.test(document.body.innerText)`, 'wizard step ' + n);
-      if (n === 6) {
+      await until(`/Paso ${n} de 10/.test(document.body.innerText)`, 'wizard step ' + n);
+      if (n === 7) {
         // B-059: areas anywhere in Spain, one folding group per region; Madrid open to start with.
         ok(await js(`document.querySelectorAll('details.region').length === 19`), 'area picker lists the 19 regions');
         ok(await js(`document.querySelector('details.region[data-region="mad"]').open`), 'area picker opens Madrid');
         await js(`(() => { document.querySelector('details.region[data-region="and"]').open = true; document.querySelector('input[data-field="areas"][value="p41"]').click(); })()`);
         await until(`/Has elegido:.*Sevilla/.test(document.body.innerText) && document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'a province outside Madrid can be chosen and saved');
-        await shot(tag + '-2-wizard-6-areas-es');
+        await shot(tag + '-2-wizard-7-areas-es');
         ok(await js(`document.querySelector('details.region[data-region="and"]').open && /1/.test(document.querySelector('details.region[data-region="and"] summary').textContent)`), 'its region stays open with a count');
         await js(`document.querySelector('input[data-field="areas"][value="p41"]').click()`);
         await until(`!/Sevilla/.test(document.querySelector('.regions')?.previousElementSibling?.textContent || '')`, 'and taken off again');
         ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), 'no sideways scrolling in the area picker');
       }
-      if (n === 7) {
+      if (n === 8) {
         // B-058: the budget step needs an amount before it lets you on.
         await click('[data-action="wiz-next"]');
         await until(`/10\.000/.test(document.getElementById('wiz-error')?.textContent || '')`, 'wizard asks for a budget');
-        ok(/Paso 7 de 9/.test(await text()), 'wizard stays on the budget step until it has one');
+        ok(/Paso 8 de 10/.test(await text()), 'wizard stays on the budget step until it has one');
         await js(`(() => { const el = document.getElementById('f-maxBudget'); el.value = '200000'; el.dispatchEvent(new Event('change', { bubbles: true })); })()`);
         await until(`document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'budget saved');
       }
     }
-    await shot(tag + '-2-wizard-9-es');
+    await shot(tag + '-2-wizard-10-es');
     await click('[data-action="wiz-finish"]');
     await until(`!!document.querySelector('#tabs [data-tab]')`, tag + ' onboarding finished');
   } else {
@@ -254,6 +262,7 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   ok(await js(`document.getElementById('actionbar').hidden`), tag + ': no bottom action bar on People without a group draft');
   ok(await js(`/^#people-/.test(location.hash)`), tag + ': People has an address');
   ok(await js(`document.querySelectorAll('.subtabs .stab').length===3`), tag + ': People has three views (to review, liked, matches)');
+  ok(/Buscas vivienda: para vivir/.test(await text()), tag + ': People says which purpose it shows (B-063)');
   await click('.pcard .more');
   await until(`!!document.querySelector('dialog.sheet[open]') && /^#person-/.test(location.hash)`, tag + ': More opens the person sheet with its own address');
   await click('[data-action="close-sheet"]');

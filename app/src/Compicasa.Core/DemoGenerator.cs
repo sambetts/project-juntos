@@ -64,6 +64,14 @@ public static class DemoGenerator
         new("Me encantaría compartir cenas de vez en cuando.", "I'd love to share dinners now and then."),
     ];
 
+    /// <summary>What a made-up person buying to rent out says instead of a wish about living there (B-063).</summary>
+    static readonly LocalizedText[] LetWishes =
+    [
+        new("Busco una vivienda para alquilarla a largo plazo.", "I'm looking for a home to let long term."),
+        new("Quiero invertir en un piso para alquilar con más gente.", "I want to buy a flat to let, together with others."),
+        new("Me interesa comprar para alquilar, no para vivir.", "I'm interested in buying to let, not to live in."),
+    ];
+
     /// <summary>The id prefix for a day's batch; ids are "gen-YYYYMMDD-NN".</summary>
     public static string Prefix(DateOnly day) => $"gen-{day:yyyyMMdd}-";
 
@@ -120,6 +128,13 @@ public static class DemoGenerator
             var job = Pick(Jobs); var habit = Pick(Habits); var wish = Pick(Wishes);
             p.Bio = new LocalizedText($"{job.Es} {habit.Es} {wish.Es}", $"{job.En} {habit.En} {wish.En}");
             p.MaxBudget = Budgets.DemoFor(p); // from the id, so the day's other answers stay as they were
+            // B-063: about one in four buys to rent out, also from the id; their bio says so instead of a wish about living there
+            p.Purpose = Purposes.DemoFor(p.Id);
+            if (p.IsLet())
+            {
+                var lw = LetWishes[i % LetWishes.Length];
+                p.Bio = new LocalizedText($"{job.Es} {habit.Es} {lw.Es}", $"{job.En} {habit.En} {lw.En}");
+            }
             list.Add(p);
         }
         return list;

@@ -7,6 +7,7 @@
 The service should find both the people and the homes that fit.
 
 ## Profile fields
+- What the home is for (B-063, Session 26): to live in it (the default) or to rent it out. People match only with the same purpose. Details: `2026-11-23-live-or-let.md`.
 - Household type: single, couple, family, single parent. It shapes the home brief and isn't scored. Whether it may filter real people waits for D-009.
 - Bedrooms wanted, desks or workspaces, and whether a second living space is needed.
 - Who they'll live with (D-009 decides whether this can filter real people).
@@ -28,6 +29,7 @@ The service should find both the people and the homes that fit.
 7. A tie-break rule for disagreements, agreed up front.
 
 ## Rules as built in the prototype (v0.3, made-up profiles only)
+The app adds one rule before all of these (B-063): people with different purposes never match, and two people buying to rent out skip the living-together dealbreakers, score on place, horizon and priorities only, and get a brief for the home itself (`2026-11-23-live-or-let.md`). The prototype has no purpose: everyone there lives in the home.
 - **Dealbreakers, checked both ways:**
   - who each side will share with (a demo preference, pending D-009)
   - smoking and pets

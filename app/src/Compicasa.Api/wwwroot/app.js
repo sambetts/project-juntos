@@ -20,6 +20,11 @@ function featLabel(id){const f=FEATURES.find(x=>x.id===id);return f?tx(f.label):
 function horizonLabel(id){const h=HORIZONS.find(x=>x.id===id);return h?tx(h.label):id;}
 function petText(pets){return listAnd(pets.map(p=>tx(PET_WORDS_[p])||p));}
 function homeType(types){return types.length===1?typeLabel(types[0]).toLowerCase():(types.length?t('typeBoth'):t('typeNone'));}
+/* B-063: live in it or rent it out */
+function isLet(p){return !!p&&p.purpose==='let';}
+function purposeLabel(p){return t(p==='let'?'purposeLet':'purposeLive');}
+/* Score parts in a fixed order; a letting score has no "how you live" (B-063) */
+function partKeys(parts){return Object.keys(WEIGHTS).filter(k=>parts&&parts[k]!=null);}
 function hhLabel(p){
   if(p.household==='family')return t('hhFamily',p.adults,t('kids',p.kids));
   if(p.household==='singleParent')return t('hhSingleParent',t('kids',p.kids));
@@ -153,10 +158,10 @@ function applyStyles(root){
 
 /* ---------- presets (from the prototype) ---------- */
 const PRESETS={
-  family:{label:{en:'Family wanting half a house',es:'Familia que busca media casa'},v:{household:'family',adults:2,kids:2,bedrooms:3,privateBath:true,cars:1,pets:[],acceptsPets:true,smoking:'no',acceptsSmoking:'outside',
+  family:{label:{en:'Family wanting half a house',es:'Familia que busca media casa'},v:{purpose:'live',household:'family',adults:2,kids:2,bedrooms:3,privateBath:true,cars:1,pets:[],acceptsPets:true,smoking:'no',acceptsSmoking:'outside',
     sleep:2,tidy:4,social:2,guests:2,meals:2,wfh:true,horizon:'10+',areas:['north','city'],types:['house'],
     needs:{parking:'must',garden:'must',schools:'must',quiet:'nice',pool:'nice',storage:'nice'},open:['family','singleParent'],maxHouseholds:2}},
-  room:{label:{en:'Just a room, open to anyone',es:'Solo una habitación, con quien sea'},v:{household:'single',adults:1,kids:0,bedrooms:1,privateBath:false,cars:0,pets:[],acceptsPets:true,smoking:'no',acceptsSmoking:'outside',
+  room:{label:{en:'Just a room, open to anyone',es:'Solo una habitación, con quien sea'},v:{purpose:'live',household:'single',adults:1,kids:0,bedrooms:1,privateBath:false,cars:0,pets:[],acceptsPets:true,smoking:'no',acceptsSmoking:'outside',
     sleep:3,tidy:3,social:3,guests:3,meals:3,wfh:false,horizon:'5-9',areas:['centre','city','north','south','east'],types:['flat','house'],
     needs:{transport:'must'},open:['single','couple','family','singleParent'],maxHouseholds:4}}
 };
@@ -237,6 +242,11 @@ function viewLegal(kind){
 }
 
 const SECTIONS={
+  purpose:u=>`<div class="field"><span class="label">${esc(t('purposeQ'))}</span><div class="seg purpose" role="radiogroup" aria-label="${esc(t('purposeQ'))}">${['live','let'].map(id=>`<label class="opt"><input type="radio" name="f-purpose" data-field="purpose" value="${id}"${u.purpose===id?' checked':''}>${esc(purposeLabel(id))} <span class="hint">${esc(t(id==='let'?'purposeLetHint':'purposeLiveHint'))}</span></label>`).join('')}</div></div>
+<p class="hint">${esc(t('purposeNote'))}</p>`,
+  letting:u=>`${selectField('bedrooms',t('letBedsLabel'),[1,2,3,4],u.bedrooms)}
+${selectField('maxHouseholds',t('letMaxLabel'),[{id:2,label:t('maxHH2')},{id:3,label:'3'},{id:4,label:t('maxHH4')}],u.maxHouseholds)}
+<p class="hint">${esc(t('letSkipped'))}</p>`,
   name:u=>{const bio=u.bio?(u.bio.es||''):'';return `<div class="field"><label for="f-name">${esc(t('nameLabel'))}</label><input id="f-name" data-field="name" maxlength="40" autocomplete="nickname" value="${esc(u.name)}"></div>
 <div class="field"><label for="f-bio">${esc(t('bioLabel'))}</label><textarea id="f-bio" data-field="bio" maxlength="400" rows="3">${esc(bio)}</textarea><p class="hint">${esc(t('bioHint'))}</p></div>`;},
   household:u=>{const hasKids=u.household==='family'||u.household==='singleParent';return `${radioGroup('household',loc(HOUSEHOLDS),u.household,t('yourHousehold'))}
@@ -255,7 +265,7 @@ ${checkField('acceptsPets',t('okPets'),u.acceptsPets)}
 ${selectField('acceptsSmoking',t('smokersQ'),[{id:'none',label:t('smokersNone')},{id:'outside',label:t('smokersOut')},{id:'any',label:t('smokersAny')}],u.acceptsSmoking)}`,
   where:u=>`${areaPicker(u.areas)}
 ${checkGroup('types',t('typesLabel'),loc(TYPES),u.types)}
-${radioGroup('horizon',loc(HORIZONS),u.horizon,t('horizonLabel'))}`,
+${radioGroup('horizon',loc(HORIZONS),u.horizon,isLet(u)?t('letHorizonLabel'):t('horizonLabel'))}`,
   budget:u=>`<div class="field"><label for="f-maxBudget">${esc(t('budgetLabel'))}</label><input id="f-maxBudget" type="number" inputmode="numeric" min="10000" max="5000000" step="5000" data-field="maxBudget" value="${u.maxBudget==null?'':u.maxBudget}" placeholder="150000"><p class="hint">${esc(t('budgetHint'))}</p></div>`,
   needs:u=>`<p class="hint">${t('needsHint')}</p>
 <div class="feat">${FEATURES.map(f=>featBtn(f,u.needs[f.id])).join('')}</div>`
@@ -264,12 +274,14 @@ function presetButtons(){return Object.keys(PRESETS).map(k=>`<button type="butto
 
 /* One line per section: what you answered, so the profile reads as a summary until you open a section (B-051) */
 const SUMMARY={
+  purpose:u=>purposeLabel(u.purpose),
+  letting:u=>[t('letBedsN',u.bedrooms),t('sumMaxHH',u.maxHouseholds)].join(' · '),
   name:u=>[u.name,u.bio?t('sumBio'):''].filter(Boolean).join(' · '),
   household:u=>cap(hhLabel(u)),
   space:u=>[t('bedroomsN',u.bedrooms),u.privateBath?t('ownBathFact'):t('sharesBath'),u.cars?t('parkingN',u.cars):t('sumNoParking'),u.pets.length?cap(petText(u.pets)):''].filter(Boolean).join(' · '),
   live:u=>[u.wfh?t('wfhFact'):'',t('sumSmoke_'+u.smoking),t('sumSliders')].filter(Boolean).join(' · '),
   share:u=>[t('sumOpen',u.open.length),t('sumMaxHH',u.maxHouseholds),u.acceptsPets?t('okPets'):''].filter(Boolean).join(' · '),
-  where:u=>[cap(listOr(u.areas.map(areaLabel))),homeType(u.types),t('staying',horizonLabel(u.horizon))].filter(Boolean).join(' · '),
+  where:u=>[cap(listOr(u.areas.map(areaLabel))),homeType(u.types),t(isLet(u)?'keeping':'staying',horizonLabel(u.horizon))].filter(Boolean).join(' · '),
   budget:u=>u.maxBudget==null?t('sumNoBudget'):t('sumBudget',euros(u.maxBudget)),
   needs:u=>{const k=Object.keys(u.needs),m=k.filter(x=>u.needs[x]==='must'),n=k.filter(x=>u.needs[x]==='nice');return [m.length?t('sumMust',listAnd(m.map(x=>featLabel(x).toLowerCase()))):'',n.length?t('sumNice',n.length):''].filter(Boolean).join(' · ')||t('sumNoNeeds');}
 };
@@ -281,11 +293,12 @@ function viewYou(){
   return `<header class="phead2"><div><h2>${t('profileH')}</h2><p class="hint">${m?esc(t('profCount',m.compatible.length,m.hidden.length)):''}${save}</p></div><a class="btn small" href="#people-review">${esc(t('seePeople'))}</a></header>
 <div class="psecs">
 ${sec(esc(t('nameLabel')),'name')}
+${sec(esc(t('purposeH')),'purpose')}
 ${sec(t('whoBuying'),'household')}
-${sec(t('privateSpace'),'space')}
+${isLet(u)?sec(esc(t('letH')),'letting'):`${sec(t('privateSpace'),'space')}
 ${sec(t('howLive'),'live')}
-${sec(t('shareWith'),'share')}
-${sec(t('whereHow'),'where')}
+${sec(t('shareWith'),'share')}`}
+${sec(isLet(u)?esc(t('letWhereH')):t('whereHow'),'where')}
 ${sec(esc(t('budgetH')),'budget')}
 ${sec(t('needsH'),'needs')}
 </div>
@@ -311,8 +324,9 @@ function profileScore(u){
     {k:'must',w:20,ok:must,sec:'needs'},
     {k:'nice',w:10,ok:nice,sec:'needs'},
     {k:live?'liveOk':'live',w:15,ok:live,sec:'live'}
-  ];
-  return {score:items.reduce((s,x)=>s+(x.ok?x.w:(x.part||0)),0),items:items};
+  ].filter(x=>!(isLet(u)&&x.sec==='live'));
+  const total=items.reduce((s,x)=>s+x.w,0);
+  return {score:Math.round(100*items.reduce((s,x)=>s+(x.ok?x.w:(x.part||0)),0)/total),items:items};
 }
 function myGroups(){
   const gs=S.groups||[];
@@ -366,30 +380,35 @@ async function loadDashHomes(){
 }
 
 /* ---------- onboarding wizard: the same sections, one per step; matches unlock at the end ---------- */
+/* B-063: steps marked only:'live' or only:'let' belong to one path; letting skips the living-together questions */
 const WIZ=[
   {id:'name',h:()=>t('wizNameH'),lead:()=>t('wizNameLead'),check:u=>u.name&&u.name.trim()?'':t('wizNeedName')},
-  {id:'household',h:()=>t('whoBuying'),lead:()=>t('wizHouseholdLead'),examples:true},
-  {id:'space',h:()=>t('privateSpace'),lead:()=>t('wizSpaceLead')},
-  {id:'live',h:()=>t('howLive'),lead:()=>t('wizLiveLead')},
-  {id:'share',h:()=>t('shareWith'),lead:()=>t('wizShareLead')},
-  {id:'where',h:()=>t('whereHow'),lead:()=>t('wizWhereLead'),check:u=>u.areas.length&&u.types.length?'':t('err_profileIncomplete')},
+  {id:'purpose',h:()=>t('purposeH'),lead:()=>t('wizPurposeLead')},
+  {id:'household',h:()=>t('whoBuying'),lead:u=>isLet(u)?t('wizLetHouseholdLead'):t('wizHouseholdLead'),examples:u=>!isLet(u)},
+  {id:'space',only:'live',h:()=>t('privateSpace'),lead:()=>t('wizSpaceLead')},
+  {id:'live',only:'live',h:()=>t('howLive'),lead:()=>t('wizLiveLead')},
+  {id:'share',only:'live',h:()=>t('shareWith'),lead:()=>t('wizShareLead')},
+  {id:'letting',only:'let',h:()=>t('letH'),lead:()=>t('wizLetLead')},
+  {id:'where',h:u=>isLet(u)?t('letWhereH'):t('whereHow'),lead:u=>isLet(u)?t('wizLetWhereLead'):t('wizWhereLead'),check:u=>u.areas.length&&u.types.length?'':t('err_profileIncomplete')},
   {id:'budget',h:()=>t('budgetH'),lead:()=>t('wizBudgetLead'),check:u=>u.maxBudget>=10000&&u.maxBudget<=5000000?'':t('err_badBudget')},
   {id:'needs',h:()=>t('needsH'),lead:()=>t('wizNeedsLead')},
   {id:'done',h:()=>t('wizDoneH'),lead:()=>t('wizDoneLead')}
 ];
+function wizSteps(){const p=S.profile&&S.profile.purpose==='let'?'let':'live';return WIZ.filter(s=>!s.only||s.only===p);}
 function viewWizard(){
   const u=S.profile;if(!u)return `<p class="lead">${esc(t('loading'))}</p>`;
-  const st=WIZ[S.wiz],n=S.wiz+1,pct=Math.round(n/WIZ.length*100);
+  const steps=wizSteps(),st=steps[S.wiz],n=S.wiz+1,pct=Math.round(n/steps.length*100);
   let body;
   if(st.id==='done'){
-    const facts=[hhLabel(u),t('bedroomsN',u.bedrooms),listOr(u.areas.map(areaLabel)),homeType(u.types),t('staying',horizonLabel(u.horizon))];
+    const facts=isLet(u)?[purposeLabel('let'),hhLabel(u),t('letBedsN',u.bedrooms),listOr(u.areas.map(areaLabel)),homeType(u.types),t('keeping',horizonLabel(u.horizon))]
+      :[purposeLabel('live'),hhLabel(u),t('bedroomsN',u.bedrooms),listOr(u.areas.map(areaLabel)),homeType(u.types),t('staying',horizonLabel(u.horizon))];
     body=`<section class="card"><h3>${esc(t('wizSummary'))}</h3><p><b>${esc(u.name)}</b></p><div class="facts">${facts.map(f=>`<span class="fact">${esc(cap(f))}</span>`).join('')}</div></section>`;
-  }else body=`${st.examples?`<div class="card presets mb"><span>${esc(t('wizExamples'))}</span>${presetButtons()}</div>`:''}<section class="card">${SECTIONS[st.id](u)}</section>`;
+  }else body=`${st.examples&&st.examples(u)?`<div class="card presets mb"><span>${esc(t('wizExamples'))}</span>${presetButtons()}</div>`:''}<section class="card">${SECTIONS[st.id](u)}</section>`;
   return `<div class="wizard">
-<p class="hint" id="wiz-step">${esc(t('wizStep',n,WIZ.length))}</p>
-<div class="progress" role="progressbar" aria-labelledby="wiz-step" aria-valuemin="1" aria-valuemax="${WIZ.length}" aria-valuenow="${n}"><span data-w="${pct}"></span></div>
-<h2>${esc(st.h())}</h2>
-<p class="lead">${esc(st.lead())}</p>
+<p class="hint" id="wiz-step">${esc(t('wizStep',n,steps.length))}</p>
+<div class="progress" role="progressbar" aria-labelledby="wiz-step" aria-valuemin="1" aria-valuemax="${steps.length}" aria-valuenow="${n}"><span data-w="${pct}"></span></div>
+<h2>${esc(st.h(u))}</h2>
+<p class="lead">${esc(st.lead(u))}</p>
 ${body}
 <p class="error" id="wiz-error" role="alert"></p>
 </div>`;
@@ -446,7 +465,8 @@ function viewMatches(){
   const all=m.compatible,c=peopleCounts(),ps=peopleSub(),med=median(all.map(x=>x.score.total));
   const likedN=all.filter(x=>x.likedMe).length;
   const summary=[t('sumCompat',all.length),med!=null?t('sumMedian',Math.round(med)):'',ps==='review'&&likedN?t('likedYouN',likedN):''].filter(Boolean).join(' · ');
-  const head=`<header class="phead2"><div><h2>${t('peopleH')}</h2><p class="hint">${esc(summary)} · <a href="#help" class="quiet">${esc(t('howScore'))}</a></p></div></header>
+  const purpose=S.profile?`<p class="purposeline"><span class="pill">${esc(t('peoplePurpose',purposeLabel(S.profile.purpose)))}</span> <a class="quiet" href="#profile" data-action="open-sec" data-id="purpose">${esc(t('purposeChange'))}</a></p>`:'';
+  const head=`<header class="phead2"><div><h2>${t('peopleH')}</h2><p class="hint">${esc(summary)} · <a href="#help" class="quiet">${esc(t('howScore'))}</a></p>${purpose}</div></header>
 ${subTabs([['review',t('ps_review'),c.review],['liked',t('ps_liked'),c.liked],['matches',t('ps_matches'),c.matches]].map(x=>x.concat(['','#people-'+x[0]])),ps,'data-ps',t('peopleH'))}`;
   /* the one next step on this page: a group, once you have a mutual match */
   const next=ps==='matches'&&c.matches?`<div class="nextstep"><span>${esc(m.suggestions.length?t('nextGroups',m.suggestions.length):t('nextAddToGroup'))}</span>${m.suggestions.length?`<a class="btn small primary" href="#groups">${esc(t('nextGroupsBtn'))}</a>`:''}</div>`:'';
@@ -489,7 +509,8 @@ ${mine.length?`<section><h3>${esc(t('yourGroupsH'))}</h3><div class="grid groups
 function personSheet(){
   const x=S.person&&S.matches?S.matches.compatible.find(y=>y.person.id===S.person):null;if(!x)return '';
   const p=x.person,s=x.score.total,cls=s>=80?'hi':(s>=65?'mid':'lo');
-  const facts=[t('bedroomsN',p.bedrooms),p.privateBath?t('ownBathFact'):t('sharesBath'),p.cars?t('parkingN',p.cars):'',p.wfh?t('wfhFact'):'',t('staying',horizonLabel(p.horizon))].filter(Boolean);
+  const facts=(isLet(p)?[purposeLabel('let'),t('letBedsN',p.bedrooms),t('keeping',horizonLabel(p.horizon))]
+    :[t('bedroomsN',p.bedrooms),p.privateBath?t('ownBathFact'):t('sharesBath'),p.cars?t('parkingN',p.cars):'',p.wfh?t('wfhFact'):'',t('staying',horizonLabel(p.horizon))]).filter(Boolean);
   const tg=x.together,line=t('homeLine',homeType(tg.types),tg.beds),rest=t('bathsN',tg.baths)+(tg.cars?' · '+t('parkingN',tg.cars):'');
   const bio=p.bio?tx(p.bio):'';
   return `<dialog class="sheet" id="person-sheet" aria-labelledby="sheet-h"><div class="sheet-in">
@@ -498,8 +519,8 @@ ${bio?`<p class="bio">${esc(bio)}</p>`:''}
 <div class="facts">${facts.map(f=>`<span class="fact">${esc(f)}</span>`).join('')}</div>
 ${x.clicks.length?`<h4>${esc(t('clickH'))}</h4><div class="chips">${x.clicks.map(c=>`<span class="chip good">✓ ${esc(M(c))}</span>`).join('')}</div>`:''}
 ${x.talks.length?`<h4>${esc(t('talkH'))}</h4><div class="chips">${x.talks.map(c=>`<span class="chip warn">⚑ ${esc(M(c))}</span>`).join('')}</div>`:''}
-<div class="together mt">${t('together',esc(line),esc(rest))}</div>
-<h4>${esc(t('why',s))}</h4><div class="bars">${Object.keys(WEIGHTS).map(k=>bar(tx(PART_LABELS[k]),x.score.parts[k])).join('')}</div><p class="hint">${esc(t('demoScoreHint'))}</p>
+<div class="together mt">${isLet(p)?esc(t('letTogether',line)):t('together',esc(line),esc(rest))}</div>
+<h4>${esc(t('why',s))}</h4><div class="bars">${partKeys(x.score.parts).map(k=>bar(tx(PART_LABELS[k]),x.score.parts[k])).join('')}</div><p class="hint">${esc(t('demoScoreHint'))}</p>
 ${x.likedMe?`<p><span class="chip liked">${esc(t('likedYou'))}</span></p>`:''}
 <p class="safety"><button type="button" class="linkbtn" data-action="report" data-id="${esc(p.id)}">${esc(t('report'))}</button> · <button type="button" class="linkbtn" data-action="block" data-id="${esc(p.id)}">${esc(t('block'))}</button></p>
 <div class="pactions sheet-act">${cardActions(x)}</div>
@@ -534,7 +555,8 @@ ${chips}${respond}
   const featLi=x=>`<li><span class="tag ${x.level}">${x.level==='must'?t('tagMust'):t('tagNice')}</span><div>${esc(featLabel(x.id))}<div class="who">${esc(x.level==='must'?t('mustFor',names(x.must),x.nice.length?names(x.nice):''):t('niceFor',names(x.nice)))}</div></div></li>`;
   const where=hb.areas.length?listOr(hb.areas.map(areaLabel)):t('noAreaAll');
   const line=t('homeLine',homeType(hb.types),hb.beds);
-  const headline=t('headline',line,t('bathsN',hb.baths),hb.cars?t('parkingN',hb.cars):'');
+  const letting=h.purpose==='let';
+  const headline=letting?t('letHeadline',line):t('headline',line,t('bathsN',hb.baths),hb.cars?t('parkingN',hb.cars):'');
   const banner=isPreview?`<div class="card notice mt"><b>${t('previewOnly')}</b> ${esc(t('previewNote'))}<div class="row"><button type="button" class="btn small primary" data-action="propose" data-id="${esc(ids.filter(id=>!isMe(id)).join(','))}">${t('propose')}</button><button type="button" class="btn small ghost" data-action="close-preview">${t('closePreview')}</button></div></div>`:'';
   const canSize=!isPreview&&myStatus==='accepted';
   const sizeEdit=canSize?`<div class="field mt"><span class="label" id="size-label">${esc(t('sizeLabel'))}</span><div class="range-edit" role="group" aria-labelledby="size-label"><label>${t('from')} <input type="number" min="20" max="900" step="5" data-size="min" value="${h.size.min}"></label><label>${t('to')} <input type="number" min="20" max="900" step="5" data-size="max" value="${h.size.max}"></label></div></div>`:'';
@@ -553,13 +575,13 @@ ${chips}${respond}
 <div class="kpis">${kp(gs.min+'%',(ids.length>2?t('weakestK'):t('compatK'))+esc(dn(w.a))+' + '+esc(dn(w.b)))}${ids.length>2?kp(gs.avg+'%',esc(t('avgOf',gs.pairs.length))):''}</div>
 ${ids.length>2?matrix(ids,gs.pairs):''}
 <details class="quietbox mt"><summary>${ids.length>2?t('weakDetail'):t('breakdown')}</summary>
-<div class="bars">${Object.keys(WEIGHTS).map(k=>bar(tx(PART_LABELS[k]),gs.weakestParts[k])).join('')}</div>
+<div class="bars">${partKeys(gs.weakestParts).map(k=>bar(tx(PART_LABELS[k]),gs.weakestParts[k])).join('')}</div>
 <p class="hint mt">${esc(t('demoScores'))}</p></details>
 </section>`;
   const briefView=`<div class="grid cols-2">
-<section class="card"><h3>${t('homeNeedH')}</h3>
+<section class="card"><h3>${letting?esc(t('letH')):t('homeNeedH')}</h3>
 <p class="headline">${esc(cap(headline))}</p>
-<div class="kpis">${kp(hb.beds,t('kBeds'))}${kp(hb.baths,t('kBaths'))}${kp(hb.cars||t('kNone'),t('kParking'))}${kp(h.size.min+'–'+h.size.max+' m²',t('kArea'))}${kp(hb.adults+(hb.kids?' + '+hb.kids:''),hb.kids?t('kAdultsKids'):t('kAdults'))}</div>
+<div class="kpis">${letting?`${kp(hb.beds,t('kBeds'))}${kp(h.size.min+'–'+h.size.max+' m²',t('kArea'))}${kp(ids.length,t('kOwners'))}`:`${kp(hb.beds,t('kBeds'))}${kp(hb.baths,t('kBaths'))}${kp(hb.cars||t('kNone'),t('kParking'))}${kp(h.size.min+'–'+h.size.max+' m²',t('kArea'))}${kp(hb.adults+(hb.kids?' + '+hb.kids:''),hb.kids?t('kAdultsKids'):t('kAdults'))}`}</div>
 ${sizeEdit}
 <p class="hint">${esc(t('areaHint'))}</p>
 <p class="mt"><b>${t('whereB')}</b> ${esc(where)}</p>
@@ -568,13 +590,13 @@ ${nices.length?`<h4>${t('nicesH')}</h4><ul class="clean">${nices.map(featLi).joi
 ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>`<li><span class="tag tip">${t('tipTag')}</span><div>${esc(M(x.label))}<div class="who">${esc(M(x.why))}</div></div></li>`).join('')}</ul>`:''}
 </section>
 <div class="stackcol">
-<section class="card"><h3>${t('roomsH')}</h3>
+${letting?`<section class="card"><h3>${esc(t('letCardH'))}</h3><p>${esc(t('letCardLead'))}</p><p class="hint">${esc(t('letCardLaw'))}</p></section>`:`<section class="card"><h3>${t('roomsH')}</h3>
 <div class="split" aria-hidden="true">${h.rooms.map(r=>`<span data-w="${r.pct}" data-bg="${esc((PEOPLE[r.id]||{}).color||'#495057')}"></span>`).join('')}</div>
 <ul class="clean">${h.rooms.map(r=>`<li>${avatar(r.id,28)}<div><b>${esc(dn(r.id))}</b>: ${esc(t('roomsOf',r.rooms,hb.beds))}${r.bath?esc(t('plusOwnBath')):''}${h.cars[r.id]?`<div class="who">${esc(t('parkingSpaces',h.cars[r.id]))}</div>`:''}</div></li>`).join('')}</ul>
 <h4>${t('placementH')}</h4>
 <ul class="clean">${h.tips.map(x=>`<li><span class="tag tip">${t('tipTag')}</span><div>${esc(M(x))}</div></li>`).join('')}</ul>
 <p class="hint mt">${esc(t('illustrative'))}</p>
-</section>
+</section>`}
 <section class="card"><h3>${t('agreeH')}</h3>
 <p class="hint">${esc(t('agreeHint'))}</p>
 <ul class="clean mt">${h.topics.map(x=>{const a=t(x.key);return `<li><span class="tag tip">${esc(a[0])}</span><div>${esc(a[1])}<div class="who">${esc(x.why?M(x.why):a[2])}</div></div></li>`;}).join('')}</ul>
@@ -593,7 +615,7 @@ ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>
   const medP=hr?median(hr.homes.map(x=>x.price)):null;
   const otile=(k,v,label,sub2)=>`<a class="otile" href="${groupHash(h,k)}"><span class="tk">${esc(label)}</span><span class="tv">${v}</span><span class="ts">${esc(sub2)}</span><span class="go" aria-hidden="true">→</span></a>`;
   const overview=`${next}<div class="grid cols-2">${fitCard}<div class="stackcol">${chips}${isPreview?'':freePlaces(h,life,ids)}
-${otile('brief',esc(cap(line)),t('oBrief'),[t('bathsN',hb.baths),h.size.min+'–'+h.size.max+' m²',where].join(' · '))}
+${otile('brief',esc(cap(line)),letting?t('oBriefLet'):t('oBrief'),[letting?purposeLabel('let'):t('bathsN',hb.baths),h.size.min+'–'+h.size.max+' m²',where].join(' · '))}
 ${isPreview?'':otile('homes',hr?num(hr.homes.length):'…',t('oHomes'),hr?(hr.homes.length?t('oHomesSub',kEur(medP)):t('oHomesNone')):t('loading'))}
 ${isPreview?'':otile('shortlist',sl?num(sl.items.length):'…',t('oShortlist'),sl?(sl.items.length?t('oShortlistSub',sl.items.filter(x=>x.stage===3).length,myTurn):t('oShortlistNone')):t('loading'))}
 </div></div>${leave}`;
@@ -847,7 +869,8 @@ function homesSection(gid){
   else if(!r.data.homes.length)body=`<div class="card empty left"><p><b>${esc(t('homesNoneH'))}</b></p><ul class="tips">${t('homesNoneTips').map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${S.home?`<a class="btn" href="${groupHash(S.home,'brief')}">${esc(t('homesNoneBtn'))}</a>`:''}</div>`;
   else body=homesExplorer(gid);
   const count=r&&r.data?`<p class="hint">${esc(t('homesCount',r.data.considered,r.data.real>0))}</p>`:'';
-  return `<section class="explorer" id="homes">${count}${r&&r.data?budgetLine(r.data):''}${body}<p class="hint mt">${esc(t('homesLead'))} ${esc(t('homesNote'))} <a class="quiet" href="#sources">${esc(t('srcLinkHomes'))}</a></p></section>`;
+  const letNote=S.home&&S.home.purpose==='let'?`<p class="hint">${esc(t('letHomesNote'))}</p>`:'';
+  return `<section class="explorer" id="homes">${count}${letNote}${r&&r.data?budgetLine(r.data):''}${body}<p class="hint mt">${esc(t('homesLead'))} ${esc(t('homesNote'))} <a class="quiet" href="#sources">${esc(t('srcLinkHomes'))}</a></p></section>`;
 }
 /* The group's combined maximum budget (B-058, D-044): the total, never anyone's own figure, and who hasn't set one */
 function budgetLine(d){
@@ -1046,7 +1069,7 @@ function agreedPack(h,sl,x){
     const tax=itpFor(o),sh=slShares(h,ids),up=COSTS.deposit+tax.rate/100+COSTS.other,loan=1-COSTS.deposit;
     const row=s=>`<tr><th scope="row">${esc(dn(s.id))}</th><td>${num(Math.round(s.share*100))} %</td><td class="c-price">${esc(euros(Math.round(P*s.share)))}</td><td>${esc(euros(Math.round(P*up*s.share)))}</td><td>${esc(euros(Math.round(P*loan*s.share)))}</td></tr>`;
     cost=`<section class="pack"><h4>${esc(t('pkCostH'))}</h4>
-<div class="seg2" role="group" aria-label="${esc(t('pkSplit'))}"><button type="button" class="chipbtn" data-action="sl-split" data-v="equal" aria-pressed="${S.slSplit!=='rooms'}">${esc(t('pkEqual'))}</button><button type="button" class="chipbtn" data-action="sl-split" data-v="rooms" aria-pressed="${S.slSplit==='rooms'}">${esc(t('pkRooms'))}</button></div>
+${h.rooms&&h.rooms.length?`<div class="seg2" role="group" aria-label="${esc(t('pkSplit'))}"><button type="button" class="chipbtn" data-action="sl-split" data-v="equal" aria-pressed="${S.slSplit!=='rooms'}">${esc(t('pkEqual'))}</button><button type="button" class="chipbtn" data-action="sl-split" data-v="rooms" aria-pressed="${S.slSplit==='rooms'}">${esc(t('pkRooms'))}</button></div>`:''}
 <div class="split" aria-hidden="true">${sh.map(s=>`<span data-w="${(s.share*100).toFixed(1)}" data-bg="${esc((PEOPLE[s.id]||{}).color||'#495057')}"></span>`).join('')}</div>
 <div class="tablewrap"><table class="costs"><thead><tr><th scope="col">${esc(t('pkWho'))}</th><th scope="col">${esc(t('pkShare'))}</th><th scope="col" class="c-price">${esc(t('pkPrice'))}</th><th scope="col">${esc(t('pkUpfront'))}</th><th scope="col">${esc(t('pkLoan'))}</th></tr></thead>
 <tbody>${sh.map(row).join('')}</tbody><tfoot><tr><th scope="row">${esc(t('pkTotal'))}</th><td>100 %</td><td class="c-price">${esc(euros(P))}</td><td>${esc(euros(Math.round(P*up)))}</td><td>${esc(euros(Math.round(P*loan)))}</td></tr></tfoot></table></div>
@@ -1061,6 +1084,7 @@ function agreedPack(h,sl,x){
 function lawyerQuestions(h,ids,shares){
   const split=shares?listAnd(shares.map(s=>dn(s.id)+' '+num(Math.round(s.share*100))+' %')):'';
   const rooms=h.rooms&&h.rooms.length?listAnd(h.rooms.filter(r=>ids.indexOf(r.id)>=0).map(r=>dn(r.id)+' '+r.rooms)):'';
+  if(h.purpose==='let')return [t('lq_shares',ids.length,split),t('lq_money'),t('lq_mortgage'),t('lq_costs'),t('lq_letKind'),t('lq_letRent'),t('lq_letManage'),t('lq_letTax'),t('lq_decide'),t('lq_leave'),t('lq_life'),t('lq_end')];
   return [t('lq_shares',ids.length,split),t('lq_money'),t('lq_mortgage'),t('lq_costs'),t('lq_rooms',rooms),t('lq_decide'),t('lq_leave'),t('lq_life'),t('lq_end')];
 }
 function emailCard(sl,x,kind){
@@ -1255,7 +1279,7 @@ function renderBar(){
   const bar=document.getElementById('actionbar');
   let h='';
   if(S.me&&!S.view&&!S.me.onboarded){
-    const last=S.wiz===WIZ.length-1,save=S.save?`<span class="hint" role="status">${esc(t(S.save))}</span>`:'';
+    const last=S.wiz===wizSteps().length-1,save=S.save?`<span class="hint" role="status">${esc(t(S.save))}</span>`:'';
     h=`<button type="button" class="btn" data-action="wiz-back"${S.wiz===0?' disabled':''}>${esc(t('wizBack'))}</button>${save}<span class="spacer"></span><button type="button" class="btn primary" data-action="${last?'wiz-finish':'wiz-next'}">${esc(last?t('wizFinish'):t('wizNext'))}</button>`;
   }else if(inApp()&&S.tab==='matches'&&S.draft.length){
     h=`<div class="stat draft-who">${S.draft.map(id=>avatar(id,28)).join('')}<span>${esc(t('draftBar',1+S.draft.length))}</span></div><span class="spacer"></span><button type="button" class="btn small ghost" data-action="clear-draft">${t('clearDraft')}</button><button type="button" class="btn small" data-action="preview" data-id="${esc(S.draft.join(','))}">${t('previewDraft')}</button><button type="button" class="btn small primary" data-action="propose" data-id="${esc(S.draft.join(','))}">${t('propose')}</button>`;
@@ -1413,9 +1437,10 @@ async function flushSave(){
 async function wizMove(step){
   const err=document.getElementById('wiz-error');
   const active=document.activeElement;if(active&&active.matches&&active.matches('input,textarea,select'))active.blur();
-  if(step>0){const msg=WIZ[S.wiz].check?WIZ[S.wiz].check(S.profile):'';if(msg){if(err)err.textContent=msg;return;}}
+  const steps=wizSteps();
+  if(step>0){const msg=steps[S.wiz].check?steps[S.wiz].check(S.profile):'';if(msg){if(err)err.textContent=msg;return;}}
   if(!(await flushSave()))return;
-  S.wiz=Math.max(0,Math.min(WIZ.length-1,S.wiz+step));
+  S.wiz=Math.max(0,Math.min(steps.length-1,S.wiz+step));
   render();window.scrollTo(0,0);focusHeading();
 }
 async function wizFinish(){
@@ -1523,6 +1548,7 @@ app.addEventListener('change',e=>{
     else{u.adults=1;u.kids=0;}
     rerender();
   }
+  if(f==='purpose')rerender();
   profileChanged();
 });
 app.addEventListener('input',e=>{const el=e.target;
