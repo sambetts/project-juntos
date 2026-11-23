@@ -20,7 +20,8 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Learned:** the ITP rates were found only in secondary sources, which disagree for Cantabria, Galicia and Murcia; the higher rate is used, and all except Madrid's are labelled Reported. Ceuta and Melilla are Assumptions. The first browser run failed two new checks: ticking a box saves without redrawing, so the picker's summary didn't change. It now updates in place.
 **Open or blocked:** not deployed (F-027); ITP rates to confirm on each region's own site before real users; finer areas inside other big cities wait for B-043.
 **Saved and checked:** `dotnet test` 73 of 73; browser test 78 of 78 against a fresh local run (SQLite in the scratch folder) after the last code change; the phone screenshot of the area picker checked by eye. `git status` and `git diff --stat` show the 17 changed files and 3 new ones expected (`.claude/` left uncommitted as before). LOG.md saved last; the commit is confirmed in the closing report.
-**Next session should start with:** 1. After Sam's push, check the deploy, then after the next crawl count homes outside Madrid. 2. Confirm the ITP rates. 3. B-042 and B-052 before anyone but Sam signs up.
+**After the closing report:** Sam: "push" (F-027, closed); pushed `main` for CI/CD to deploy (D-041).
+**Next session should start with:** 1. Check the deploy, then after the next crawl count homes outside Madrid. 2. Confirm the ITP rates. 3. B-042 and B-052 before anyone but Sam signs up.
 
 ## 2026-11-23 · Session 23: a maximum budget per profile
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Product (B-058), Legal & Compliance (the A3 question, the risk and privacy notes) and the CEO (D-044)

@@ -4,11 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-027 · Push "all of Spain" to `main` (B-059, D-045) · by 2026-11-24
+### F-027 · Push "all of Spain" to `main` (B-059, D-045) · CLOSED 2026-11-23: pushed, see LOG Session 24
 **Why:** the app now covers every province, not only Madrid: the area picker, placing homes, the crawl and the tax in the cost estimate. A push to `main` deploys it through CI/CD (D-041). No migration.
 **Options:** A) push now; B) look at it locally first.
 **Recommendation:** A. 73 .NET tests and 78 browser checks pass locally. After the deploy, the next daily crawl starts adding Tecnocasa homes from all of Spain, up to 3,000 adverts a day as now, so the rest of Spain fills in over several days. Profiles you already have keep their Madrid areas.
 **If no answer:** it stays committed and undeployed.
+**ANSWER (Sam, 2026-11-23, in Claude Code):** "push". Read as approval to push `main` so GitHub Actions deploys Session 24, within D-027. Not an approval for anything else.
 
 ### F-026 · Push the maximum budget to `main` (B-058, D-044) · CLOSED 2026-11-23: pushed, see LOG Session 23
 **Why:** profiles now have a private maximum budget, and a group's homes are filtered by the members' budgets added up. A push to `main` deploys it through CI/CD (D-041). No migration: profiles are stored as JSON.
