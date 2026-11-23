@@ -25,7 +25,7 @@ Savings per person = share × price × (deposit + ITP + other costs); mortgage p
 | Input | Value used | Label and source |
 |---|---|---|
 | Deposit | 20% | **Assumption** (common bank practice of lending up to 80% of price or valuation); no primary source checked this session |
-| ITP, resale home, Comunidad de Madrid | 6% | **Reported**: general rate under art. 28 of Decreto Legislativo 1/2010 of the Comunidad de Madrid, as cited by [guiafiscal.es](https://guiafiscal.es/patrimonio/itp/madrid/) and [Taxdown](https://taxdown.es/informacion-impuestos/itp-madrid), checked 2026-11-23. Not confirmed on the BOCM or the Comunidad's own site |
+| ITP, resale home, Comunidad de Madrid | 6% | **Verified**: [Comunidad de Madrid, Transmisiones Patrimoniales Onerosas](https://www.comunidad.madrid/atencion-contribuyente/transmisiones-patrimoniales-onerosas), "Tipos de gravamen", page updated 2026-11-03, checked 2026-11-23: "se aplicará el 6 por 100", with the example of a second-hand home. Secondary sources cite art. 28 of Decreto Legislativo 1/2010 (not read). The same page lists lower amounts for some buyers: a 10% reduction of the tax for a main home worth up to 250,000 €, 100% for under-35s in towns under 2,500 people, and a 4% rate for large families; the estimate ignores these and says so |
 | Notary, registry, gestoría, valuation | about 1.5% | **Assumption**, no source |
 | New homes (IVA plus AJD instead of ITP) | not handled | Our index holds resale adverts from agencies; the legal landscape note covers the difference (`research/2026-11-18-spain-legal-landscape.md`) |
 
@@ -34,5 +34,5 @@ Example checked in the browser test: a 317,000 € home split 50/50 gives saving
 ## Open questions
 - Should the lawyer confirm the questions list, or fold it into the lawyer brief (B-003, F-006)?
 - Is unanimity right for the "view it" round, or would a majority be enough to book a viewing? Test with people (Phase 1).
-- Confirm the ITP rate and typical fees from primary sources before real users see the estimate.
+- Confirm the deposit and typical fees from primary sources before real users see the estimate (the ITP rate is Verified, D-043, Session 22).
 - Emails to real agencies: Sam's decision (F-024).

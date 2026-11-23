@@ -4,6 +4,10 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-025 · Push house voting to `main` (B-056, D-043) · CLOSED 2026-11-23: pushed, see LOG Session 22
+**Why:** a push to `main` deploys through CI/CD (D-041) and applies the `Shortlist` migration (two new tables, nothing dropped).
+**ANSWER (Sam, 2026-11-23, in Claude Code):** "fix the rest then push". Read as approval to fix B-057 and confirm the estimate's tax rate, then push `main` so GitHub Actions deploys Session 22, within D-027. Not an approval for anything else, and not an answer to F-024 (agency emails stay off).
+
 ### F-024 · Email drafts to real agencies once a group agrees on a home (B-056, D-043) · by 2026-12-07
 **Why:** when a group agrees on a home, the app now drafts a viewing request and an offer email for one member to send from their own email. It does this for made-up homes only. For real homes (Tecnocasa adverts) it says the feature is off, because a member could then contact a real company through our draft, which is yours to decide (AGENTS.md section 4).
 **Options:** A) keep it off until Pilot mode and the lawyer's review · B) switch it on now for you only, to try it with one agency yourself · C) switch it on for everyone

@@ -218,4 +218,18 @@ public class SocialTests : IClassFixture<AppFactory>
         Assert.False(db.Notifications.Any(n => n.AccountId == aId || n.ActorId == aId));
         Assert.Equal(0, (await Count(b)).GetProperty("messages").GetInt32());
     }
+
+    [Fact]
+    public async Task Reading_a_conversation_several_times_at_once_never_fails()
+    {
+        var (a, aId) = await PersonAsync("Ana");
+        var (b, bId) = await PersonAsync("Bea");
+        await Like(a, bId); await Like(b, aId);
+        await b.PostAsync("/api/me/conduct", null);
+        await b.PostAsJsonAsync($"/api/chats/person/{aId}", new { body = "Hola" });
+        // B-057: the first reads race to insert the same read mark; none may fail.
+        var replies = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => a.GetAsync($"/api/chats/person/{bId}")));
+        Assert.All(replies, r => Assert.Equal(HttpStatusCode.OK, r.StatusCode));
+        Assert.Equal(0, (await Count(a)).GetProperty("messages").GetInt32());
+    }
 }

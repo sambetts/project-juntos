@@ -117,9 +117,17 @@ public static class Social
     static async Task MarkReadAsync(AppDb db, string viewerId, string thread, long lastId, CancellationToken ct)
     {
         var row = await db.ThreadReads.FindAsync([viewerId, thread], ct);
+        var added = row is null;
         if (row is null) db.ThreadReads.Add(new ThreadRead { AccountId = viewerId, Thread = thread, LastReadId = lastId });
         else if (row.LastReadId < lastId) row.LastReadId = lastId;
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException) when (added)
+        {
+            // Two reads of the same conversation at once (B-057): the other request inserted the row first, so move it on instead.
+            db.ChangeTracker.Clear();
+            await db.ThreadReads.Where(r => r.AccountId == viewerId && r.Thread == thread && r.LastReadId < lastId)
+                .ExecuteUpdateAsync(u => u.SetProperty(r => r.LastReadId, lastId), ct);
+        }
     }
 
     /// <summary>How many conversations have messages from someone else that the viewer hasn't read.</summary>
