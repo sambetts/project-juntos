@@ -213,6 +213,21 @@ function viewHelp(){
 <section class="card legal help"><h2>${esc(t('helpH'))}</h2><p class="lead">${esc(t('helpLead'))}</p>
 ${t('helpSecs').map((x,i)=>`<h3>${esc(x.h)}</h3>${i===0?'<ol>':'<ul>'}${x.items.map(y=>`<li>${esc(y)}</li>`).join('')}${i===0?'</ol>':'</ul>'}`).join('')}</section>`;
 }
+/* Where homes come from (#sources): which agencies the crawl reads, when, and what we keep (D-035). Open signed in or not. */
+function viewSources(){
+  if(!S.sources){S.sources={loading:true};api('GET','/api/homes/sources').then(d=>{S.sources={data:d};if(S.view==='sources')rerender();},()=>{S.sources={error:true};if(S.view==='sources')rerender();});}
+  const r=S.sources;
+  const when=iso=>{try{return new Date(iso).toLocaleString(locale(),{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});}catch(e){return '';}};
+  const list=r.loading?`<p class="hint">${esc(t('srcLoading'))}</p>`:(r.error||!r.data.sources.length?`<p class="hint">${esc(t(r.error?'srcError':'srcNone'))}</p>`:
+    `<ul class="sources">${r.data.sources.map(x=>{const host=x.site.replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
+      return `<li><b>${esc(x.name)}</b> · <a href="${esc(x.site)}" target="_blank" rel="noopener">${esc(host)}</a><br><span class="hint">${esc(t('srcHomes',num(x.homes)))} · ${esc(x.lastChecked?t('srcLast',when(x.lastChecked)):t('srcNotYet'))}</span></li>`;}).join('')}</ul>`);
+  const portals=r.data&&r.data.portals?`<p class="hint">${esc(t('srcPortals'))} ${r.data.portals.map(esc).join(', ')}.</p>`:'';
+  return `<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>
+<section class="card legal help"><h2>${esc(t('srcH'))}</h2><p class="lead">${esc(t('srcLead'))}</p>
+<h3>${esc(t('srcNowH'))}</h3>${list}<p class="hint">${esc(t('srcMore'))}</p>
+${t('srcSecs').map(x=>`<h3>${esc(x.h)}</h3><ul>${x.items.map(y=>`<li>${esc(y)}</li>`).join('')}</ul>${x.portals?portals:''}${x.bot?`<pre>User-agent: CompicasaBot
+Disallow: /</pre><p class="hint"><a href="/bot" target="_blank" rel="noopener">${esc(t('srcBotLink'))}</a></p>`:''}`).join('')}</section>`;
+}
 function viewLegal(kind){
   const body=t(kind+'Body');
   return `<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>
@@ -832,7 +847,7 @@ function homesSection(gid){
   else if(!r.data.homes.length)body=`<div class="card empty left"><p><b>${esc(t('homesNoneH'))}</b></p><ul class="tips">${t('homesNoneTips').map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${S.home?`<a class="btn" href="${groupHash(S.home,'brief')}">${esc(t('homesNoneBtn'))}</a>`:''}</div>`;
   else body=homesExplorer(gid);
   const count=r&&r.data?`<p class="hint">${esc(t('homesCount',r.data.considered,r.data.real>0))}</p>`:'';
-  return `<section class="explorer" id="homes">${count}${r&&r.data?budgetLine(r.data):''}${body}<p class="hint mt">${esc(t('homesLead'))} ${esc(t('homesNote'))}</p></section>`;
+  return `<section class="explorer" id="homes">${count}${r&&r.data?budgetLine(r.data):''}${body}<p class="hint mt">${esc(t('homesLead'))} ${esc(t('homesNote'))} <a class="quiet" href="#sources">${esc(t('srcLinkHomes'))}</a></p></section>`;
 }
 /* The group's combined maximum budget (B-058, D-044): the total, never anyone's own figure, and who hasn't set one */
 function budgetLine(d){
@@ -1154,7 +1169,7 @@ function renderChrome(){
   set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));
   const bl=document.getElementById('brandlink');if(bl)bl.setAttribute('aria-label',BRAND+' · '+t('homeLink'));
   const foot=document.getElementById('footnote');
-  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
+  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#sources">${esc(t('srcLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
   const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('navAria'));nav.hidden=!inApp();}
   const bell=document.getElementById('alerts-link');
   if(bell){const n=S.counts.alerts||0;bell.hidden=!inApp();bell.innerHTML=ICONS.bell+(n?`<span class="count" aria-hidden="true">${n}</span>`:'');bell.setAttribute('aria-label',t('alertsAria',n));if(S.tab==='alerts')bell.setAttribute('aria-current','page');else bell.removeAttribute('aria-current');}
@@ -1208,7 +1223,7 @@ function menuSections(){
   }
   secs.push({id:'lang',label:t('menuLang'),items:[{choice:[{action:'lang',id:'es',label:'Español',lang:'es',on:LANG==='es'},{action:'lang',id:'en',label:'English',lang:'en',on:LANG==='en'}],label:t('menuLang')}]});
   secs.push({id:'theme',label:t('menuTheme'),items:[{choice:[['auto',ICONS.auto,t('themeAuto')],['light',ICONS.sun,t('themeLight')],['dark',ICONS.moon,t('themeDark')]].map(x=>({action:'theme',id:x[0],icon:x[1],label:x[2],on:THEME===x[0]})),label:t('menuTheme')}]});
-  secs.push({id:'more',label:t('menuMore'),items:[{href:'#help',label:t('helpLink'),icon:ICONS.help,current:S.view==='help'},{href:'#terms',label:t('footTerms'),icon:ICONS.doc,current:S.view==='terms'},{href:'#privacy',label:t('footPrivacy'),icon:ICONS.doc,current:S.view==='privacy'}]});
+  secs.push({id:'more',label:t('menuMore'),items:[{href:'#help',label:t('helpLink'),icon:ICONS.help,current:S.view==='help'},{href:'#sources',label:t('srcLink'),icon:ICONS.groups,current:S.view==='sources'},{href:'#terms',label:t('footTerms'),icon:ICONS.doc,current:S.view==='terms'},{href:'#privacy',label:t('footPrivacy'),icon:ICONS.doc,current:S.view==='privacy'}]});
   return secs;
 }
 function menuItem(it){
@@ -1252,7 +1267,7 @@ function render(){
   renderChrome();
   renderTabs();
   const views={home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
-  app.innerHTML=S.view?(S.view==='help'?viewHelp():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
+  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
   applyStyles(app);
   if(document.getElementById('hx-results'))updateHomes();
   drawCharts(app);
@@ -1266,7 +1281,7 @@ function render(){
 /* ---------- addresses (Session 18, B-051): every view has one, so Back and shared links work ----------
    #people-review|-liked|-matches|-passed · #person-<id> (a sheet over People) · #groups ·
    #group-<id>[-brief|-homes] · #preview[-brief] · #profile · #home (the logo's page, Session 20).
-   #help, #terms, #privacy, #lang= and #authError= are read by readHash as before. */
+   #help, #sources, #terms, #privacy, #lang= and #authError= are read by readHash as before. */
 const GSUBS=['overview','brief','homes','shortlist','chat'];
 function groupHash(h,sub){return (h.preview?'#preview':'#group-'+h.id)+(sub&&sub!=='overview'?'-'+sub:'');}
 function routeHash(){
@@ -1357,11 +1372,11 @@ async function start(){
   let me=null;try{me=await api('GET','/api/me');}catch(e){}
   if(me){S.tab='home';await enter(me);}else render();
 }
-/* #terms, #privacy, #help, #authError=code (back from External ID), #lang=en */
+/* #terms, #privacy, #help, #sources, #authError=code (back from External ID), #lang=en */
 function readHash(){
   const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
   const prev=S.view;
-  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':null));
+  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':null)));
   const err=h.get('authError');
   if(err){S.authError=t('err_'+err)!==undefined&&STR.es['err_'+err]!==undefined?t('err_'+err):t('err_generic');if(err==='noAccount')S.authMode='signup';
     try{history.replaceState(null,'',location.pathname);}catch(e){}}

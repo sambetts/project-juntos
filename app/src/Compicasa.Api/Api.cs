@@ -42,6 +42,10 @@ public static partial class Api
         var api = app.MapGroup("/api");
         var me = api.MapGroup("").RequireAuthorization();
 
+        // Where homes come from (#homes-sources): open to anyone, like the guide and the /bot page. Agencies and counts only.
+        api.MapGet("/homes/sources", async (AppDb db, IConfiguration cfg, CancellationToken ct) =>
+            Results.Ok(new { sources = await HomeSources.SummariesAsync(db, cfg, ct), portals = HomeSources.Portals }));
+
         me.MapGet("/me", async (HttpContext http, AppDb db) =>
             await CurrentAsync(http, db) is { } a ? Results.Ok(Accounts.Me(a)) : Results.Unauthorized());
 

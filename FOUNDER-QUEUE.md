@@ -4,6 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-029 · Push *Where homes come from* and the "preview version" wording to `main` (B-062) · by 2026-11-25
+**Why:** a push to `main` deploys it (D-041). The new page and endpoint are public like the guide and `/bot`: agency names and counts only. No migration.
+**Options:** A) push now; B) wait and push with the live-in/rent-out work (B-063).
+**Recommendation:** A. 74 .NET tests and 78 browser checks pass locally.
+**If no answer:** it stays committed; the live site keeps saying "proof of concept".
+
 ### F-028 · Push the corrected tax rates to `main` (B-059) · CLOSED 2026-11-23: pushed, see LOG Session 24 continued
 **Why:** checked against each region's own law, two rates in the cost estimate were too high: Galicia is 8% (we had 9%) and Murcia 7.75% (we had 8%). A push to `main` deploys the fix (D-041). No migration.
 **Options:** A) push now; B) wait and push with the next change.

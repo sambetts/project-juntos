@@ -2,6 +2,25 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-23 · Session 25: where homes come from, and "preview version"
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Product (B-062) and the CEO (D-046)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 24 (continued) and its log entry. Sam: "I want a page on how we scrape pages & agencies, which ones and when. Also remove any mention of this being a PoC - we can say it's a preview version maybe."
+**Goals:** 1. A user-facing page on where homes come from (B-062). 2. Replace "proof of concept" with "preview version" wherever users see it.
+**Needs Sam:** F-029 (new): push B-062; recommendation A, push now. B-064: the rest of his house-browser message.
+**Did**
+- `GET /api/homes/sources` (public, like `/bot`): each crawled agency, homes listed and last checked; stopped agencies left out; plus the portal block list. `HomeSources.Crawled` lists the agencies; `IHomeSource.Name` added. Test `Anyone_can_see_which_agencies_we_read_and_when`.
+- `#sources` page in `wwwroot/app.js` (`viewSources`) and `i18n.js` (Spanish and English), linked from the header menu, the footer and a group's *Homes*. Schedule and limits taken from the WebJob's `settings.job` and `run.cmd` and from `Crawl` (Verified in code).
+- Every user-facing "proof of concept", "prueba de concepto", "prototype" and "prototipo" replaced by "preview version"/"versión preliminar" (`i18n.js`, `index.html`'s description); service worker version bumped. Code comments and project files unchanged.
+- Sam asked mid-session for two features in their own sessions: B-063 (live in or rent out) and B-064 (a house browser; his message was cut off). Both added to the top of BACKLOG.md. `product/homes-index.md` points to the new page.
+
+**Decided:** D-046 the app calls itself a preview version and says openly where its homes come from (Sam's words, recorded by the CEO).
+**Approvals used:** none; nothing pushed.
+**Learned:** the local `compicasa.db` was stale ("no such table: Candidates"), which made the first two browser-test runs fail; deleted (made-up local data) and the run passed 78 of 78. B-063 widens the mission (a home to live in) and will need a decision and the lawyer brief updated before it ships.
+**Open or blocked:** F-029; B-063 and B-064 for fresh sessions; B-061, B-060 as before.
+**Saved and checked:** `dotnet test` 74 of 74; browser test 78 of 78 against a local run; `#sources` screenshotted at 390 px in both languages, no sideways scroll, no script errors. `git status` and `git diff --stat` checked against the changes above before committing.
+**Next session should start with:** 1. If F-029 was pushed, check the deploy and `#sources` live. 2. B-063 in a fresh session, starting with Product's spec. 3. B-064 once Sam has described it.
+
 ## 2026-11-23 · Session 24, continued: the regional ITP rates checked
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Research (the rates) and the Builder (the fix)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

@@ -85,9 +85,9 @@ const PET_WORDS={dog:{en:'a dog',es:'un perro'},cat:{en:'a cat',es:'un gato'}};
 const STR={
 en:{
   and:'and',or:'or',you:'you',youName:'You',vs:'vs',
-  title:()=>BRAND+' – find the people to buy a home with (prototype)',
+  title:()=>BRAND+' – find the people to buy a home with',
   tagline:'Find the people to buy a home with (working name)',
-  footnote:'Prototype with made-up people and simulated replies. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.',
+  footnote:'Preview version with made-up people and simulated replies. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.',
   steps:'Steps',langOther:'Español',langOtherCode:'es',langOtherAria:'Ver en español',tLang:'Showing the English version',
   kids:n=>pl(n,'kid','kids'),
   hhFamily:(a,k)=>'Family · '+a+' adults + '+k,hhSingleParent:k=>'Single parent + '+k,
@@ -97,7 +97,7 @@ en:{
   notOpen:p=>"You're not looking to share with "+p,smokeIn:'They smoke indoors',smokeOut:"They smoke outside, and you'd rather nobody smoked",
   petsNo:p=>'They have '+p+', and you said no pets',pickArea:'Pick at least one area',noArea:l=>'No area in common (they want '+l+')',
   pickType:'Pick at least one type of home',onlyType:l=>'They only want a '+l,
-  bedsPair:(b,m)=>'Together you would need '+b+' bedrooms; this prototype caps a home at '+m,
+  bedsPair:(b,m)=>'Together you would need '+b+' bedrooms; for now we cap a home at '+m,
   theirsPrivate:"Doesn't fit their own preferences (their reasons stay private)",
   has:p=>'Has '+p,smokesOut:'Smokes (outside only)',smokesIn:'Smokes indoors',
   bothLarks:'Both early birds',bothOwls:'Both night owls',similarRhythm:'Similar daily rhythm',lateHours:'Keeps late hours',veryEarly:'Up very early',
@@ -106,7 +106,7 @@ en:{
   guestsOften:'Often has guests over',guestsRarely:'Rarely has guests over',likesLively:'Likes a lively home',likesQuiet:'Likes a quiet home',
   youWfh:'You work from home; they like a lively home',theyWfh:'They work from home; you like a lively home',
   sameHorizon:l=>'Both planning '+l,diffHorizon:(a,b)=>'Different time horizons ('+a+' vs '+b+')',bothWant:f=>'Both want: '+f,kidsInHome:k=>k+' in the household',
-  maxHH:(m,n)=>'At most '+m+' households in the home, for '+n,bedsGroup:(b,m)=>'That needs '+b+' bedrooms; this prototype caps a home at '+m,
+  maxHH:(m,n)=>'At most '+m+' households in the home, for '+n,bedsGroup:(b,m)=>'That needs '+b+' bedrooms; for now we cap a home at '+m,
   clash:p=>p+' clash on a dealbreaker',noAreaAll:'No area that everyone accepts',noTypeAll:'No type of home that everyone accepts',
   twice:'Someone is listed twice',notMutual:n=>n+" isn't a mutual match with you any more",othersReject:p=>p+" wouldn't both accept each other (simulated)",
   secondLiving:'A second living space (a snug or playroom)',secondWhyKidless:'Gives the adults without kids a calm space while the kids play',secondWhy:'Lets each household have its own downtime',
@@ -190,9 +190,9 @@ en:{
 },
 es:{
   and:'y',or:'o',you:'tú',youName:'Tú',vs:'frente a',
-  title:()=>BRAND+' – encuentra con quién comprar casa (prototipo)',
+  title:()=>BRAND+' – encuentra con quién comprar casa',
   tagline:'Encuentra con quién comprar casa (nombre provisional)',
-  footnote:'Prototipo con personas inventadas y respuestas simuladas. Solo cubre la afinidad y el espacio: el dinero, las cuotas de propiedad, el pacto de copropiedad y los anuncios reales llegarán más adelante. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud. Un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
+  footnote:'Versión preliminar con personas inventadas y respuestas simuladas. Solo cubre la afinidad y el espacio: el dinero, las cuotas de propiedad, el pacto de copropiedad y los anuncios reales llegarán más adelante. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud. Un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
   steps:'Pasos',langOther:'English',langOtherCode:'en',langOtherAria:'View in English',tLang:'Mostrando la versión en español',
   kids:n=>pl(n,'hijo','hijos'),
   hhFamily:(a,k)=>'Familia · '+a+' adultos + '+k,hhSingleParent:k=>'Familia monoparental · '+k,
@@ -202,7 +202,7 @@ es:{
   notOpen:p=>'No buscas compartir con '+p,smokeIn:'Fuma dentro de casa',smokeOut:'Fuma fuera, y prefieres que no fume nadie',
   petsNo:p=>'Tiene '+p+', y prefieres vivir sin mascotas',pickArea:'Elige al menos una zona',noArea:l=>'Ninguna zona en común (busca en '+l+')',
   pickType:'Elige al menos un tipo de vivienda',onlyType:l=>'Solo busca '+l,
-  bedsPair:(b,m)=>'Sumáis '+b+' dormitorios; este prototipo admite como máximo '+m+' por vivienda',
+  bedsPair:(b,m)=>'Sumáis '+b+' dormitorios; de momento admitimos como máximo '+m+' por vivienda',
   theirsPrivate:'No encaja con sus propias preferencias (sus motivos son privados)',
   has:p=>'Tiene '+p,smokesOut:'Fuma (solo fuera)',smokesIn:'Fuma dentro de casa',
   bothLarks:'Os gusta madrugar',bothOwls:'Os gusta trasnochar',similarRhythm:'Ritmo diario parecido',lateHours:'Se acuesta tarde',veryEarly:'Madruga mucho',
@@ -211,7 +211,7 @@ es:{
   guestsOften:'Recibe visitas a menudo',guestsRarely:'Casi nunca recibe visitas',likesLively:'Le gusta una casa animada',likesQuiet:'Le gusta una casa tranquila',
   youWfh:'Teletrabajas y le gusta una casa animada',theyWfh:'Teletrabaja y a ti te gusta una casa animada',
   sameHorizon:l=>'Mismo horizonte: '+l,diffHorizon:(a,b)=>'Horizontes distintos ('+a+' frente a '+b+')',bothWant:f=>'Prioridad común: '+f.toLowerCase(),kidsInHome:k=>k+' en su hogar',
-  maxHH:(m,n)=>'Máximo de '+m+' hogares en la vivienda, según '+n,bedsGroup:(b,m)=>'Hacen falta '+b+' dormitorios; este prototipo admite como máximo '+m+' por vivienda',
+  maxHH:(m,n)=>'Máximo de '+m+' hogares en la vivienda, según '+n,bedsGroup:(b,m)=>'Hacen falta '+b+' dormitorios; de momento admitimos como máximo '+m+' por vivienda',
   clash:p=>p+' chocan en un innegociable',noAreaAll:'Ninguna zona que acepte todo el grupo',noTypeAll:'Ningún tipo de vivienda que acepte todo el grupo',
   twice:'Alguien aparece dos veces',notMutual:n=>'Ya no hay match mutuo entre '+n+' y tú',othersReject:p=>p+' no se aceptarían mutuamente (simulado)',
   secondLiving:'Una segunda zona de estar (salita o cuarto de juegos)',secondWhyKidless:'Da a los adultos sin hijos un espacio tranquilo mientras los niños juegan',secondWhy:'Cada hogar tiene su propio rato de descanso',
@@ -298,14 +298,14 @@ es:{
 /* Added for the working PoC (B-028): accounts, real replies, invitations and group states. Overrides come first. */
 Object.assign(STR.en,{
   title:()=>BRAND+' – find the people to buy a home with',
-  footnote:"Proof of concept. Everyone you meet here is made up, and a new batch arrives every morning; please don't enter real personal details. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.",
+  footnote:"Preview version. Everyone you meet here is made up, and a new batch arrives every morning; please don't enter real personal details. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.",
   tabHome:'3 · Groups and home',srInGroup:'groups',
   authH:'Find the people to buy a home with',
-  authLead:"A closed proof of concept. The people you'll meet are made up, and a new batch arrives every morning. Please don't enter real personal details: a nickname is fine.",
+  authLead:"A closed preview version. The people you'll meet are made up, and a new batch arrives every morning. Please don't enter real personal details: a nickname is fine.",
   signIn:'Sign in',signUp:'Create an account',haveAccount:'I have an account',newHere:"I'm new",
   username:'Username',usernameHint:'3 to 32 characters: lower-case letters, numbers, dots, dashes or underscores',
   password:'Password',passwordHint:'At least 10 characters',displayName:'Name to show',displayNameHint:'A nickname is fine',
-  invite:'Invite code',inviteHint:'This proof of concept is closed: ask for a code',
+  invite:'Invite code',inviteHint:'This preview version is closed: ask for a code',
   signOut:'Sign out',deleteAccount:'Delete my account',deleteConfirm:"Delete your account, your likes and the groups you started? This can't be undone.",
   account:'Account',signedInAs:n=>'Signed in as '+n,
   err_signupClosed:'Sign-up is closed for now.',err_badInvite:"That invite code isn't right.",err_badUsername:'Use 3 to 32 lower-case letters, numbers, dots, dashes or underscores.',
@@ -331,14 +331,14 @@ Object.assign(STR.en,{
 });
 Object.assign(STR.es,{
   title:()=>BRAND+' – encuentra con quién comprar casa',
-  footnote:'Prueba de concepto. Todas las personas que verás aquí son inventadas, y cada mañana llega un grupo nuevo; por favor, no introduzcas datos personales reales. Solo cubre la afinidad y el espacio: el dinero, las cuotas de propiedad, el pacto de copropiedad y los anuncios reales llegarán más adelante. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud. Un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
+  footnote:'Versión preliminar. Todas las personas que verás aquí son inventadas, y cada mañana llega un grupo nuevo; por favor, no introduzcas datos personales reales. Solo cubre la afinidad y el espacio: el dinero, las cuotas de propiedad, el pacto de copropiedad y los anuncios reales llegarán más adelante. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud. Un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
   tabHome:'3 · Grupos y casa',srInGroup:'grupos',
   authH:'Encuentra con quién comprar casa',
-  authLead:'Una prueba de concepto cerrada. Las personas que conocerás son inventadas, y cada mañana llega un grupo nuevo. Por favor, no introduzcas datos personales reales: vale un apodo.',
+  authLead:'Una versión preliminar cerrada. Las personas que conocerás son inventadas, y cada mañana llega un grupo nuevo. Por favor, no introduzcas datos personales reales: vale un apodo.',
   signIn:'Entrar',signUp:'Crear una cuenta',haveAccount:'Ya tengo cuenta',newHere:'Es mi primera vez',
   username:'Nombre de usuario',usernameHint:'De 3 a 32 caracteres: minúsculas, números, puntos, guiones o guiones bajos',
   password:'Contraseña',passwordHint:'Al menos 10 caracteres',displayName:'Nombre visible',displayNameHint:'Vale un apodo',
-  invite:'Código de invitación',inviteHint:'Esta prueba de concepto es cerrada: pide un código',
+  invite:'Código de invitación',inviteHint:'Esta versión preliminar es cerrada: pide un código',
   signOut:'Salir',deleteAccount:'Borrar mi cuenta',deleteConfirm:'¿Borrar tu cuenta, tus «Me interesa» y los grupos que has creado? No se puede deshacer.',
   account:'Cuenta',signedInAs:n=>'Has entrado como '+n,
   err_signupClosed:'Ahora mismo no se pueden crear cuentas.',err_badInvite:'Ese código de invitación no es correcto.',err_badUsername:'Usa de 3 a 32 minúsculas, números, puntos, guiones o guiones bajos.',
@@ -394,11 +394,11 @@ Object.assign(STR.en,{
   wizNeedsLead:"Tap a feature once for 'nice to have' and twice for 'must have'. Tap again to clear it.",
   wizDoneH:"You're all set",wizDoneLead:"Your profile is saved. You can change it at any time under 'Your profile'. Now let's see who you click with.",
   wizSummary:'Your profile in short',wizNeedName:'Add a name to show.',
-  legalDraft:'Draft, pending legal review. This proof of concept only has made-up people.',
+  legalDraft:'Draft, pending legal review. This preview version only has made-up people.',
   legalBack:'Back',footTerms:'Terms of use',footPrivacy:'Privacy',
   termsH:'Terms of use',
   termsBody:[
-    BRAND+' is a closed proof of concept that helps people find others to buy a home with. Everyone you meet here is made up; real people join only by invitation.',
+    BRAND+' is a closed preview version that helps people find others to buy a home with. Everyone you meet here is made up; real people join only by invitation.',
     'You must be 18 or over, sign up with your own email address and keep your password to yourself.',
     "Be honest and respectful. Don't put contact details, other people's personal data or anything offensive in your profile.",
     "Compatibility scores and home briefs are illustrations to start a conversation. They aren't legal, tax or financial advice: before buying with anyone, talk to a lawyer and a financial adviser.",
@@ -444,11 +444,11 @@ Object.assign(STR.es,{
   wizNeedsLead:'Toca una característica una vez para «estaría bien» y dos veces para «imprescindible». Tócala otra vez para quitarla.',
   wizDoneH:'Todo listo',wizDoneLead:'Tu perfil está guardado. Puedes cambiarlo cuando quieras en «Tu perfil». Ahora, vamos a ver con quién encajas.',
   wizSummary:'Tu perfil, en resumen',wizNeedName:'Añade un nombre visible.',
-  legalDraft:'Borrador, pendiente de revisión legal. Esta prueba de concepto solo tiene personas inventadas.',
+  legalDraft:'Borrador, pendiente de revisión legal. Esta versión preliminar solo tiene personas inventadas.',
   legalBack:'Volver',footTerms:'Condiciones de uso',footPrivacy:'Privacidad',
   termsH:'Condiciones de uso',
   termsBody:[
-    BRAND+' es una prueba de concepto cerrada que ayuda a encontrar personas con quienes comprar casa. Todas las personas que verás aquí son inventadas; las personas reales solo entran con invitación.',
+    BRAND+' es una versión preliminar cerrada que ayuda a encontrar personas con quienes comprar casa. Todas las personas que verás aquí son inventadas; las personas reales solo entran con invitación.',
     'Tienes que tener 18 años o más, registrarte con tu propio correo y no compartir tu contraseña.',
     'Actúa con honestidad y respeto. No pongas en tu perfil datos de contacto, datos personales de otras personas ni nada ofensivo.',
     'Las puntuaciones de afinidad y las fichas de la casa son ilustraciones para empezar a hablar. No son asesoramiento legal, fiscal ni financiero: antes de comprar con nadie, consulta a un abogado y a un asesor financiero.',
@@ -514,7 +514,7 @@ Object.assign(STR.es,{
 Object.assign(STR.en,{
   helpLink:'How it works',
   helpH:'How '+BRAND+' works',
-  helpLead:'A short guide to this proof of concept. It will change as the service grows.',
+  helpLead:'A short guide to this preview version. It will change as the service grows.',
   helpSecs:[
     {h:'The steps',items:[
       "Fill in your profile: your household, the space you need, how you live, your dealbreakers, where you want to live and the most you'd put towards the price (only you see it).",
@@ -546,13 +546,13 @@ Object.assign(STR.en,{
       'When you all agree, you get a cost estimate for each of you, questions for your lawyer and notary, and a draft email to the agency for one of you to send.']},
     {h:'Not here yet',items:[
       'Emails: notifications only show inside the app for now. Drafts to agencies are only for made-up homes.',
-      'In this proof of concept, reports are kept, but nobody reviews them yet.',
+      'In this preview version, reports are kept, but nobody reviews them yet.',
       "Scores and home briefs are a starting point for a conversation, not legal, tax or financial advice."]}]
 });
 Object.assign(STR.es,{
   helpLink:'Cómo funciona',
   helpH:'Cómo funciona '+BRAND,
-  helpLead:'Una guía breve de esta prueba de concepto. Irá cambiando a medida que crezca el servicio.',
+  helpLead:'Una guía breve de esta versión preliminar. Irá cambiando a medida que crezca el servicio.',
   helpSecs:[
     {h:'Los pasos',items:[
       'Completa tu perfil: tu hogar, el espacio que necesitas, cómo vives, lo que no es negociable para ti, dónde quieres vivir y lo máximo que pondrías para el precio (solo lo ves tú).',
@@ -584,7 +584,7 @@ Object.assign(STR.es,{
       'Cuando estéis de acuerdo, tendréis una estimación de costes para cada uno, preguntas para vuestro abogado y notario y un borrador de correo a la agencia para que lo envíe uno de vosotros.']},
     {h:'Lo que aún no hay',items:[
       'Correos: por ahora, los avisos solo se ven dentro de la aplicación. Los borradores para agencias solo están disponibles con viviendas inventadas.',
-      'En esta prueba de concepto, las denuncias se guardan, pero aún no las revisa nadie.',
+      'En esta versión preliminar, las denuncias se guardan, pero aún no las revisa nadie.',
       'Las puntuaciones y la ficha de la casa son un punto de partida para hablar, no asesoramiento legal, fiscal ni financiero.']}]
 });
 
@@ -699,7 +699,7 @@ Object.assign(STR.en,{
   reportH:n=>'Report '+n,reportLead:"They aren't told who reported them.",reportReason:'What is wrong?',
   rr_fake:'A fake profile, or not who they say',rr_harassment:'Harassment or insults',rr_scam:'Asking for money, or a scam',rr_unsafe:'Makes me feel unsafe',rr_other:'Something else',
   reportNote:'Anything else we should know (optional)',reportBlock:'Block them too',reportSend:'Send the report',
-  reportPoC:'In this proof of concept, reports are kept, but nobody reviews them yet.',tReported:'Thank you. Your report has been sent.',
+  reportPoC:'In this preview version, reports are kept, but nobody reviews them yet.',tReported:'Thank you. Your report has been sent.',
   blockedH:'People you have blocked',blockedNone:"You haven't blocked anyone.",
   likedYou:'♥ Liked you',likedYouN:n=>n===1?'1 person liked you: first below':n+' people liked you: first below',
   answerBy:d=>'answer by '+d,untilDate:d=>'until '+d,
@@ -756,7 +756,7 @@ Object.assign(STR.es,{
   reportH:n=>'Denunciar a '+n,reportLead:'No se le dirá quién le ha denunciado.',reportReason:'¿Qué ocurre?',
   rr_fake:'Perfil falso, o no es quien dice ser',rr_harassment:'Acoso o insultos',rr_scam:'Pide dinero o parece una estafa',rr_unsafe:'Me hace sentir inseguro',rr_other:'Otra cosa',
   reportNote:'Algo más que debamos saber (opcional)',reportBlock:'Bloquearle también',reportSend:'Enviar la denuncia',
-  reportPoC:'En esta prueba de concepto, las denuncias se guardan, pero aún no las revisa nadie.',tReported:'Gracias. Tu denuncia se ha enviado.',
+  reportPoC:'En esta versión preliminar, las denuncias se guardan, pero aún no las revisa nadie.',tReported:'Gracias. Tu denuncia se ha enviado.',
   blockedH:'Personas que has bloqueado',blockedNone:'No has bloqueado a nadie.',
   likedYou:'♥ Le interesas',likedYouN:n=>n===1?'Le interesas a 1 persona: la verás la primera':'Le interesas a '+n+' personas: las verás las primeras',
   answerBy:d=>'responde antes del '+d,untilDate:d=>'hasta el '+d,
@@ -904,7 +904,7 @@ Object.assign(STR.en,{
   pkCopy:'Copy',pkBrief:'See the house-agreement topics',
   emViewH:'Ask the agency for a viewing',emOfferH:'Tell the agency you want to make an offer',
   emLead:'A draft for one of you to send from your own email. Compicasa sends nothing.',
-  emRealOff:'Emails to real agencies aren’t switched on yet in this proof of concept.',
+  emRealOff:'Emails to real agencies aren’t switched on yet in this preview version.',
   emViewSubj:(f,w)=>'Viewing request: '+f+(w?', '+w:''),
   emViewBody:(n,f,w,p,ref,who)=>'Hello,\n\nWe are '+n+' people planning to buy a home together. We are interested in the home ('+f+')'+(w?' in '+w:'')+' listed at '+p+' (your reference '+ref+').\n\nCould we arrange a viewing? Please let us know which days and times suit you.\n\nKind regards,\n'+who,
   emOfferSubj:(f,w)=>'Offer: '+f+(w?', '+w:''),
@@ -964,7 +964,7 @@ Object.assign(STR.es,{
   pkCopy:'Copiar',pkBrief:'Ver los temas del acuerdo de convivencia',
   emViewH:'Pedir una visita a la agencia',emOfferH:'Decir a la agencia que queréis hacer una oferta',
   emLead:'Un borrador para que uno de vosotros lo envíe desde su propio correo. Compicasa no envía nada.',
-  emRealOff:'Los correos a agencias reales aún no están activados en esta prueba de concepto.',
+  emRealOff:'Los correos a agencias reales aún no están activados en esta versión preliminar.',
   emViewSubj:(f,w)=>'Solicitud de visita: '+f+(w?', '+w:''),
   emViewBody:(n,f,w,p,ref,who)=>'Hola:\n\nSomos '+n+' personas que queremos comprar una vivienda juntas. Nos interesa la vivienda ('+f+')'+(w?' en '+w:'')+' anunciada por '+p+' (vuestra referencia '+ref+').\n\n¿Podríamos concertar una visita? Decidnos qué días y horas os vienen bien.\n\nUn saludo,\n'+who,
   emOfferSubj:(f,w)=>'Oferta: '+f+(w?', '+w:''),
@@ -1009,4 +1009,59 @@ Object.assign(STR.es,{
   hbUnset:l=>'Aún no se filtra por precio. Falta indicar el presupuesto máximo: '+l+'.',
   hbSetMine:'Indica tu presupuesto',
   dashBudget:'Indica tu presupuesto máximo para que estas viviendas se ajusten a lo que puedes pagar.'
+});
+
+/* Where homes come from (#sources): which agencies the crawl reads, when, and what we keep (D-035). Schedule and limits
+   as in App_Data/jobs/triggered/homes-sync (05:00 Madrid, up to 3,000 adverts per agency per run) and Crawl (3 s apart). */
+Object.assign(STR.en,{
+  srcLink:'Where homes come from',srcLinkHomes:'Where these homes come from',
+  srcH:'Where homes come from',
+  srcLead:"The homes for sale you see in a group come from estate agencies' own websites. This page says which ones we read, when, and what we keep.",
+  srcNowH:'Agencies we read now',
+  srcLoading:'Loading…',srcError:"We couldn't load the list just now. Please try again later.",srcNone:'No agencies yet.',
+  srcHomes:n=>n+' homes for sale listed',srcLast:d=>'last checked '+d+' (Madrid time)',srcNotYet:'not checked yet',
+  srcMore:'We add agencies one at a time, each with its own reader.',
+  srcPortals:'Blocked in our code:',srcBotLink:'More about our reader, CompicasaBot',
+  srcSecs:[
+    {h:'When we check',items:[
+      'Every day at 05:00, Madrid time, our reader, CompicasaBot, visits each agency\'s website.',
+      'It reads the agency\'s sitemap, the list of all its adverts and when each one last changed, and opens only adverts that are new or have changed: up to 3,000 per agency each day, so a new agency fills in over a few days.',
+      'It makes one request at a time, waits 3 seconds between them, and stops for the day if a website asks it to slow down.',
+      'When an advert disappears from the agency\'s website, its home stops showing here after the next check.']},
+    {h:'Where we never look',portals:true,items:[
+      'Never property portals or listing aggregators, such as Idealista, Fotocasa, habitaclia or pisos.com. Only the agencies\' own websites.']},
+    {h:'What we keep',items:[
+      'Only the facts: price, size, bedrooms, bathrooms, type of home, town, postcode, district, lift, parking, terrace, garden and energy rating, plus the agency\'s name and the link to its advert.',
+      'Never photos, the advert\'s description or agents\' contact details.',
+      'Every home shows its agency and a button to see the advert on the agency\'s website. You contact the agency there; we don\'t pass on your details.',
+      'Prices and details are as the advert showed them when we last checked. The agency\'s advert is always the up-to-date version.']},
+    {h:'For agencies',bot:true,items:[
+      'If an agency asks us to stop, we stop reading its website and remove its homes.',
+      'We follow robots.txt. To stop us reading your website, add these lines to your robots.txt; we follow them from the next check.']}]
+});
+Object.assign(STR.es,{
+  srcLink:'De dónde salen las viviendas',srcLinkHomes:'De dónde salen estas viviendas',
+  srcH:'De dónde salen las viviendas',
+  srcLead:'Las viviendas en venta que ves en un grupo salen de las webs de las propias agencias inmobiliarias. Aquí te contamos cuáles leemos, cuándo y qué guardamos.',
+  srcNowH:'Agencias que leemos ahora',
+  srcLoading:'Cargando…',srcError:'Ahora mismo no hemos podido cargar la lista. Vuelve a intentarlo más tarde.',srcNone:'Todavía no hay agencias.',
+  srcHomes:n=>n+' viviendas en venta',srcLast:d=>'última revisión: '+d+' (hora de Madrid)',srcNotYet:'aún sin revisar',
+  srcMore:'Añadimos las agencias de una en una, cada una con su propio lector.',
+  srcPortals:'Bloqueados en nuestro código:',srcBotLink:'Más sobre nuestro lector, CompicasaBot',
+  srcSecs:[
+    {h:'Cuándo revisamos',items:[
+      'Cada día a las 05:00, hora de Madrid, nuestro lector, CompicasaBot, visita la web de cada agencia.',
+      'Lee el mapa del sitio de la agencia, la lista de todos sus anuncios y cuándo cambió cada uno, y solo abre los anuncios nuevos o que han cambiado: hasta 3.000 por agencia al día, así que una agencia nueva se completa en unos días.',
+      'Hace una petición cada vez, espera 3 segundos entre una y otra, y para hasta el día siguiente si una web le pide que vaya más despacio.',
+      'Cuando un anuncio desaparece de la web de la agencia, su vivienda deja de aparecer aquí tras la siguiente revisión.']},
+    {h:'Dónde no miramos nunca',portals:true,items:[
+      'Nunca en portales inmobiliarios ni agregadores de anuncios, como Idealista, Fotocasa, habitaclia o pisos.com. Solo en las webs de las propias agencias.']},
+    {h:'Qué guardamos',items:[
+      'Solo los datos básicos: precio, superficie, dormitorios, baños, tipo de vivienda, municipio, código postal, barrio, ascensor, garaje, terraza, jardín y certificado energético, además del nombre de la agencia y el enlace a su anuncio.',
+      'Nunca fotos, la descripción del anuncio ni los datos de contacto de los agentes.',
+      'Cada vivienda muestra su agencia y un botón para ver el anuncio en la web de la agencia. Contactas con la agencia allí; no le pasamos tus datos.',
+      'Los precios y datos son los que mostraba el anuncio en nuestra última revisión. El anuncio de la agencia es siempre la versión al día.']},
+    {h:'Para agencias',bot:true,items:[
+      'Si una agencia nos pide que paremos, dejamos de leer su web y retiramos sus viviendas.',
+      'Respetamos robots.txt. Para que dejemos de leer tu web, añade estas líneas a tu robots.txt; las aplicamos desde la siguiente revisión.']}]
 });

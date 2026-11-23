@@ -8,6 +8,7 @@ using Compicasa.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 
@@ -274,6 +275,25 @@ public class HomesApiTests : IClassFixture<AppFactory>
         Assert.InRange(few.Count, 1, 6);
         Assert.All(few, h => Assert.True(h.GetProperty("beds").GetInt32() >= 2));
         Assert.Equal(HttpStatusCode.Unauthorized, (await _app.Browser().GetAsync("/api/me/homes")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Anyone_can_see_which_agencies_we_read_and_when()
+    {
+        var seen = new DateTimeOffset(2026, 11, 23, 4, 30, 0, TimeSpan.Zero);
+        using (var scope = _app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDb>();
+            db.Homes.Add(new Home { Id = $"tecnocasa:src-{Guid.NewGuid():N}", Source = "tecnocasa", Agency = "Tecnocasa", Url = $"https://www.tecnocasa.es/venta/piso/madrid/getafe/{Guid.NewGuid():N}.html", FirstSeenAt = seen, LastSeenAt = seen, CheckedAt = seen });
+            await db.SaveChangesAsync();
+        }
+        var r = await _app.CreateClient().GetFromJsonAsync<JsonElement>("/api/homes/sources");
+        var src = Assert.Single(r.GetProperty("sources").EnumerateArray());
+        Assert.Equal("tecnocasa", src.GetProperty("id").GetString());
+        Assert.Equal("Tecnocasa", src.GetProperty("name").GetString());
+        Assert.True(src.GetProperty("homes").GetInt32() >= 1);
+        Assert.True(src.GetProperty("lastChecked").GetDateTimeOffset() >= seen);
+        Assert.Contains("idealista.com", r.GetProperty("portals").EnumerateArray().Select(p => p.GetString()));
     }
 
     [Fact]

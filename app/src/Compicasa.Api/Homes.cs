@@ -36,6 +36,32 @@ public static partial class HomeSources
         TecnocasaSource.Id => new TecnocasaSource(),
         _ => null,
     };
+
+    /// <summary>Every agency network the daily crawl reads, in the order the "Where homes come from" page lists them.
+    /// Add a new adapter here, in Get and in the WebJob's run.cmd.</summary>
+    public static readonly string[] Crawled = [TecnocasaSource.Id];
+
+    public sealed record Summary(string Id, string Name, string Site, int Homes, DateTimeOffset? LastChecked);
+
+    /// <summary>For the public "Where homes come from" page (#homes-sources): each agency we read, how many of its homes
+    /// are listed now and when the crawl last saw them. Stopped agencies are left out.</summary>
+    public static async Task<List<Summary>> SummariesAsync(AppDb db, IConfiguration cfg, CancellationToken ct)
+    {
+        var stopped = Stopped(cfg);
+        var rows = new List<Summary>();
+        foreach (var id in Crawled.Where(id => !stopped.Contains(id)))
+        {
+            var src = Get(id)!;
+            var live = db.Homes.AsNoTracking().Where(h => h.Source == id && h.GoneAt == null);
+            var count = await live.CountAsync(ct);
+            // SQLite (local and tests) can't take the maximum of a DateTimeOffset in the database; SQL Server can.
+            DateTimeOffset? last = db.Database.IsSqlServer()
+                ? await live.MaxAsync(h => (DateTimeOffset?)h.LastSeenAt, ct)
+                : (await live.Select(h => h.LastSeenAt).ToListAsync(ct)).Cast<DateTimeOffset?>().Max();
+            rows.Add(new Summary(id, src.Name, src.Site.ToString(), count, last));
+        }
+        return rows;
+    }
 }
 
 public sealed record Discovered(string Url, DateTimeOffset? LastModified);
@@ -44,6 +70,8 @@ public sealed record Discovered(string Url, DateTimeOffset? LastModified);
 public interface IHomeSource
 {
     string SourceId { get; }
+    /// <summary>The agency network's name as people know it, shown on the "Where homes come from" page.</summary>
+    string Name { get; }
     Uri Site { get; }
     IAsyncEnumerable<Discovered> DiscoverAsync(Func<Uri, CancellationToken, Task<byte[]?>> fetch, CancellationToken ct);
     /// <summary>The facts from one advert page, or null if it isn't a home for sale we can use.</summary>
@@ -58,6 +86,7 @@ public sealed partial class TecnocasaSource : IHomeSource
 {
     public const string Id = "tecnocasa";
     public string SourceId => Id;
+    public string Name => "Tecnocasa";
     public Uri Site { get; } = new("https://www.tecnocasa.es/");
     static readonly string[] Sitemaps = ["sitemap/inmuebles-0.xml.gz", "sitemap/inmuebles-1.xml.gz"];
 

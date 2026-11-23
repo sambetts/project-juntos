@@ -45,6 +45,7 @@ Group page                          The app
 | Group endpoint | `GET /api/groups/{id}/homes` in `app/src/Compicasa.Api/Api.cs` |
 | Group page section | `homesSection` in `app/src/Compicasa.Api/wwwroot/app.js` |
 | Crawler's public page | `app/src/Compicasa.Api/wwwroot/bot.html`, served at `/bot` |
+| *Where homes come from*, for users (B-062) | `viewSources` in `wwwroot/app.js`, `src…` strings in `i18n.js`; data from `GET /api/homes/sources` (`HomeSources.SummariesAsync`). Add a new agency to `HomeSources.Crawled` too |
 
 ## Running it
 The crawl runs inside Azure as a WebJob of the web app (D-036): `homes-sync`, every day at 05:00 Madrid time, using the app's own settings and managed identity. It can also be started by hand, or run from a developer's machine against a local or the live database (commands in `app/README.md`, "Crawling homes"). Next: more agencies (B-048), then proper feeds (Kyero XML) from agencies that agree.
