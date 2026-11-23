@@ -39,6 +39,13 @@ public sealed class Profile
     /// <summary>The most this household would put towards a home's price, in euros, taxes and fees not included (B-058).
     /// Private: only its owner sees it; a group's members see their total. Null until they set it. Filters homes, never people (D-044).</summary>
     public int? MaxBudget { get; set; }
+    /// <summary>What the home is for (B-063): "live" (to live in it together, the default) or "let" (to rent it out).
+    /// Not private: people match only with the same purpose. For "let", the living-together answers are kept but unused,
+    /// and <see cref="Bedrooms"/> means the bedrooms the home to let should have, at least.</summary>
+    public string Purpose { get; set; } = Purposes.Live;
+
+    /// <summary>Buying to rent it out (a method, so it isn't serialised).</summary>
+    public bool IsLet() => Purpose == Purposes.Let;
 
     public int Slider(string id) => id switch
     {
@@ -66,9 +73,28 @@ public sealed class Profile
 public sealed record PublicProfile(
     string Id, string Name, string Household, int Adults, int Kids, int Bedrooms, bool PrivateBath, int Cars,
     IReadOnlyList<string> Pets, string Smoking, bool Wfh, string Horizon, IReadOnlyList<string> Areas,
-    IReadOnlyList<string> Types, IReadOnlyDictionary<string, string> Needs, string Color, LocalizedText? Bio, bool IsDemo)
+    IReadOnlyList<string> Types, IReadOnlyDictionary<string, string> Needs, string Color, LocalizedText? Bio, bool IsDemo, string Purpose)
 {
     public static PublicProfile From(Profile p, bool isDemo) => new(
         p.Id, p.Name, p.Household, p.Adults, p.Kids, p.Bedrooms, p.PrivateBath, p.Cars, p.Pets, p.Smoking, p.Wfh,
-        p.Horizon, p.Areas, p.Types, p.Needs, p.Color, p.Bio, isDemo);
+        p.Horizon, p.Areas, p.Types, p.Needs, p.Color, p.Bio, isDemo, p.Purpose);
+}
+
+/// <summary>
+/// What a home is bought for (B-063): to live in it together, or to rent it out. A group buys one home for one purpose,
+/// so people match only with the same purpose. Purpose isn't a protected characteristic and says nothing about money
+/// or household type (D-009, D-044 unchanged).
+/// </summary>
+public static class Purposes
+{
+    public const string Live = "live", Let = "let";
+    public static readonly string[] All = [Live, Let];
+
+    /// <summary>A made-up person's purpose: about one in four lets, steady for the same id, so the day's other answers stay as they were.</summary>
+    public static string DemoFor(string id)
+    {
+        var h = 2166136261u;
+        foreach (var ch in "purpose|" + id) { h ^= ch; h *= 16777619u; }
+        return h % 4 == 0 ? Let : Live;
+    }
 }

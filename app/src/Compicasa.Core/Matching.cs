@@ -35,22 +35,35 @@ public static class Matching
 
     static int HIndex(Profile p) { var i = Array.IndexOf(Catalogue.Horizons, p.Horizon); return i < 0 ? 1 : i; }
 
-    /// <summary>Dealbreakers, checked both ways from a's point of view. The other side's reasons stay private.</summary>
+    /// <summary>Everyone is buying to rent the home out (B-063): the living-together rules don't apply.</summary>
+    public static bool Letting(IEnumerable<Profile> all) => all.All(p => p.IsLet());
+
+    /// <summary>Dealbreakers, checked both ways from a's point of view. The other side's reasons stay private.
+    /// People match only with the same purpose (B-063); two people buying to let skip the living-together rules.</summary>
     public static HardResult Hard(Profile a, Profile b)
     {
+        if (a.Purpose != b.Purpose)
+        {
+            var diff = new Msg("purposeDiff", b.Purpose);
+            return new HardResult(false, [diff], [], [], [diff]);
+        }
         var mine = new List<Msg>(); var theirs = new List<string>(); var both = new List<Msg>();
-        if (!a.Open.Contains(b.Household)) mine.Add(new Msg("notOpen", b.Household));
-        if (!b.Open.Contains(a.Household)) theirs.Add("household");
-        if (!SmokeAccepts(a.AcceptsSmoking, b.Smoking)) mine.Add(new Msg(b.Smoking == "inside" ? "smokeIn" : "smokeOut"));
-        if (!SmokeAccepts(b.AcceptsSmoking, a.Smoking)) theirs.Add("smoking");
-        if (!PetsOk(a.AcceptsPets, b.Pets)) mine.Add(new Msg("petsNo", b.Pets.ToArray()));
-        if (!PetsOk(b.AcceptsPets, a.Pets)) theirs.Add("pets");
+        var letting = a.IsLet();
+        if (!letting)
+        {
+            if (!a.Open.Contains(b.Household)) mine.Add(new Msg("notOpen", b.Household));
+            if (!b.Open.Contains(a.Household)) theirs.Add("household");
+            if (!SmokeAccepts(a.AcceptsSmoking, b.Smoking)) mine.Add(new Msg(b.Smoking == "inside" ? "smokeIn" : "smokeOut"));
+            if (!SmokeAccepts(b.AcceptsSmoking, a.Smoking)) theirs.Add("smoking");
+            if (!PetsOk(a.AcceptsPets, b.Pets)) mine.Add(new Msg("petsNo", b.Pets.ToArray()));
+            if (!PetsOk(b.AcceptsPets, a.Pets)) theirs.Add("pets");
+        }
         if (a.Areas.Count == 0) mine.Add(new Msg("pickArea"));
         else if (Inter(a.Areas, b.Areas).Count == 0) both.Add(new Msg("noArea", b.Areas.ToArray()));
         if (a.Types.Count == 0) mine.Add(new Msg("pickType"));
         else if (Inter(a.Types, b.Types).Count == 0) both.Add(new Msg("onlyType", b.Types.ToArray()));
         var beds = a.Bedrooms + b.Bedrooms;
-        if (beds > Catalogue.MaxBedrooms) both.Add(new Msg("bedsPair", beds, Catalogue.MaxBedrooms));
+        if (!letting && beds > Catalogue.MaxBedrooms) both.Add(new Msg("bedsPair", beds, Catalogue.MaxBedrooms));
         var reasons = mine.Concat(both).ToList();
         if (theirs.Count > 0) reasons.Add(new Msg("theirsPrivate"));
         return new HardResult(mine.Count == 0 && theirs.Count == 0 && both.Count == 0, reasons, mine, theirs, both);
@@ -75,26 +88,52 @@ public static class Matching
     /// <summary>Demo compatibility score, 0-100. Uncalibrated weights; household type is not scored.</summary>
     public static ScoreResult Score(Profile a, Profile b)
     {
+        if (a.IsLet() && b.IsLet()) return LetScore(a, b);
         double life = 0;
         foreach (var (id, w) in Catalogue.Sliders) life += w * (1 - Math.Abs(a.Slider(id) - b.Slider(id)) / 4.0);
         var wfhClash = (a.Wfh && b.Social >= 4) || (b.Wfh && a.Social >= 4);
         if (wfhClash) life -= 0.08;
         life = Math.Clamp(life, 0, 1);
-        double ai = Inter(a.Areas, b.Areas).Count, ti = Inter(a.Types, b.Types).Count;
-        var areaS = ai / Math.Max(1, Math.Min(a.Areas.Count, b.Areas.Count));
-        var typeS = ti / Math.Max(1, Math.Min(a.Types.Count, b.Types.Count));
-        var place = 0.7 * areaS + 0.3 * typeS;
-        var plans = new[] { 1, 0.6, 0.2 }[Math.Abs(HIndex(a) - HIndex(b))];
+        var place = Place(a, b);
+        var plans = Plans(a, b);
         var hs = HomeScore(a, b);
         var parts = new Dictionary<string, double> { ["lifestyle"] = life, ["place"] = place, ["plans"] = plans, ["home"] = hs.V };
         double tot = 0; foreach (var (k, w) in Catalogue.Weights) tot += w * parts[k];
         return new ScoreResult(JsRound(100 * tot), parts, hs.Both, wfhClash);
     }
 
+    static double Place(Profile a, Profile b)
+    {
+        double ai = Inter(a.Areas, b.Areas).Count, ti = Inter(a.Types, b.Types).Count;
+        var areaS = ai / Math.Max(1, Math.Min(a.Areas.Count, b.Areas.Count));
+        var typeS = ti / Math.Max(1, Math.Min(a.Types.Count, b.Types.Count));
+        return 0.7 * areaS + 0.3 * typeS;
+    }
+
+    static double Plans(Profile a, Profile b) => new[] { 1, 0.6, 0.2 }[Math.Abs(HIndex(a) - HIndex(b))];
+
+    /// <summary>Two people buying to rent out (B-063): where and what, how long they'd keep it, shared priorities. No "how you live".</summary>
+    static ScoreResult LetScore(Profile a, Profile b)
+    {
+        var hs = HomeScore(a, b);
+        var parts = new Dictionary<string, double> { ["place"] = Place(a, b), ["plans"] = Plans(a, b), ["home"] = hs.V };
+        double tot = 0; foreach (var (k, w) in Catalogue.LetWeights) tot += w * parts[k];
+        return new ScoreResult(JsRound(100 * tot), parts, hs.Both, false);
+    }
+
     /// <summary>Why you click and what to talk about, from u's point of view.</summary>
     public static Explanation Explain(Profile u, Profile p)
     {
         var sc = Score(u, p); var clicks = new List<Msg>(); var talks = new List<Msg>();
+        if (u.IsLet() && p.IsLet())
+        {
+            // Buying to rent out: only plans and shared priorities are worth a word (B-063).
+            var d = Math.Abs(HIndex(u) - HIndex(p));
+            if (d == 0) clicks.Add(new Msg("sameHorizon", Catalogue.Horizons[HIndex(u)]));
+            else if (d == 2) talks.Add(new Msg("diffHorizon", Catalogue.Horizons[HIndex(u)], Catalogue.Horizons[HIndex(p)]));
+            foreach (var f in sc.Both.Take(2)) clicks.Add(new Msg("bothWant", f));
+            return new Explanation(sc, clicks.Take(4).ToList(), talks.Take(4).ToList());
+        }
         int D(string k) => Math.Abs(u.Slider(k) - p.Slider(k));
         if (p.Pets.Count > 0) talks.Add(new Msg("has", p.Pets.ToArray()));
         if (p.Smoking == "outside") talks.Add(new Msg("smokesOut"));
@@ -139,7 +178,7 @@ public static class Matching
         var maxH = all.Min(m => m.MaxHouseholds);
         if (all.Count > maxH) issues.Add(new Msg("maxHH", maxH, Ids(all.Where(m => m.MaxHouseholds == maxH))));
         var beds = all.Sum(m => m.Bedrooms);
-        if (beds > Catalogue.MaxBedrooms) issues.Add(new Msg("bedsGroup", beds, Catalogue.MaxBedrooms));
+        if (!Letting(all) && beds > Catalogue.MaxBedrooms) issues.Add(new Msg("bedsGroup", beds, Catalogue.MaxBedrooms));
         for (var i = 0; i < all.Count; i++)
             for (var j = i + 1; j < all.Count; j++)
             {
@@ -206,6 +245,7 @@ public static class Matching
     /// <summary>What the shared home needs.</summary>
     public static HouseBrief Brief(IReadOnlyList<Profile> all)
     {
+        if (all.Count > 0 && Letting(all)) return LetBrief(all);
         var beds = all.Sum(m => m.Bedrooms);
         var privateBaths = all.Count(m => m.PrivateBath);
         var sharers = all.Where(m => !m.PrivateBath).ToList();
@@ -237,8 +277,30 @@ public static class Matching
             CommonAreas(all), CommonTypes(all), feats, extras, R5(est), R5(est * 0.9), R5(est * 1.1), guestWc);
     }
 
+    /// <summary>
+    /// A home to rent out (B-063): the home itself, not who sleeps where. Each "bedrooms" answer means "at least", so the
+    /// home needs the most anyone asked for; one bathroom at least (Assumption); no parking, desks, kids or extras.
+    /// Size uses the same formula: (bedrooms x 12 + bathrooms x 5 + 42) x 1.15, plus or minus 10%.
+    /// </summary>
+    static HouseBrief LetBrief(IReadOnlyList<Profile> all)
+    {
+        var beds = all.Max(m => m.Bedrooms);
+        const int baths = 1;
+        var feats = Catalogue.Features.Select(f =>
+        {
+            var must = all.Where(m => m.Needs.GetValueOrDefault(f) == "must").ToList();
+            var nice = all.Where(m => m.Needs.GetValueOrDefault(f) == "nice").ToList();
+            return new FeatureNeed(f, must.Count > 0 ? "must" : (nice.Count > 0 ? "nice" : ""), Ids(must), Ids(nice));
+        }).Where(x => x.Level != "").ToList();
+        var est = (beds * 12 + baths * 5 + 30 + 12) * 1.15;
+        int R5(double x) => JsRound(x / 5) * 5;
+        return new HouseBrief(beds, baths, 0, 0, 0, 0, 0, all.Sum(m => m.Adults),
+            CommonAreas(all), CommonTypes(all), feats, [], R5(est), R5(est * 0.9), R5(est * 1.1), false);
+    }
+
     public static IReadOnlyList<RoomShare> RoomPlan(IReadOnlyList<Profile> all)
     {
+        if (all.Count > 0 && Letting(all)) return []; // nobody lives there (B-063)
         var beds = all.Sum(m => m.Bedrooms); if (beds == 0) beds = 1;
         return all.Select(m => new RoomShare(m.Id, m.Bedrooms, m.PrivateBath, JsRound(100.0 * m.Bedrooms / beds))).ToList();
     }
@@ -247,6 +309,7 @@ public static class Matching
     public static IReadOnlyList<Msg> PlacementTips(IReadOnlyList<Profile> all, string viewerId)
     {
         var r = new List<Msg>();
+        if (all.Count > 0 && Letting(all)) return r; // nobody lives there (B-063)
         var multi = all.Where(m => m.Bedrooms >= 2).ToList();
         if (all.Count >= 2 && multi.Count == 1) r.Add(multi[0].Id == viewerId ? new Msg("keepYours") : new Msg("keepTheirs", multi[0].Id));
         else if (all.Count >= 2 && multi.Count > 1) r.Add(new Msg("clusters", Ids(multi)));
@@ -264,6 +327,16 @@ public static class Matching
     public static IReadOnlyList<Topic> AgreementTopics(IReadOnlyList<Profile> all)
     {
         var r = new List<Topic>();
+        if (all.Count > 0 && Letting(all))
+        {
+            // Buying to rent out (B-063): prompts for a conversation and the lawyer, never advice.
+            r.Add(new Topic("agLetKind", null));
+            r.Add(new Topic("agLetManage", null));
+            r.Add(new Topic("agLetMoney", null));
+            r.Add(new Topic("agDecisions", null));
+            r.Add(new Topic("agExit", null));
+            return r;
+        }
         int Rng(string k) => all.Max(m => m.Slider(k)) - all.Min(m => m.Slider(k));
         if (Rng("tidy") >= 2) r.Add(new Topic("agCleaning", null));
         if (Rng("guests") >= 3) r.Add(new Topic("agGuests", null));

@@ -31,4 +31,10 @@ public static class Catalogue
     [
         ("lifestyle", 0.50), ("place", 0.20), ("plans", 0.20), ("home", 0.10),
     ];
+
+    /// <summary>The score for two people buying to rent out (B-063): how they live doesn't apply. Uncalibrated first guess.</summary>
+    public static readonly (string Part, double Weight)[] LetWeights =
+    [
+        ("place", 0.40), ("plans", 0.40), ("home", 0.20),
+    ];
 }

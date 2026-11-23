@@ -654,3 +654,7 @@ table.costs thead th{white-space:normal;vertical-align:bottom}
 .region>summary{cursor:pointer;padding:10px 12px;font-weight:600;list-style-position:inside}
 .region>summary .pill{margin-inline-start:6px}
 .region>.seg{padding:0 12px 12px}
+
+/* B-063: what the home is for */
+.seg.purpose .opt{flex:1 1 240px}
+.purposeline{margin:6px 0 0}

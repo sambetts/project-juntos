@@ -26,6 +26,7 @@ public static class ProfileRules
         var bio = input.Bio?.Es?.Trim() ?? "";
         if (bio.Length > 400) return (null, "badBio");
         if (input.MaxBudget is int mb && mb is < Budgets.Min or > Budgets.Max) return (null, "badBudget");
+        if (!Purposes.All.Contains(input.Purpose)) return (null, "badPurpose");
 
         var p = new Profile
         {
@@ -55,6 +56,8 @@ public static class ProfileRules
             Color = current.Color,
             Bio = bio.Length == 0 ? null : new LocalizedText(bio, bio),
             MaxBudget = input.MaxBudget,
+            // B-063: live in it or rent it out. For "let", the living-together answers are kept, unused, so switching back restores them.
+            Purpose = input.Purpose,
         };
         return (p, null);
     }

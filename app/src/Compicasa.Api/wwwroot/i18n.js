@@ -1082,3 +1082,75 @@ Object.assign(STR.es,{
       'Si una agencia nos pide que paremos, dejamos de leer su web y retiramos sus viviendas.',
       'Respetamos robots.txt. Para que dejemos de leer tu web, añade estas líneas a tu robots.txt; las aplicamos desde la siguiente revisión.']}]
 });
+
+/* Live in it or rent it out (B-063): one purpose per profile; people match only with the same purpose.
+   Letting skips the living-together questions. Prompts for the lawyer, never advice. */
+Object.assign(STR.en,{
+  purposeLive:'To live in',purposeLet:'To rent out',
+  purposeH:"What the home is for",purposeQ:"You're looking for a home",
+  purposeLiveHint:'to live in, sharing it with the others',purposeLetHint:'to let, as an investment with the others',
+  purposeNote:"You'll only be matched with people looking for the same: a group buys one home, for one purpose. You can change it at any time, but any group you're in would stop working.",
+  purposeChange:'Change',peoplePurpose:l=>'Looking for a home: '+l.toLowerCase(),
+  wizPurposeLead:'Do you want a home to live in, or one to rent out? It decides who you meet and which questions come next.',
+  wizLetHouseholdLead:'Who is buying with you, if anyone? Nobody will live in the home, so this only says who you are.',
+  wizLetLead:'The home you would rent out, and how many of you could own it.',
+  wizLetWhereLead:'Where you would buy, and how long you would keep the home.',
+  letH:'The home to rent out',letWhereH:'Where and for how long',
+  letBedsLabel:'Bedrooms the home should have, at least',letMaxLabel:'Owners, at most',
+  letSkipped:"As nobody will live there, we don't ask about bedrooms of your own, habits, pets or smoking, and they play no part in your matches.",
+  letHorizonLabel:"How long you'd keep the home",letBedsN:n=>'home with '+pl(n,'bedroom','bedrooms')+' or more',keeping:l=>'keeping it '+l,
+  purposeDiff:p=>p==='let'?"They're looking for a home to rent out; you, one to live in":"They're looking for a home to live in; you, one to rent out",
+  letTogether:line=>"Together you'd look for a "+line+' to rent out',
+  letHeadline:line=>line+' to rent out',kOwners:'Owners',oBriefLet:'The home to rent out',
+  letCardH:'A home to rent out',
+  letCardLead:"Nobody in the group will live there, so there are no rooms to share out: the brief is the home itself, with the most bedrooms any of you asked for.",
+  letCardLaw:'The rules for letting a home (long-term or holiday letting, licences, tax on the rent) depend on the region and the town. They are questions for your lawyer before you buy; we give no advice on them.',
+  letHomesNote:'A group buying to rent out: check with your lawyer what the rules for letting are where each home is.',
+  agLetKind:['Kind of letting','Long-term or holiday letting? Each has its own rules, which vary by region and town','Ask your lawyer before you choose a home'],
+  agLetManage:['Managing it','Who finds and deals with tenants and repairs, or whether you pay an agency','Every letting needs someone in charge'],
+  agLetMoney:['Rent and costs','How you share the rent, the running costs and a reserve for repairs and empty months','Agree the principle now; your lawyer and adviser give the detail'],
+  lq_letKind:'Letting: which kinds of letting (long-term or holiday) are allowed for this home, and does it need a licence, registration or the residents’ association’s agreement?',
+  lq_letRent:'Rent: how should the co-owners share the rent and the costs, and what should our agreement say about choosing tenants and setting the rent?',
+  lq_letManage:'Managing it: who signs the tenancy, and can one of us, or an agency, manage it for all of us?',
+  lq_letTax:'Tax: how is each of us taxed on our share of the rent, and what must we file?',
+  err_badPurpose:'Choose whether the home is to live in or to rent out.'
+});
+Object.assign(STR.es,{
+  purposeLive:'Para vivir',purposeLet:'Para alquilar',
+  purposeH:'Para qué es la vivienda',purposeQ:'Buscas una vivienda',
+  purposeLiveHint:'para vivir en ella, compartiéndola con los demás',purposeLetHint:'para alquilarla, como inversión con los demás',
+  purposeNote:'Solo te emparejamos con quien busca lo mismo: un grupo compra una vivienda, para un único fin. Puedes cambiarlo cuando quieras, pero cualquier grupo en el que estés dejaría de funcionar.',
+  purposeChange:'Cambiar',peoplePurpose:l=>'Buscas vivienda: '+l.toLowerCase(),
+  wizPurposeLead:'¿Quieres una vivienda para vivir o para alquilarla? Decide a quién conoces y qué preguntas vienen después.',
+  wizLetHouseholdLead:'¿Quién compra contigo, si hay alguien? Nadie vivirá en la vivienda, así que esto solo dice quién eres.',
+  wizLetLead:'La vivienda que alquilaríais y cuántas personas podríais ser propietarias.',
+  wizLetWhereLead:'Dónde comprarías y cuánto tiempo mantendrías la vivienda.',
+  letH:'La vivienda para alquilar',letWhereH:'Dónde y durante cuánto tiempo',
+  letBedsLabel:'Dormitorios que debería tener la vivienda, como mínimo',letMaxLabel:'Propietarios, como máximo',
+  letSkipped:'Como nadie vivirá allí, no te preguntamos por dormitorios propios, hábitos, mascotas ni tabaco, y no cuentan en tus emparejamientos.',
+  letHorizonLabel:'Cuánto tiempo mantendrías la vivienda',letBedsN:n=>'vivienda de '+pl(n,'dormitorio','dormitorios')+' o más',keeping:l=>'la mantendría '+l,
+  purposeDiff:p=>p==='let'?'Busca una vivienda para alquilar; tú, para vivir':'Busca una vivienda para vivir; tú, para alquilar',
+  letTogether:line=>'Juntos buscaríais: '+line+' para alquilar',
+  letHeadline:line=>line+' para alquilar',kOwners:'Propietarios',oBriefLet:'La vivienda para alquilar',
+  letCardH:'Una vivienda para alquilar',
+  letCardLead:'Nadie del grupo vivirá allí, así que no hay habitaciones que repartir: la ficha es la propia vivienda, con el mayor número de dormitorios que haya pedido alguno de vosotros.',
+  letCardLaw:'Las normas para alquilar una vivienda (alquiler de larga duración o turístico, licencias, impuestos sobre la renta) dependen de la comunidad autónoma y del municipio. Son preguntas para vuestro abogado antes de comprar; no damos asesoramiento sobre ellas.',
+  letHomesNote:'Un grupo que compra para alquilar: consultad con vuestro abogado qué normas de alquiler rigen donde está cada vivienda.',
+  agLetKind:['Tipo de alquiler','¿Larga duración o turístico? Cada uno tiene sus normas, que cambian según la comunidad y el municipio','Preguntadlo a vuestro abogado antes de elegir vivienda'],
+  agLetManage:['Gestión','Quién busca y trata con los inquilinos y las reparaciones, o si pagáis a una agencia','Todo alquiler necesita a alguien al frente'],
+  agLetMoney:['Rentas y gastos','Cómo repartís la renta, los gastos y un fondo para reparaciones y meses sin inquilino','Acordad ahora el principio; el detalle, con vuestro abogado y asesor'],
+  lq_letKind:'Alquiler: ¿qué tipos de alquiler (larga duración o turístico) se permiten en esta vivienda, y hace falta licencia, inscripción o el acuerdo de la comunidad de propietarios?',
+  lq_letRent:'Rentas: ¿cómo deben repartirse los copropietarios la renta y los gastos, y qué debe decir nuestro pacto sobre elegir inquilinos y fijar la renta?',
+  lq_letManage:'Gestión: ¿quién firma el contrato de alquiler, y puede gestionarlo uno de nosotros, o una agencia, en nombre de todos?',
+  lq_letTax:'Impuestos: ¿cómo tributa cada uno por su parte de la renta y qué tenemos que presentar?',
+  err_badPurpose:'Elige si la vivienda es para vivir o para alquilar.'
+});
+/* The guide (#help): a section on the two paths, after "The steps" */
+STR.en.helpSecs.splice(1,0,{h:'To live in, or to rent out',items:[
+  'In your profile you say what the home is for: to live in, or to rent out. You only meet people looking for the same, because a group buys one home for one purpose.',
+  "If you're buying to rent out, we skip the questions about living together (your own bedrooms, habits, pets, smoking, who you'd share with), and they play no part in your matches. Your match is about where, what type of home, how long you'd keep it and what the home should have.",
+  "A group buying to rent out gets a brief for the home itself, with no room split, and starters for agreeing how to let it, manage it and share the rent. The rules for letting differ by region and town: ask your lawyer."]});
+STR.es.helpSecs.splice(1,0,{h:'Para vivir o para alquilar',items:[
+  'En tu perfil dices para qué es la vivienda: para vivir o para alquilar. Solo conoces a quien busca lo mismo, porque un grupo compra una vivienda para un único fin.',
+  'Si compras para alquilar, nos saltamos las preguntas sobre la convivencia (dormitorios propios, hábitos, mascotas, tabaco, con quién compartirías) y no cuentan en tus emparejamientos. Encajáis por la zona, el tipo de vivienda, cuánto tiempo la mantendríais y lo que debe tener.',
+  'Un grupo que compra para alquilar recibe una ficha de la propia vivienda, sin reparto de habitaciones, y temas para acordar cómo alquilarla, gestionarla y repartir la renta. Las normas de alquiler cambian según la comunidad y el municipio: preguntadlo a vuestro abogado.']});

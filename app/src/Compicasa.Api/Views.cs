@@ -5,9 +5,9 @@ namespace Compicasa.Api;
 /// <summary>Shapes API responses. Other people are shown through <see cref="PublicProfile"/> only.</summary>
 public static class Views
 {
-    public sealed record Person(string Id, string Name, string Color, string Household, int Adults, int Kids, bool IsDemo, bool IsMe);
+    public sealed record Person(string Id, string Name, string Color, string Household, int Adults, int Kids, bool IsDemo, bool IsMe, string Purpose);
 
-    static Person PersonOf(Community c, Profile p) => new(p.Id, p.Name, p.Color, p.Household, p.Adults, p.Kids, c.IsDemo(p.Id), p.Id == c.Viewer.Id);
+    static Person PersonOf(Community c, Profile p) => new(p.Id, p.Name, p.Color, p.Household, p.Adults, p.Kids, c.IsDemo(p.Id), p.Id == c.Viewer.Id, p.Purpose);
 
     static Dictionary<string, Person> People(Community c, IEnumerable<Profile> ps) =>
         ps.DistinctBy(p => p.Id).ToDictionary(p => p.Id, p => PersonOf(c, p));
@@ -111,6 +111,8 @@ public static class Views
         {
             id = g?.Id,
             preview = g is null,
+            // B-063: everyone in a working group has the same purpose (a dealbreaker otherwise); the viewer's is the group's.
+            purpose = c.Me.Purpose,
             state = g is null ? "preview" : GroupState(g),
             createdBy = g?.CreatedById,
             members = g is null

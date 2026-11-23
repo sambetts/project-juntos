@@ -91,6 +91,31 @@ We're exploring a service, for Spain only, that helps people who can't afford a 
 9. **The agreement:** the minimum content of a co-ownership agreement; a template you'd stand behind; a fixed fee per group.
 10. **Other regions:** what changes under Catalan civil law (Book Five of the Civil Code of Catalonia) before we expand there?
 
+## 4A. Part C: groups that buy to rent out *(added 2026-11-23, B-063)*
+_Legal & Compliance (AI). Questions for the lawyer, not advice; we show users none of this as a conclusion. The service now lets people say whether they want a home to live in or one to rent out, and matches them only with people who want the same (`product/2026-11-23-live-or-let.md`). Part A and Part B assumed the owners live in the home; these questions are about a group of unrelated co-owners who buy a home only to let it. The sources below are from earlier knowledge and were **not re-checked this session** (Reported), so please correct anything out of date._
+
+**C1. Our status and the "investment" label**
+- Does helping strangers find each other to buy a home to let, and showing them homes, change any answer in A1 or A7? In particular: if we describe it as an investment, could co-owning a let home through us count as a collective investment or crowdfunding offer (Ley 6/2023 de los Mercados de Valores; Regulation (EU) 2020/1503 on crowdfunding service providers)? What wording keeps us clear of that (A6)?
+- May we filter who people meet by purpose (to live in, or to rent out)? We think it is not a ground under Ley 15/2022 and says nothing about money or household type, so D-009's limits are unaffected (Assumption).
+
+**C2. The co-ownership pact for a let home**
+- Under the Civil Code, which letting decisions can a majority of shares take (art. 398), and which need everyone? We understand that case law treats leases over six years as needing unanimity (Reported). Who must sign the tenancy, and can the pact appoint one co-owner or an agency to manage it for all?
+- What should a pact for a let home cover beyond Part B, item 9: choosing tenants and setting the rent; sharing rent, costs and a reserve fund; empty months and unpaid rent; who may use the home themselves (if anyone); and selling while a tenancy is running (art. 1571 and the tenant's rights under the LAU)?
+- Can the no-division pact (art. 400) and the exit rules work the same way when the home has a sitting tenant?
+
+**C3. Long-term versus holiday letting**
+- Long-term residential letting falls under the Ley de Arrendamientos Urbanos ([Ley 29/1994](https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003)), and holiday letting is excluded from it (art. 5.e) and regulated by each region and town (Reported). What should a group check, home by home, before buying for either kind: regional tourist-let rules and licences, town planning limits, and the single registration of short-term lets that we understand applies from July 2025 under Regulation (EU) [2024/1028](http://data.europa.eu/eli/reg/2024/1028/oj) and Real Decreto 1312/2024 (Reported)?
+- We understand the Ley de Propiedad Horizontal ([Ley 49/1960](https://www.boe.es/buscar/act.php?id=BOE-A-1960-10906), art. 17.12, as amended in 2025) now lets a residents' association require its approval, by a three-fifths majority, before a flat starts holiday letting (Reported). How should a group check the association's rules and minutes before an offer?
+- Under the housing law ([Ley 12/2023](https://www.boe.es/buscar/act.php?id=BOE-A-2023-12203)): how do "stressed residential market" areas and rent limits affect a group of co-owners? Could a group, or one of its members, count as a large landlord (*gran tenedor*), and is that counted per person or per home?
+- As landlords, the co-owners must not discriminate between tenants (Ley 15/2022, art. 20). What should the pact or our guidance say about that?
+
+**C4. Tax on rental income**
+- We understand that rent from a home owned in shares is taxed in each co-owner's own income tax in proportion to their share, under the income attribution rules (Ley del IRPF, [Ley 35/2006](https://www.boe.es/buscar/act.php?id=BOE-A-2006-20764), art. 8.3 and arts. 86–90), with an information return when there is a *comunidad de bienes* (modelo 184), and that the reduction for letting a home as a main residence (art. 23.2, changed by Ley 12/2023) depends on the tenancy and the area (Reported). Is that right for co-owners who never formed a company? What changes for holiday letting (VAT if services are added; the regional tourist tax where there is one)?
+- How do the purchase taxes (Part B, item 5) and any later sale differ for a home bought to let rather than to live in (for example, no main-residence reliefs on a gain)?
+
+**C5. Money and lending**
+- Do banks lend to several unrelated buyers of a home to let on the same terms as for a home to live in? What may we say about buy-to-let mortgages without becoming a credit intermediary (Ley 5/2019, Part B, item 6)?
+
 ## 5. What we think we know (please correct us)
 Checked against these sources by an independent review on 2026-11-20.
 
