@@ -221,25 +221,36 @@ ${radioGroup('horizon',loc(HORIZONS),u.horizon,t('horizonLabel'))}`,
 };
 function presetButtons(){return Object.keys(PRESETS).map(k=>`<button type="button" class="btn small" data-action="preset" data-id="${k}">${esc(tx(PRESETS[k].label))}</button>`).join('');}
 
+/* One line per section: what you answered, so the profile reads as a summary until you open a section (B-051) */
+const SUMMARY={
+  name:u=>[u.name,u.bio?t('sumBio'):''].filter(Boolean).join(' · '),
+  household:u=>cap(hhLabel(u)),
+  space:u=>[t('bedroomsN',u.bedrooms),u.privateBath?t('ownBathFact'):t('sharesBath'),u.cars?t('parkingN',u.cars):t('sumNoParking'),u.pets.length?cap(petText(u.pets)):''].filter(Boolean).join(' · '),
+  live:u=>[u.wfh?t('wfhFact'):'',t('sumSmoke_'+u.smoking),t('sumSliders')].filter(Boolean).join(' · '),
+  share:u=>[t('sumOpen',u.open.length),t('sumMaxHH',u.maxHouseholds),u.acceptsPets?t('okPets'):''].filter(Boolean).join(' · '),
+  where:u=>[cap(listOr(u.areas.map(areaLabel))),homeType(u.types),t('staying',horizonLabel(u.horizon))].filter(Boolean).join(' · '),
+  needs:u=>{const k=Object.keys(u.needs),m=k.filter(x=>u.needs[x]==='must'),n=k.filter(x=>u.needs[x]==='nice');return [m.length?t('sumMust',listAnd(m.map(x=>featLabel(x).toLowerCase()))):'',n.length?t('sumNice',n.length):''].filter(Boolean).join(' · ')||t('sumNoNeeds');}
+};
 function viewYou(){
   const u=S.profile;if(!u)return `<p class="lead">${esc(t('loading'))}</p>`;
-  const card=(h,id)=>`<section class="card"><h3>${h}</h3>${SECTIONS[id](u)}</section>`;
-  return `<h2>${t('profileH')}</h2>
-<p class="lead">${t('profileLead')}</p>
-<div class="card presets"><b>${t('startFrom')}</b>${presetButtons()}</div>
-<div class="grid cols-2 mt">
-${card(esc(t('nameLabel')),'name')}
-${card(t('whoBuying'),'household')}
-${card(t('privateSpace'),'space')}
-${card(t('howLive'),'live')}
-${card(t('shareWith'),'share')}
-${card(t('whereHow'),'where')}
-${card(t('needsH'),'needs')}
-<section class="card"><h3>${esc(t('account'))}</h3>
-<p>${esc(t('signedInAs',S.me.email||''))}</p>
-<div class="presets"><button type="button" class="btn" data-action="logout">${esc(t('signOut'))}</button><button type="button" class="btn ghost danger" data-action="delete-account">${esc(t('deleteAccount'))}</button></div>
-</section>
-</div>`;
+  if(!S.openSecs)S.openSecs={};
+  const sec=(h,id)=>`<details class="psec" data-sec="${id}"${S.openSecs[id]?' open':''}><summary><span class="psec-h">${h}</span><span class="psec-s">${esc(SUMMARY[id](u))}</span><span class="psec-e" aria-hidden="true">${esc(t('editSec'))}</span></summary><div class="psec-b">${SECTIONS[id](u)}</div></details>`;
+  const m=S.matches,save=S.save?` · <span role="status">${esc(t(S.save))}</span>`:'';
+  return `<header class="phead2"><div><h2>${t('profileH')}</h2><p class="hint">${m?esc(t('profCount',m.compatible.length,m.hidden.length)):''}${save}</p></div><a class="btn small" href="#people-review">${esc(t('seePeople'))}</a></header>
+<div class="psecs">
+${sec(esc(t('nameLabel')),'name')}
+${sec(t('whoBuying'),'household')}
+${sec(t('privateSpace'),'space')}
+${sec(t('howLive'),'live')}
+${sec(t('shareWith'),'share')}
+${sec(t('whereHow'),'where')}
+${sec(t('needsH'),'needs')}
+</div>
+<details class="quietbox mt"><summary>${String(t('startFrom')).replace(/:\s*$/,'')}</summary><p class="hint">${esc(t('presetWarn'))}</p><div class="presets">${presetButtons()}</div></details>
+<section class="account mt"><h3>${esc(t('account'))}</h3>
+<p class="hint">${esc(t('signedInAs',S.me.email||''))}</p>
+<div class="presets"><button type="button" class="btn small" data-action="logout">${esc(t('signOut'))}</button><button type="button" class="btn small ghost danger" data-action="delete-account">${esc(t('deleteAccount'))}</button></div>
+</section>`;
 }
 
 /* ---------- onboarding wizard: the same sections, one per step; matches unlock at the end ---------- */
@@ -271,27 +282,29 @@ ${body}
 </div>`;
 }
 
+/* The buttons for one person, on the card and in the sheet */
+function cardActions(x){
+  const p=x.person,st=x.state,inDraft=S.draft.indexOf(p.id)>=0,sim=p.isDemo?` <span class="hint">${t('simReply')}</span>`:'';
+  if(inDraft)return `<span class="status ok">${t('inDraft')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="remove" data-id="${esc(p.id)}">${t('remove')}</button>`;
+  if(st==='passed')return `<span class="status wait">${t('passedS')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
+  if(st==='none')return `<button type="button" class="btn small" data-action="pass" data-id="${esc(p.id)}">${t('pass')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="like" data-id="${esc(p.id)}">${t('like')}</button>`;
+  if(st==='mutual')return `<span class="status ok">${t('mutualS')}${sim}</span><span class="spacer"></span><button type="button" class="btn small primary" data-action="add" data-id="${esc(p.id)}">${t('addGroup')}</button>`;
+  if(st==='waiting')return `<span class="status wait">${t('waitingS')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
+  return `<span class="status wait">${t('likedNo')}${sim}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
+}
+/* Compact by default (B-051): who, the score, two lines of bio, two reasons you click and one thing to talk about.
+   Everything else is in the sheet ("More"), so cards in a row stay the same height. */
 function personCard(x){
-  const p=x.person,s=x.score.total,cls=s>=80?'hi':(s>=65?'mid':'lo'),st=x.state,inDraft=S.draft.indexOf(p.id)>=0;
-  const facts=[t('bedroomsN',p.bedrooms),p.privateBath?t('ownBathFact'):t('sharesBath'),p.cars?t('parkingN',p.cars):'',p.wfh?t('wfhFact'):'',t('staying',horizonLabel(p.horizon))].filter(Boolean);
-  const sim=p.isDemo?` <span class="hint">${t('simReply')}</span>`:'';
-  let act;
-  if(inDraft)act=`<span class="status ok">${t('inDraft')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="remove" data-id="${esc(p.id)}">${t('remove')}</button>`;
-  else if(st==='passed')act=`<span class="status wait">${t('passedS')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
-  else if(st==='none')act=`<button type="button" class="btn small" data-action="pass" data-id="${esc(p.id)}">${t('pass')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="like" data-id="${esc(p.id)}">${t('like')}</button>`;
-  else if(st==='mutual')act=`<span class="status ok">${t('mutualS')}${sim}</span><span class="spacer"></span><button type="button" class="btn small primary" data-action="add" data-id="${esc(p.id)}">${t('addGroup')}</button>`;
-  else if(st==='waiting')act=`<span class="status wait">${t('waitingS')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
-  else act=`<span class="status wait">${t('likedNo')}${sim}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
-  const tg=x.together,line=t('homeLine',homeType(tg.types),tg.beds),rest=t('bathsN',tg.baths)+(tg.cars?' · '+t('parkingN',tg.cars):'');
+  const p=x.person,s=x.score.total,cls=s>=80?'hi':(s>=65?'mid':'lo'),st=x.state;
   const bio=p.bio?tx(p.bio):'';
+  const chip=(c,good)=>`<span class="chip ${good?'good':'warn'}">${good?'✓':'⚑'} ${esc(M(c))}</span>`;
+  const top=x.clicks.slice(0,2).map(c=>chip(c,true)).join('')+x.talks.slice(0,1).map(c=>chip(c,false)).join('');
   return `<article class="card pcard${st==='passed'?' passed':''}">
-<div class="phead">${avatar(p.id,46,p.color,p.name)}<div><div class="pname">${esc(p.name)}${p.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''}</div><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls}" data-p="${s}" role="img" aria-label="${esc(t('ringAria',s))}"><b>${s}%</b></div></div>
-${bio?`<p class="bio">${esc(bio)}</p>`:''}
-<div class="facts">${facts.map(f=>`<span class="fact">${esc(f)}</span>`).join('')}</div>
-<div class="chips">${x.clicks.map(c=>`<span class="chip good">✓ ${esc(M(c))}</span>`).join('')}${x.talks.map(c=>`<span class="chip warn">⚑ ${esc(M(c))}</span>`).join('')}</div>
-<div class="together">${t('together',esc(line),esc(rest))}</div>
-<details class="why"><summary>${esc(t('why',s))}</summary><div class="bars">${Object.keys(WEIGHTS).map(k=>bar(tx(PART_LABELS[k]),x.score.parts[k])).join('')}</div><p class="hint">${esc(t('demoScoreHint'))}</p></details>
-<div class="pactions">${act}</div>
+<div class="phead">${avatar(p.id,46,p.color,p.name)}<div class="pwho"><div class="pname">${esc(p.name)}${p.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''}</div><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls}" data-p="${s}" role="img" aria-label="${esc(t('ringAria',s))}"><b>${s}%</b></div></div>
+${bio?`<p class="bio clamp">${esc(bio)}</p>`:''}
+${top?`<div class="chips">${top}</div>`:''}
+<a class="quiet more" href="#person-${esc(p.id)}">${esc(t('moreAbout'))}</a>
+<div class="pactions">${cardActions(x)}</div>
 </article>`;
 }
 
@@ -306,21 +319,28 @@ function groupCard(g,label){
 <div class="pactions"><button type="button" class="btn small" data-action="preview" data-id="${esc(g.ids.join(','))}">${t('previewBtn')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="propose" data-id="${esc(g.ids.join(','))}">${t('propose')}</button></div></article>`;
 }
 
+/* People (Session 18, B-051): one job per view. To review → Liked (waiting) → Matches; Passed from a link.
+   A like is silent, so someone who said no simply leaves your Liked list: no "said no" list. */
+function psOf(x){const s=x.state;return s==='none'?'review':(s==='mutual'?'matches':(s==='passed'?'passed':(s==='waiting'?'liked':'gone')));}
+function peopleCounts(){const c={review:0,liked:0,matches:0,passed:0,gone:0};if(S.matches)S.matches.compatible.forEach(x=>c[psOf(x)]++);return c;}
+function peopleSub(){if(S.ps)return S.ps;const c=peopleCounts();return c.review||!c.matches?'review':'matches';}
+/* Sub-views are links: each has an address, so Back works (B-051). items: [key,label,count,disabledReason,href] */
+function subTabs(items,cur,attr,label){
+  return `<nav class="subtabs" aria-label="${esc(label)}">${items.map(x=>x[3]?`<span class="stab off" aria-disabled="true">${esc(x[1])} <small>${esc(x[3])}</small></span>`:`<a class="stab" href="${x[4]}" ${attr}="${x[0]}"${x[0]===cur?' aria-current="page"':''}>${esc(x[1])}${x[2]!=null?` <span class="n">${x[2]}</span>`:''}</a>`).join('')}</nav>`;
+}
 function viewMatches(){
   const m=S.matches;if(!m)return `<p class="lead">${esc(t('loading'))}</p>`;
-  const label=(g,i)=>(i===0?t('topSugg'):'')+(g.size===2?t('pairOf'):t('groupOf',g.size));
-  const groupsBlock=m.suggestions.length?`<p class="hint">${esc(t('groupsHint'))}</p><div class="grid groups">${m.suggestions.map((g,i)=>groupCard(g,label(g,i))).join('')}</div>`
-    :`<div class="card hint">${esc(m.mutualCount?t('noGroupYet'):t('groupsAppear'))}</div>`;
-  const all=m.compatible,mutual=all.filter(x=>x.state==='mutual').length,med=median(all.map(x=>x.score.total));
-  const stats=`<div class="tiles">${tile(num(all.length),t('stCompat'),'')}${tile(num(m.hidden.length),t('stHidden'),'')}${tile(num(m.likedCount),t('stLiked'),'')}${tile(num(mutual),t('stMutual'),'')}${tile(med!=null?Math.round(med)+' %':'–',t('stMedScore'),'')}</div>`;
-  return `<section class="hero"><h2>${t('matchesH')}</h2>
-<p class="lead">${esc(t('matchesLead2',m.compatible.length))}</p>${stats}</section>
-<details class="card mb"><summary><b>${t('howScore')}</b></summary><p class="hint">${esc(t('howScoreText'))}</p></details>
-<section class="mb"><h3>${t('groupsH')}</h3>${groupsBlock}</section>
-<h3>${t('everyoneH')}</h3>
-${all.length?matchesToolbar():''}
-<div id="mx-results">${matchesResults()}</div>
-${m.hidden.length?`<details class="card mt"><summary><b>${esc(t('hiddenN',m.hidden.length))}</b> <span class="hint">${t('seeWhy')}</span></summary><ul class="clean mt">${m.hidden.map(h=>`<li>${avatar(h.person.id,32,h.person.color,h.person.name)}<div><b>${esc(h.person.name)}</b> <span class="hint">· ${esc(hhLabel(h.person))}</span><div class="who">${esc(h.reasons.map(M).join(' · '))}</div></div></li>`).join('')}</ul></details>`:''}`;
+  const all=m.compatible,c=peopleCounts(),ps=peopleSub(),med=median(all.map(x=>x.score.total));
+  const summary=[t('sumCompat',all.length),med!=null?t('sumMedian',Math.round(med)):''].filter(Boolean).join(' · ');
+  const head=`<header class="phead2"><div><h2>${t('peopleH')}</h2><p class="hint">${esc(summary)} · <a href="#help" class="quiet">${esc(t('howScore'))}</a></p></div></header>
+${subTabs([['review',t('ps_review'),c.review],['liked',t('ps_liked'),c.liked],['matches',t('ps_matches'),c.matches]].map(x=>x.concat(['','#people-'+x[0]])),ps,'data-ps',t('peopleH'))}`;
+  /* the one next step on this page: a group, once you have a mutual match */
+  const next=ps==='matches'&&c.matches?`<div class="nextstep"><span>${esc(m.suggestions.length?t('nextGroups',m.suggestions.length):t('nextAddToGroup'))}</span>${m.suggestions.length?`<a class="btn small primary" href="#groups">${esc(t('nextGroupsBtn'))}</a>`:''}</div>`:'';
+  const passedTitle=ps==='passed'?`<p class="crumb"><a class="linkbtn" href="#people-review">← ${esc(t('backToReview'))}</a></p><h3>${esc(t('passedH',c.passed))}</h3>`:'';
+  const tail=ps==='review'?[c.passed?`<a class="quiet" href="#people-passed">${esc(t('seePassed',c.passed))}</a>`:'',m.hidden.length?`<details class="quietbox"><summary>${esc(t('hiddenN',m.hidden.length))} <span class="hint">${t('seeWhy')}</span></summary><ul class="clean mt">${m.hidden.map(h=>`<li>${avatar(h.person.id,32,h.person.color,h.person.name)}<div><b>${esc(h.person.name)}</b> <span class="hint">· ${esc(hhLabel(h.person))}</span><div class="who">${esc(h.reasons.map(M).join(' · '))}</div></div></li>`).join('')}</ul></details>`:''].filter(Boolean):[];
+  return `${head}${next}${passedTitle}
+${c[ps]>3?matchesToolbar():''}
+<div id="mx-results">${matchesResults()}</div>${tail.length?`<div class="tail mt">${tail.join('')}</div>`:''}${personSheet()}`;
 }
 
 function memberStatus(st){return st&&st!=='preview'?t('ms_'+st):'';}
@@ -328,19 +348,47 @@ function memberStatus(st){return st&&st!=='preview'?t('ms_'+st):'';}
 function viewGroups(){
   if(S.home)return viewHome(S.home);
   const gs=S.groups;if(!gs)return `<p class="lead">${esc(t('loading'))}</p>`;
-  if(!gs.length)return `<div class="card empty"><h2>${t('groupsListH')}</h2><p class="lead">${esc(t('noGroups'))}</p><button type="button" class="btn primary" data-action="goto" data-id="matches">${t('goMatches')}</button></div>`;
-  return `<h2>${t('groupsListH')}</h2>
-<div class="grid groups mt">${gs.map(g=>{
-    const ids=g.members.map(m=>m.id);
-    const invite=g.myStatus==='pending';
-    return `<article class="card gcard"><div class="hint"><b>${esc(t('st_'+g.state))}</b></div>
-<div class="stack">${ids.map(id=>avatar(id,38)).join('')}</div>
+  const m=S.matches,have=gs.filter(g=>g.state!=='broken').map(g=>g.members.map(x=>x.id).filter(id=>!isMe(id)).sort().join(','));
+  const sugg=(m?m.suggestions:[]).filter(g=>have.indexOf(g.ids.slice().sort().join(','))<0);
+  /* Invitations waiting for your answer first, then groups that could work, then your groups (B-051) */
+  const card=g=>{
+    const ids=g.members.map(x=>x.id),invite=g.myStatus==='pending';
+    const waiting=g.members.filter(x=>!isMe(x.id)&&x.status==='pending').map(x=>x.id);
+    const line=invite?t('invitedBy',dn(g.createdBy)):(g.state==='formed'?t('gFormedLine'):(waiting.length?t('gWaitingFor',names(waiting)):t('st_'+g.state)));
+    return `<article class="card gcard${invite?' invite':''}"><div class="grow-row"><div class="stack">${ids.map(id=>avatar(id,38)).join('')}</div><span class="pill ${g.state==='formed'?'ok':(invite?'act':'wait')}">${esc(invite?t('pillInvite'):t('pill_'+g.state))}</span></div>
 <div><b>${esc(ids.map(dn).join(' + '))}</b></div>
-<ul class="clean">${g.members.filter(m=>!isMe(m.id)).map(m=>`<li class="who">${esc(dn(m.id))}: ${esc(memberStatus(m.status))}</li>`).join('')}</ul>
-${invite?`<div class="notice card">${esc(t('invitedBy',dn(g.createdBy)))}</div>`:''}
-<div class="pactions">${invite?`<button type="button" class="btn small" data-action="respond" data-id="${g.id}" data-accept="0">${t('decline')}</button><button type="button" class="btn small ghost" data-action="open-group" data-id="${g.id}">${t('openGroup')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="respond" data-id="${g.id}" data-accept="1">${t('accept')}</button>`:`<span class="spacer"></span><button type="button" class="btn small primary" data-action="open-group" data-id="${g.id}">${t('openGroup')}</button>`}</div></article>`;
-  }).join('')}</div>`;
+<div class="who">${esc(line)}</div>
+<div class="pactions">${invite?`<button type="button" class="btn small" data-action="respond" data-id="${g.id}" data-accept="0">${t('decline')}</button><a class="btn small ghost" href="#group-${g.id}" data-action="open-group" data-id="${g.id}">${t('openGroup')}</a><span class="spacer"></span><button type="button" class="btn small primary" data-action="respond" data-id="${g.id}" data-accept="1">${t('accept')}</button>`:`<span class="spacer"></span><a class="btn small primary" href="#group-${g.id}" data-action="open-group" data-id="${g.id}">${t('openGroup')}</a>`}</div></article>`;
+  };
+  const inv=gs.filter(g=>g.myStatus==='pending'),mine=gs.filter(g=>g.myStatus!=='pending');
+  const label=(g,i)=>(i===0?t('topSugg'):'')+(g.size===2?t('pairOf'):t('groupOf',g.size));
+  const suggBlock=sugg.length?`<section class="mb"><h3>${t('groupsH')}</h3><p class="hint">${esc(t('groupsHint'))}</p><div class="grid groups">${sugg.map((g,i)=>groupCard(g,label(g,i))).join('')}</div><p class="hint mt">${esc(t('ownGroupHint'))} <a class="quiet" href="#people-matches">${esc(t('ownGroupLink'))}</a></p></section>`:'';
+  const empty=!gs.length&&!sugg.length?`<div class="card empty"><p class="lead">${esc(m&&m.mutualCount?t('noGroupYet'):t('noGroups'))}</p><a class="btn primary" href="#people-review">${t('goMatches')}</a></div>`:'';
+  return `<header class="phead2"><div><h2>${t('groupsPageH')}</h2><p class="hint">${esc(t('groupsListLead'))}</p></div></header>
+${inv.length?`<section class="mb"><h3>${esc(t('invitesH',inv.length))}</h3><div class="grid groups">${inv.map(card).join('')}</div></section>`:''}
+${suggBlock}
+${mine.length?`<section><h3>${esc(t('yourGroupsH'))}</h3><div class="grid groups">${mine.map(card).join('')}</div></section>`:''}${empty}`;
 }
+
+/* A person's details open in a sheet (a dialog; full screen on phones) with its own address, #person-<id> */
+function personSheet(){
+  const x=S.person&&S.matches?S.matches.compatible.find(y=>y.person.id===S.person):null;if(!x)return '';
+  const p=x.person,s=x.score.total,cls=s>=80?'hi':(s>=65?'mid':'lo');
+  const facts=[t('bedroomsN',p.bedrooms),p.privateBath?t('ownBathFact'):t('sharesBath'),p.cars?t('parkingN',p.cars):'',p.wfh?t('wfhFact'):'',t('staying',horizonLabel(p.horizon))].filter(Boolean);
+  const tg=x.together,line=t('homeLine',homeType(tg.types),tg.beds),rest=t('bathsN',tg.baths)+(tg.cars?' · '+t('parkingN',tg.cars):'');
+  const bio=p.bio?tx(p.bio):'';
+  return `<dialog class="sheet" id="person-sheet" aria-labelledby="sheet-h"><div class="sheet-in">
+<div class="phead">${avatar(p.id,52,p.color,p.name)}<div class="pwho"><h2 id="sheet-h" class="pname">${esc(p.name)}${p.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''}</h2><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls}" data-p="${s}" role="img" aria-label="${esc(t('ringAria',s))}"><b>${s}%</b></div><button type="button" class="btn small ghost xbtn" data-action="close-sheet" aria-label="${esc(t('close'))}">✕</button></div>
+${bio?`<p class="bio">${esc(bio)}</p>`:''}
+<div class="facts">${facts.map(f=>`<span class="fact">${esc(f)}</span>`).join('')}</div>
+${x.clicks.length?`<h4>${esc(t('clickH'))}</h4><div class="chips">${x.clicks.map(c=>`<span class="chip good">✓ ${esc(M(c))}</span>`).join('')}</div>`:''}
+${x.talks.length?`<h4>${esc(t('talkH'))}</h4><div class="chips">${x.talks.map(c=>`<span class="chip warn">⚑ ${esc(M(c))}</span>`).join('')}</div>`:''}
+<div class="together mt">${t('together',esc(line),esc(rest))}</div>
+<h4>${esc(t('why',s))}</h4><div class="bars">${Object.keys(WEIGHTS).map(k=>bar(tx(PART_LABELS[k]),x.score.parts[k])).join('')}</div><p class="hint">${esc(t('demoScoreHint'))}</p>
+<div class="pactions sheet-act">${cardActions(x)}</div>
+</div></dialog>`;
+}
+function openSheet(){const d=document.getElementById('person-sheet');if(d&&!d.open){try{d.showModal();}catch(e){d.setAttribute('open','');}const b=d.querySelector('.xbtn');if(b)b.focus();}}
 
 function matrix(ids,pairs){
   const s={};pairs.forEach(p=>{s[p.a+'|'+p.b]=p.score;s[p.b+'|'+p.a]=p.score;});
@@ -353,8 +401,8 @@ function viewHome(h){
   const mine=h.members.find(m=>isMe(m.id)),myStatus=mine?mine.status:'preview';
   const statusOf=id=>{const m=h.members.find(x=>x.id===id);return m?m.status:'';};
   const chips=`<div class="card members">${ids.map(id=>`<span class="member">${avatar(id,32)}<span><b>${esc(dn(id))}</b><br><span class="hint">${esc(hhLabel(PEOPLE[id]))}${!isPreview&&!isMe(id)?' · '+esc(memberStatus(statusOf(id))):''}</span></span></span>`).join('')}</div>`;
-  const back=isPreview?'':`<p><button type="button" class="btn small ghost" data-action="all-groups">← ${t('allGroups')}</button></p>`;
-  const stateLine=isPreview?'':`<p class="status ${h.state==='formed'?'ok':'wait'}">${esc(t('st_'+h.state))}</p>`;
+  const back=`<p class="crumb"><a class="linkbtn" href="#groups">← ${t('allGroups')}</a></p>`;
+  const stateLine=isPreview?`<span class="pill wait">${esc(t('pillPreview'))}</span>`:`<span class="pill ${h.state==='formed'?'ok':(myStatus==='pending'?'act':'wait')}">${esc(myStatus==='pending'?t('pillInvite'):t('pill_'+h.state))}</span>`;
   const respond=!isPreview&&myStatus==='pending'?`<div class="card notice mt">${esc(t('invitedBy',dn(h.createdBy)))}<div class="row"><button type="button" class="btn small" data-action="respond" data-id="${h.id}" data-accept="0">${t('decline')}</button><button type="button" class="btn small primary" data-action="respond" data-id="${h.id}" data-accept="1">${t('accept')}</button></div></div>`:'';
   if(!h.check.ok)return `${back}<h2>${t('homeH')}</h2>${stateLine}
 <p class="lead">${esc(t('attentionLead'))}</p>
@@ -372,17 +420,19 @@ ${chips}${respond}
   const lead=isPreview?t('leadPreview'):(h.state==='formed'?t('leadGroup'):t('leadPending'));
   const w=gs.weakest;
   const leave=!isPreview&&myStatus!=='pending'?`<p class="mt"><button type="button" class="btn small ghost danger" data-action="leave" data-id="${h.id}">${t('leave')}</button></p>`:'';
-  return `${back}<h2>${t('homeH')}</h2>${stateLine}
-<p class="lead">${esc(lead)} ${esc(t('leadScope'))}</p>
-${chips}${banner}${respond}
-<div class="grid cols-2 mt">
-<section class="card"><h3>${t('fitH')}</h3>
+  /* Three views (B-051): Overview (where things stand, and how you fit), Home brief (the home, the rooms, what to agree), Homes */
+  const hr=S.homes&&S.homes.gid===h.id&&S.homes.data?S.homes.data:null;
+  const sub=GSUBS.indexOf(S.gsub)>=0&&!(isPreview&&S.gsub==='homes')?S.gsub:'overview';
+  const subs=[['overview',t('gs_overview'),null,'',groupHash(h,'overview')],['brief',t('gs_brief'),null,'',groupHash(h,'brief')],
+    ['homes',t('gs_homes'),hr?hr.homes.length:null,isPreview?t('gs_homesLater'):'',isPreview?'':groupHash(h,'homes')]];
+  const fitCard=`<section class="card"><h3>${t('fitH')}</h3>
 <div class="kpis">${kp(gs.min+'%',(ids.length>2?t('weakestK'):t('compatK'))+esc(dn(w.a))+' + '+esc(dn(w.b)))}${ids.length>2?kp(gs.avg+'%',esc(t('avgOf',gs.pairs.length))):''}</div>
 ${ids.length>2?matrix(ids,gs.pairs):''}
-<h4>${ids.length>2?t('weakDetail'):t('breakdown')}</h4>
+<details class="quietbox mt"><summary>${ids.length>2?t('weakDetail'):t('breakdown')}</summary>
 <div class="bars">${Object.keys(WEIGHTS).map(k=>bar(tx(PART_LABELS[k]),gs.weakestParts[k])).join('')}</div>
-<p class="hint mt">${esc(t('demoScores'))}</p>
-</section>
+<p class="hint mt">${esc(t('demoScores'))}</p></details>
+</section>`;
+  const briefView=`<div class="grid cols-2">
 <section class="card"><h3>${t('homeNeedH')}</h3>
 <p class="headline">${esc(cap(headline))}</p>
 <div class="kpis">${kp(hb.beds,t('kBeds'))}${kp(hb.baths,t('kBaths'))}${kp(hb.cars||t('kNone'),t('kParking'))}${kp(h.size.min+'–'+h.size.max+' m²',t('kArea'))}${kp(hb.adults+(hb.kids?' + '+hb.kids:''),hb.kids?t('kAdultsKids'):t('kAdults'))}</div>
@@ -393,6 +443,7 @@ ${musts.length?`<h4>${t('mustsH')}</h4><ul class="clean">${musts.map(featLi).joi
 ${nices.length?`<h4>${t('nicesH')}</h4><ul class="clean">${nices.map(featLi).join('')}</ul>`:''}
 ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>`<li><span class="tag tip">${t('tipTag')}</span><div>${esc(M(x.label))}<div class="who">${esc(M(x.why))}</div></div></li>`).join('')}</ul>`:''}
 </section>
+<div class="stackcol">
 <section class="card"><h3>${t('roomsH')}</h3>
 <div class="split" aria-hidden="true">${h.rooms.map(r=>`<span data-w="${r.pct}" data-bg="${esc((PEOPLE[r.id]||{}).color||'#495057')}"></span>`).join('')}</div>
 <ul class="clean">${h.rooms.map(r=>`<li>${avatar(r.id,28)}<div><b>${esc(dn(r.id))}</b>: ${esc(t('roomsOf',r.rooms,hb.beds))}${r.bath?esc(t('plusOwnBath')):''}${h.cars[r.id]?`<div class="who">${esc(t('parkingSpaces',h.cars[r.id]))}</div>`:''}</div></li>`).join('')}</ul>
@@ -403,9 +454,26 @@ ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>
 <section class="card"><h3>${t('agreeH')}</h3>
 <p class="hint">${esc(t('agreeHint'))}</p>
 <ul class="clean mt">${h.topics.map(x=>{const a=t(x.key);return `<li><span class="tag tip">${esc(a[0])}</span><div>${esc(a[1])}<div class="who">${esc(x.why?M(x.why):a[2])}</div></div></li>`;}).join('')}</ul>
-</section>
-</div>
-${isPreview?'':homesSection(h.id)}${leave}`;
+</section></div></div>`;
+  /* Overview: one next step, who's in, how you fit, and links to the brief and the homes */
+  const waiting=h.members.filter(m=>!isMe(m.id)&&m.status==='pending').map(m=>m.id);
+  let next='';
+  if(isPreview)next=banner;
+  else if(myStatus==='pending')next='';
+  else if(h.state==='formed')next=`<div class="nextstep"><span>${esc(hr&&hr.homes.length?t('nextHomes',hr.homes.length):t('nextFormed'))}</span>${hr&&hr.homes.length?`<a class="btn small primary" href="${groupHash(h,'homes')}">${esc(t('nextHomesBtn'))}</a>`:`<a class="btn small" href="${groupHash(h,'brief')}">${esc(t('nextBriefBtn'))}</a>`}</div>`;
+  else if(waiting.length)next=`<div class="nextstep"><span>${esc(t('gWaitingFor',names(waiting)))}</span><a class="btn small" href="${groupHash(h,'brief')}">${esc(t('nextBriefBtn'))}</a></div>`;
+  const medP=hr?median(hr.homes.map(x=>x.price)):null;
+  const otile=(k,v,label,sub2)=>`<a class="otile" href="${groupHash(h,k)}"><span class="tk">${esc(label)}</span><span class="tv">${v}</span><span class="ts">${esc(sub2)}</span><span class="go" aria-hidden="true">→</span></a>`;
+  const overview=`${next}<div class="grid cols-2">${fitCard}<div class="stackcol">${chips}
+${otile('brief',esc(cap(line)),t('oBrief'),[t('bathsN',hb.baths),h.size.min+'–'+h.size.max+' m²',where].join(' · '))}
+${isPreview?'':otile('homes',hr?num(hr.homes.length):'…',t('oHomes'),hr?(hr.homes.length?t('oHomesSub',kEur(medP)):t('oHomesNone')):t('loading'))}
+</div></div>${leave}`;
+  const body={overview:overview,brief:briefView,homes:isPreview?'':homesSection(h.id)}[sub];
+  return `${back}<header class="ghead"><div class="stack">${ids.map(id=>avatar(id,36)).join('')}</div><div class="gwho"><h2>${esc(ids.map(dn).join(' + '))}</h2><p class="hint">${stateLine} ${esc(lead)}</p></div></header>
+${respond}
+${subTabs(subs,sub,'data-gsub',t('gsAria'))}
+<div class="gbody">${body}</div>
+<p class="hint mt">${esc(t('leadScope'))}</p>`;
 }
 /* ---------- numbers, stat tiles and charts (Session 16 design review) ----------
    Charts are plain SVG drawn at the container's real width, so text stays readable on phones.
@@ -470,10 +538,10 @@ function homesSection(gid){
   let body;
   if(!r||r.loading)body=`<div class="skeleton"></div><div class="skeleton short"></div>`;
   else if(r.error)body=`<p class="error">${esc(r.error)}</p>`;
-  else if(!r.data.homes.length)body=`<p>${esc(t('homesNone'))}</p>`;
+  else if(!r.data.homes.length)body=`<div class="card empty left"><p><b>${esc(t('homesNoneH'))}</b></p><ul class="tips">${t('homesNoneTips').map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${S.home?`<a class="btn" href="${groupHash(S.home,'brief')}">${esc(t('homesNoneBtn'))}</a>`:''}</div>`;
   else body=homesExplorer(gid);
   const count=r&&r.data?`<p class="hint">${esc(t('homesCount',r.data.considered,r.data.real>0))}</p>`:'';
-  return `<section class="card mt explorer" id="homes"><div class="sec-head"><div><h3>${esc(t('homesH'))}</h3><p class="hint">${esc(t('homesLead'))}</p>${count}</div></div>${body}<p class="hint mt">${esc(t('homesNote'))}</p></section>`;
+  return `<section class="explorer" id="homes">${count}${body}<p class="hint mt">${esc(t('homesLead'))} ${esc(t('homesNote'))}</p></section>`;
 }
 function homesExplorer(gid){
   const f=hfFor(gid),all=homesAll(),[plo,phi]=priceBounds(all);
@@ -482,7 +550,9 @@ function homesExplorer(gid){
   const m2Max=Math.ceil(Math.max(0,...all.map(h=>h.m2||0))/10)*10,real=all.some(h=>!h.isDemo),n=hfActive(f);
   const bedOpts=[];for(let b=bedsMin+1;b<=Math.min(bedsMax,bedsMin+3);b++)bedOpts.push(b);
   const pmin=f.pmin==null?plo:f.pmin,pmax=f.pmax==null?phi:f.pmax;
-  const controls=`<details class="filters" id="hx-filters"${(S.hfOpen===undefined?window.innerWidth>=720:S.hfOpen)?' open':''}><summary><b>${esc(t('hxFilters'))}</b>${n?` <span class="count">${n}</span>`:''}</summary>
+  const mode=S.hview==='market'?'market':'list';
+  const bar=`<div class="hxbar"><div class="seg2" role="group" aria-label="${esc(t('hxView'))}"><button type="button" class="chipbtn" data-action="hview" data-v="list" aria-pressed="${mode==='list'}">${esc(t('hxList'))}</button><button type="button" class="chipbtn" data-action="hview" data-v="market" aria-pressed="${mode==='market'}">${esc(t('hxMarket'))}</button></div><span class="spacer"></span><label class="sr" for="hx-sort">${esc(t('hxSort'))}</label><select id="hx-sort" data-hf="sort" class="inline">${Object.keys(HSORTS).map(k=>`<option value="${k}"${f.sort===k?' selected':''}>${esc(t('sort_'+k))}</option>`).join('')}</select></div>`;
+  const controls=`<details class="filters" id="hx-filters"${S.hfOpen?' open':''}><summary><b>${esc(t('hxFilters'))}</b>${n?` <span class="count">${n}</span>`:''}<span class="hint fsum">${esc(t('hxFiltersHint'))}</span></summary>
 <div class="fgrid">
 <div class="fcell wide"><span class="label">${esc(t('hxPrice'))} <output id="hx-price-out" class="hint">${esc(euros(pmin))} – ${esc(euros(pmax))}</output></span>
 <div class="dual"><div class="dtrack"><i id="hx-dfill"></i></div><input type="range" data-hf="pmin" min="${plo}" max="${phi}" step="5000" value="${pmin}" aria-label="${esc(t('hxPrice')+': '+t('hxFrom'))}"><input type="range" data-hf="pmax" min="${plo}" max="${phi}" step="5000" value="${pmax}" aria-label="${esc(t('hxPrice')+': '+t('hxTo'))}"></div></div>
@@ -492,17 +562,18 @@ ${types.length>1?`<div class="fcell"><span class="label">${esc(t('hxType'))}</sp
 ${areas.length>1?`<div class="fcell"><span class="label">${esc(t('hxArea'))}</span><div class="seg">${areas.map(a=>pressBtn('areas',a.id,f.areas.indexOf(a.id)>=0,tx(a.label))).join('')}</div></div>`:''}
 <div class="fcell"><span class="label">${esc(t('hxEnergy'))}</span><div class="seg">${pressBtn('energy','',!f.energy,t('hxAny'))}${['C','E'].map(e=>pressBtn('energy',e,f.energy===e,'A–'+e)).join('')}</div></div>
 <div class="fcell"><span class="label">${esc(t('hxMore'))}</span><div class="seg">${pressBtn('must',1,f.must,t('hxMust'))}${real?pressBtn('real',1,f.real,t('hxReal')):''}</div></div>
-<div class="fcell"><label class="label" for="hx-sort">${esc(t('hxSort'))}</label><select id="hx-sort" data-hf="sort">${Object.keys(HSORTS).map(k=>`<option value="${k}"${f.sort===k?' selected':''}>${esc(t('sort_'+k))}</option>`).join('')}</select></div>
 </div>
 <div class="frow"><span class="hint" id="hx-count" aria-live="polite"></span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="hf-reset"${n?'':' disabled'}>${esc(t('hxReset'))}</button></div>
 </details>`;
-  return `${controls}<div id="hx-results"></div>`;
+  return `${bar}${controls}<div id="hx-results"></div>`;
 }
 function homesResults(){
   const f=S.hf,all=homesAll(),sel=hfApply(all,f).sort(HSORTS[f.sort]||HSORTS.fit);
   const medP=median(sel.map(x=>x.price)),medPm2=median(sel.map(x=>x.pm2)),medM2=median(sel.map(x=>x.m2)),allPm2=median(all.map(x=>x.pm2));
   const best=sel.length?Math.max(...sel.map(x=>x.score)):null;
-  const tiles=`<div class="tiles">${tile(num(sel.length),t('stHomes'),esc(t('stOfTotal',all.length)))}${tile(kEur(medP),t('stMedPrice'),'')}${tile(medPm2?num(Math.round(medPm2))+' €/m²':'–',t('stMedPm2'),medPm2&&allPm2&&f!==null&&hfActive(f)?esc(t('vsAll',Math.round((medPm2/allPm2-1)*100))):'')}${tile(medM2?num(medM2)+' m²':'–',t('stMedSize'),'')}${tile(best!=null?best+' %':'–',t('stBestFit'),'')}</div>`;
+  const market=S.hview==='market';
+  const sumline=`<p class="sumline" aria-live="polite"><b>${esc(t('hxSumN',sel.length,all.length))}</b>${sel.length?` · ${esc(t('hxSumMed',kEur(medP)))}${medPm2?' · '+esc(num(Math.round(medPm2))+' €/m²'):''}`:''}</p>`;
+  const tiles=!market?sumline:`<div class="tiles">${tile(num(sel.length),t('stHomes'),esc(t('stOfTotal',all.length)))}${tile(kEur(medP),t('stMedPrice'),'')}${tile(medPm2?num(Math.round(medPm2))+' €/m²':'–',t('stMedPm2'),medPm2&&allPm2&&f!==null&&hfActive(f)?esc(t('vsAll',Math.round((medPm2/allPm2-1)*100))):'')}${tile(medM2?num(medM2)+' m²':'–',t('stMedSize'),'')}${tile(best!=null?best+' %':'–',t('stBestFit'),'')}</div>`;
   if(!sel.length)return `${tiles}<div class="card empty mt"><p>${esc(t('hxNone'))}</p><button type="button" class="btn" data-action="hf-reset">${esc(t('hxReset'))}</button></div>`;
   /* price histogram: all homes that fit (context) and the filtered ones (accent) */
   const [plo,phi]=priceBounds(all),step=niceStep(phi-plo,10),start=Math.floor(plo/step)*step,bins=[];
@@ -518,8 +589,9 @@ function homesResults(){
 <figure class="chartcard"><figcaption><b>${esc(t('chScatterH'))}</b>${legend([['ctx',t('chAll')],['acc',t('chSel')],['ref',t('chRef',num(Math.round(medPm2||allPm2||0)))]])}</figcaption>${chartBox('hx-scatter',w=>scatter(w,pts,selIds,medPm2||allPm2),t('chScatterH'))}<p class="hint">${esc(t('chScatterNote'))}</p></figure>
 ${areaBars?`<figure class="chartcard"><figcaption><b>${esc(t('chAreaH'))}</b></figcaption>${areaBars}</figure>`:''}
 </div>`;
+  if(market)return `${tiles}${charts}<p class="center"><button type="button" class="btn" data-action="hview" data-v="list">${esc(t('hxSeeList',sel.length))}</button></p>`;
   const shown=sel.slice(0,f.show),more=sel.length-shown.length;
-  return `${tiles}${charts}<ul class="homes">${shown.map(x=>homeItem(x,medPm2)).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-homes">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`;
+  return `${tiles}<ul class="homes">${shown.map(x=>homeItem(x,medPm2)).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-homes">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`;
 }
 function scatter(w,pts,selIds,refPm2){
   if(!pts.length)return '';
@@ -562,9 +634,12 @@ function planSvg(x){
 function homeItem(x,medPm2){
   const where=[x.district,x.municipality].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
   const facts=[typeLabel(x.type),x.beds!=null?t('homeBeds',x.beds):'',x.baths!=null?t('homeBaths',x.baths):'',x.m2?x.m2+' m²':''].filter(Boolean).join(' · ');
-  const tags=x.fits.filter(f=>!f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(t('fit_'+f))}</span>`).join('')
-    +x.fits.filter(f=>f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(featLabel(f.slice(2)))}</span>`).join('')
-    +x.misses.map(f=>`<span class="tag must">${esc(f.startsWith('f:')?t('missF',featLabel(f.slice(2))):t('miss_'+f))}</span>`).join('');
+  /* misses first (they matter most), then confirmed must-haves, then the general fits; three at most */
+  const tagList=x.misses.map(f=>`<span class="tag must">${esc(f.startsWith('f:')?t('missF',featLabel(f.slice(2))):t('miss_'+f))}</span>`)
+    .concat(x.fits.filter(f=>f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(featLabel(f.slice(2)))}</span>`))
+    .concat(x.fits.filter(f=>!f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(t('fit_'+f))}</span>`));
+  const allTags=x.misses.map(f=>f.startsWith('f:')?t('missF',featLabel(f.slice(2))):t('miss_'+f)).concat(x.fits.map(f=>f.startsWith('f:')?featLabel(f.slice(2)):t('fit_'+f)));
+  const tags=tagList.slice(0,3).join('')+(tagList.length>3?`<span class="tag tip" title="${esc(allTags.slice(3).join(', '))}">${esc(t('plusN',tagList.length-3))}</span>`:'');
   const check=x.check.length?`<div class="who">${esc(t('checkH'))}: ${esc(listAnd(x.check.map(c=>c.startsWith('f:')?featLabel(c.slice(2)).toLowerCase():t('check_'+c))))}</div>`:'';
   const link=x.url&&!x.isDemo?`<a class="btn small primary" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer external">${esc(t('seeAdvert',x.agency))} ↗</a>`:`<span class="hint">${esc(t('demoHome'))}</span>`;
   const d=x.pm2&&medPm2?Math.round((x.pm2/medPm2-1)*100):null;
@@ -598,26 +673,31 @@ function rerenderHomes(focusSel){
 }
 
 /* ---------- matches explorer: affinity distribution, status and score filters ---------- */
-function mfState(){if(!S.mf)S.mf={min:0,status:'all',sort:'score',q:''};return S.mf;}
-function stateGroup(x){const s=x.state;return s==='none'?'new':(s==='mutual'?'mutual':(s==='passed'?'passed':'liked'));}
-function mfApply(list,f){const q=f.q.trim().toLowerCase();const r=list.filter(x=>x.score.total>=f.min&&(f.status==='all'||stateGroup(x)===f.status)&&(!q||x.person.name.toLowerCase().indexOf(q)>=0));
+function mfState(){if(!S.mf)S.mf={min:0,sort:'score',q:'',chart:false,show:12};return S.mf;}
+function mfApply(list,f){const q=f.q.trim().toLowerCase();const r=list.filter(x=>x.score.total>=f.min&&(!q||x.person.name.toLowerCase().indexOf(q)>=0));
   if(f.sort==='name')r.sort((a,b)=>a.person.name.localeCompare(b.person.name,locale()));return r;}
 function matchesResults(){
-  const m=S.matches,f=mfState(),all=m.compatible,sel=mfApply(all,f);
-  const lo=Math.min(95,Math.floor(Math.min(...all.map(x=>x.score.total),100)/5)*5),bins=[];
-  for(let b=lo;b<=95;b+=5){const inb=x=>x.score.total>=b&&(x.score.total<b+5||(b===95&&x.score.total<=100));const a=all.filter(inb).length,s=sel.filter(inb).length;bins.push({lo:b,hi:b+5,all:a,sel:s,tip:t('chScoreTip',b,Math.min(100,b+4+(b===95?1:0)),s,a)});}
-  const chart=all.length?`<figure class="chartcard"><figcaption><b>${esc(t('chScoreH'))}</b>${legend([['ctx',t('chScoreAll')],['acc',t('chSel')]])}</figcaption>${chartBox('mx-score',w=>histogram(w,bins,{fmt:v=>v+'%',action:'score-bin'}),t('chScoreH'))}<p class="hint">${esc(t('chClickScore'))}</p></figure>`:'';
-  const grid=sel.length?`<div class="grid people">${sel.map(personCard).join('')}</div>`:`<div class="card empty">${esc(all.length?t('mfNone'):t('nobody'))}</div>`;
-  return `${chart}<p class="hint mt" aria-live="polite">${esc(t('mfShown',sel.length,all.length))}</p>${grid}`;
+  const m=S.matches,f=mfState(),ps=peopleSub(),all=m.compatible.filter(x=>psOf(x)===ps),sel=mfApply(all,f),filtered=f.min||f.q.trim();
+  let chart='';
+  if(f.chart&&all.length){
+    const lo=Math.min(95,Math.floor(Math.min(...all.map(x=>x.score.total),100)/5)*5),bins=[];
+    for(let b=lo;b<=95;b+=5){const inb=x=>x.score.total>=b&&(x.score.total<b+5||(b===95&&x.score.total<=100));const a=all.filter(inb).length,s=sel.filter(inb).length;bins.push({lo:b,hi:b+5,all:a,sel:s,tip:t('chScoreTip',b,Math.min(100,b+4+(b===95?1:0)),s,a)});}
+    chart=`<figure class="chartcard mb"><figcaption><b>${esc(t('chScoreH'))}</b>${legend([['ctx',t('chScoreAll')],['acc',t('chSel')]])}</figcaption>${chartBox('mx-score',w=>histogram(w,bins,{fmt:v=>v+'%',action:'score-bin'}),t('chScoreH'))}<p class="hint">${esc(t('chClickScore'))}</p></figure>`;
+  }
+  /* twelve at a time, like the homes */
+  const shown=sel.slice(0,f.show),more=sel.length-shown.length;
+  const grid=sel.length?`<div class="grid people">${shown.map(personCard).join('')}</div>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-people">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`:`<div class="card empty"><p>${esc(all.length?t('mfNone'):t('psEmpty_'+ps))}</p>${!all.length&&ps!=='review'&&S.matches.compatible.some(x=>x.state==='none')?`<a class="btn" href="#people-review">${esc(t('psGoReview'))}</a>`:''}</div>`;
+  return `${chart}${filtered?`<p class="hint" aria-live="polite">${esc(t('mfShown',sel.length,all.length))}</p>`:''}${grid}`;
 }
 function updateMatches(){const el=document.getElementById('mx-results');if(!el)return;el.innerHTML=matchesResults();applyStyles(el);drawCharts(el);}
+/* One quiet row: search, minimum affinity, sort, and the chart on request */
 function matchesToolbar(){
-  const m=S.matches,f=mfState(),cnt={all:m.compatible.length,new:0,liked:0,mutual:0,passed:0};m.compatible.forEach(x=>cnt[stateGroup(x)]++);
-  return `<div class="toolbar card">
-<div class="fcell"><label class="label" for="mf-q">${esc(t('mfSearch'))}</label><input id="mf-q" type="search" data-mf="q" value="${esc(f.q)}" autocomplete="off"></div>
-<div class="fcell wide"><span class="label">${esc(t('mfStatus'))}</span><div class="seg">${['all','new','liked','mutual','passed'].map(k=>`<button type="button" class="chipbtn" data-action="mf" data-k="status" data-v="${k}" aria-pressed="${f.status===k}">${esc(t('mf_'+k))} <span class="n">${cnt[k]}</span></button>`).join('')}</div></div>
+  const f=mfState();
+  return `<div class="toolbar">
+<div class="fcell grow"><label class="sr" for="mf-q">${esc(t('mfSearch'))}</label><input id="mf-q" type="search" data-mf="q" value="${esc(f.q)}" autocomplete="off" placeholder="${esc(t('mfSearch'))}"></div>
 <div class="fcell"><label class="label" for="mf-min">${esc(t('mfMinL'))} <output id="mf-min-out" class="hint">${f.min?f.min+' %':esc(t('hxAny'))}</output></label><input id="mf-min" type="range" data-mf="min" min="0" max="100" step="5" value="${f.min}"></div>
-<div class="fcell"><label class="label" for="mf-sort">${esc(t('hxSort'))}</label><select id="mf-sort" data-mf="sort"><option value="score"${f.sort==='score'?' selected':''}>${esc(t('msort_score'))}</option><option value="name"${f.sort==='name'?' selected':''}>${esc(t('msort_name'))}</option></select></div>
+<div class="fcell"><label class="sr" for="mf-sort">${esc(t('hxSort'))}</label><select id="mf-sort" data-mf="sort"><option value="score"${f.sort==='score'?' selected':''}>${esc(t('msort_score'))}</option><option value="name"${f.sort==='name'?' selected':''}>${esc(t('msort_name'))}</option></select></div>
+<button type="button" class="chipbtn" data-action="mf-chart" aria-pressed="${!!f.chart}">${esc(t('showChart'))}</button>
 </div>`;
 }
 
@@ -644,43 +724,46 @@ function renderChrome(){
   document.title=t('title');
   const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
   set('brandname',BRAND);
-  set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));set('badge',t('badge'));
+  set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));{const bd=document.getElementById('badge');if(bd)bd.innerHTML='<span class="long">'+esc(t('badge'))+'</span><span class="short">'+esc(t('badgeShort'))+'</span>';}
   const foot=document.getElementById('footnote');
   if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
-  const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('steps'));nav.hidden=!inApp();}
-  set('help-link',t('helpLink'));
+  const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('navAria'));nav.hidden=!inApp();}
+  /* Short forms for phones ("?" and "EN"), long ones for wider screens; CSS picks */
+  const hl=document.getElementById('help-link');
+  if(hl){hl.innerHTML=`<span class="long">${esc(t('helpLink'))}</span><span class="short" aria-hidden="true">?</span>`;hl.setAttribute('aria-label',t('helpLink'));}
   const sw=document.getElementById('lang-switch');
-  if(sw){sw.textContent=t('langOther');sw.setAttribute('lang',t('langOtherCode'));sw.setAttribute('data-id',t('langOtherCode'));sw.setAttribute('aria-label',t('langOtherAria'));}
+  if(sw){sw.innerHTML=`<span class="long">${esc(t('langOther'))}</span><span class="short" aria-hidden="true">${esc(t('langOtherCode').toUpperCase())}</span>`;sw.setAttribute('lang',t('langOtherCode'));sw.setAttribute('data-id',t('langOtherCode'));sw.setAttribute('aria-label',t('langOtherAria'));}
+  document.body.classList.toggle('has-nav',inApp());
 }
 /* The tabs show once someone is signed in and onboarded, and not on a legal page */
 function inApp(){return !!(S.me&&S.me.onboarded&&!S.view);}
 function renderTabs(){
-  if(!inApp()){tabsEl.innerHTML='';app.setAttribute('role','main');app.removeAttribute('aria-labelledby');return;}
-  app.setAttribute('role','tabpanel');
-  const n=S.matches?S.matches.compatible.length:0,g=S.groups?S.groups.length:0;
-  const tabs=[['you',t('tabYou'),'',''],['matches',t('tabMatches'),n?String(n):'',t('srCompatible')],['groups',t('tabHome'),g?String(g):'',t('srInGroup')]];
-  tabsEl.innerHTML=tabs.map(x=>{const sel=S.tab===x[0];return `<button type="button" class="tab" role="tab" id="tab-${x[0]}" aria-controls="app" aria-selected="${sel}" tabindex="${sel?0:-1}" data-tab="${x[0]}">${x[1]}${x[2]?`<span class="count"><span aria-hidden="true">${x[2]}</span><span class="sr">: ${x[2]} ${x[3]}</span></span>`:''}</button>`;}).join('');
-  app.setAttribute('aria-labelledby','tab-'+S.tab);
+  app.setAttribute('role','main');
+  if(!inApp()){tabsEl.innerHTML='';return;}
+  /* Badges count what is waiting for you: people not answered yet, invitations not answered yet */
+  /* Only invitations get a badge: they wait for your answer (B-051 review) */
+  const invites=S.groups?S.groups.filter(g=>g.myStatus==='pending').length:0;
+  const tabs=[['matches','#people-'+peopleSub(),t('navPeople'),'','',ICONS.people],['groups','#groups',t('navGroups'),invites?String(invites):'',t('srInvites'),ICONS.groups],['you','#profile',t('navProfile'),'','',ICONS.profile]];
+  tabsEl.innerHTML=tabs.map(x=>`<a class="tab" href="${x[1]}" id="tab-${x[0]}" data-tab="${x[0]}"${S.tab===x[0]?' aria-current="page"':''}>${x[5]}<span>${esc(x[2])}</span>${x[3]?`<span class="count"><span aria-hidden="true">${x[3]}</span><span class="sr">: ${x[3]} ${esc(x[4])}</span></span>`:''}</a>`).join('');
 }
+/* Line icons for the tabs (stroke only, coloured by CSS) */
+const ICONS={
+  people:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c2.4.2 4 1.8 4.5 4.3"/></svg>',
+  groups:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h2v5M12.5 20v-5h2v5"/></svg>',
+  profile:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>'
+};
+/* The bottom bar only appears when it carries a real action: the wizard's Back and Next, or a group you're building */
 function renderBar(){
   const bar=document.getElementById('actionbar');
-  if(!S.me||S.view){bar.hidden=true;return;}
-  bar.hidden=false;
-  let h;
-  if(!S.me.onboarded){
+  let h='';
+  if(S.me&&!S.view&&!S.me.onboarded){
     const last=S.wiz===WIZ.length-1,save=S.save?`<span class="hint" role="status">${esc(t(S.save))}</span>`:'';
-    barEl.innerHTML=`<button type="button" class="btn" data-action="wiz-back"${S.wiz===0?' disabled':''}>${esc(t('wizBack'))}</button>${save}<span class="spacer"></span><button type="button" class="btn primary" data-action="${last?'wiz-finish':'wiz-next'}">${esc(last?t('wizFinish'):t('wizNext'))}</button>`;
-    return;
+    h=`<button type="button" class="btn" data-action="wiz-back"${S.wiz===0?' disabled':''}>${esc(t('wizBack'))}</button>${save}<span class="spacer"></span><button type="button" class="btn primary" data-action="${last?'wiz-finish':'wiz-next'}">${esc(last?t('wizFinish'):t('wizNext'))}</button>`;
+  }else if(inApp()&&S.tab==='matches'&&S.draft.length){
+    h=`<div class="stat draft-who">${S.draft.map(id=>avatar(id,28)).join('')}<span>${esc(t('draftBar',1+S.draft.length))}</span></div><span class="spacer"></span><button type="button" class="btn small ghost" data-action="clear-draft">${t('clearDraft')}</button><button type="button" class="btn small" data-action="preview" data-id="${esc(S.draft.join(','))}">${t('previewDraft')}</button><button type="button" class="btn small primary" data-action="propose" data-id="${esc(S.draft.join(','))}">${t('propose')}</button>`;
   }
-  const m=S.matches;
-  if(S.tab==='you'){
-    const save=S.save?`<span class="hint" role="status">${esc(t(S.save))}</span>`:'';
-    h=`<div class="stat">${m?t('barYou',m.compatible.length,m.hidden.length):''} ${save}</div><span class="spacer"></span><button type="button" class="btn primary" data-action="goto" data-id="matches">${t('seeMatches')}</button>`;
-  }else if(S.tab==='matches'){
-    if(S.draft.length)h=`<div class="stat">${esc(t('draftBar',1+S.draft.length))}</div><span class="spacer"></span><button type="button" class="btn ghost" data-action="clear-draft">${t('clearDraft')}</button><button type="button" class="btn" data-action="preview" data-id="${esc(S.draft.join(','))}">${t('previewDraft')}</button><button type="button" class="btn primary" data-action="propose" data-id="${esc(S.draft.join(','))}">${t('propose')}</button>`;
-    else h=`<div class="stat">${m?t('barGroup',1,m.likedCount):''}</div><span class="spacer"></span><button type="button" class="btn primary" data-action="goto" data-id="groups">${t('seeHome')}</button>`;
-  }else h=`<button type="button" class="btn" data-action="goto" data-id="you">${t('editProfile')}</button><span class="spacer"></span><button type="button" class="btn primary" data-action="goto" data-id="matches">${t('backMatches')}</button>`;
-  barEl.innerHTML=h;
+  bar.hidden=!h;barEl.innerHTML=h;if(h)applyStyles(barEl);
+  document.body.classList.toggle('has-bar',!!h);
 }
 function render(){
   renderChrome();
@@ -690,6 +773,58 @@ function render(){
   if(document.getElementById('hx-results'))updateHomes();
   drawCharts(app);
   renderBar();
+  syncHash();
+  if(S.person)openSheet();
+}
+
+/* ---------- addresses (Session 18, B-051): every view has one, so Back and shared links work ----------
+   #people-review|-liked|-matches|-passed · #person-<id> (a sheet over People) · #groups ·
+   #group-<id>[-brief|-homes] · #preview[-brief] · #profile.
+   #help, #terms, #privacy, #lang= and #authError= are read by readHash as before. */
+const GSUBS=['overview','brief','homes'];
+function groupHash(h,sub){return (h.preview?'#preview':'#group-'+h.id)+(sub&&sub!=='overview'?'-'+sub:'');}
+function routeHash(){
+  if(!inApp())return '';
+  if(S.tab==='you')return '#profile';
+  if(S.tab==='matches')return S.person?'#person-'+S.person:'#people-'+peopleSub();
+  if(S.home)return groupHash(S.home,S.gsub);
+  return '#groups';
+}
+function parseRoute(h){
+  h=(h||'').replace(/^#/,'');
+  let m;
+  if(h==='profile')return {tab:'you'};
+  if((m=/^people(?:-(review|liked|matches|passed))?$/.exec(h)))return {tab:'matches',ps:m[1]||null};
+  if((m=/^person-([A-Za-z0-9_.-]{1,64})$/.exec(h)))return {tab:'matches',person:m[1]};
+  if(h==='groups')return {tab:'groups'};
+  if((m=/^preview(?:-(brief))?$/.exec(h)))return {tab:'groups',preview:true,gsub:m[1]||'overview'};
+  if((m=/^group-([0-9a-f-]{36})(?:-(brief|homes))?$/.exec(h)))return {tab:'groups',gid:m[1],gsub:m[2]||'overview'};
+  return null;
+}
+function syncHash(){
+  const h=routeHash();if(!h||location.hash===h)return;
+  /* the first address replaces "#lang=en" and the like; later ones add a history entry */
+  if(parseRoute(location.hash))location.hash=h;else{try{history.replaceState(null,'',h);}catch(e){}}
+}
+/* Apply an address; true if it was one of ours */
+function applyRoute(h){
+  const r=parseRoute(h);if(!r||!inApp())return false;
+  if(r.preview&&!(S.home&&S.home.preview))return applyRoute('#groups');
+  const before={tab:S.tab,gid:S.home&&S.home.id,preview:S.home&&S.home.preview,person:S.person};
+  S.tab=r.tab;
+  S.person=r.person||null;
+  if(r.tab==='matches'&&r.ps){if(r.ps!==S.ps&&S.mf)S.mf.show=12;S.ps=r.ps;}
+  if(r.tab!=='groups'||(!r.gid&&!r.preview))S.home=null;
+  if(r.gid){S.gsub=r.gsub;if(!S.home||S.home.id!==r.gid){openGroup(r.gid);return true;}}
+  if(r.preview)S.gsub=r.gsub;
+  render();
+  /* a sub-view of the same page, or the person sheet: keep the place; otherwise start at the top */
+  const samePage=before.tab===S.tab&&(S.tab!=='groups'||(S.home&&(before.gid===S.home.id||(before.preview&&S.home.preview))));
+  if(S.person){S.sheetFromApp=before.tab==='matches';openSheet();}
+  else if(samePage&&!before.person){const cur=app.querySelector('.subtabs [aria-current="page"]');if(cur){cur.focus({preventScroll:true});const nav=cur.closest('.subtabs');if(nav.getBoundingClientRect().top<0)nav.scrollIntoView({block:'start'});}}
+  else if(!before.person){window.scrollTo(0,0);focusHeading();}
+  if(!samePage&&r.tab!=='you'&&!r.gid)refresh();
+  return true;
 }
 function rerender(){const y=window.scrollY||0;render();window.scrollTo(0,y);}
 function focusHeading(){const h=document.querySelector('#app h2');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});}}
@@ -704,22 +839,23 @@ async function refresh(){
   try{await Promise.all([loadMatches(),loadGroups()]);}catch(e){toast(errText(e));}
   rerender();
 }
-async function go(tab){
-  S.tab=tab;if(tab!=='groups')S.home=null;
+async function go(tab,sub){
+  S.tab=tab;S.home=null;if(tab==='matches'&&sub)S.ps=sub;
   render();window.scrollTo(0,0);focusHeading();
   if(tab==='matches'||tab==='groups')await refresh();
 }
 /* After signing in or up: load the profile, then either the wizard or the app */
 async function enter(me){
   S.me=me;S.authError='';
-  PEOPLE[S.me.id]={name:S.me.name,color:'#1b2230'};
+  PEOPLE[S.me.id]={name:S.me.name,color:'#52607a'};
   try{S.profile=await api('GET','/api/profile');}catch(e){toast(errText(e));}
-  if(S.me.onboarded){S.tab=S.tab||'matches';render();focusHeading();refresh();}
+  if(S.me.onboarded){S.tab=S.tab||'matches';if(S.startRoute&&applyRoute(S.startRoute)){S.startRoute=null;if(S.home)refresh();return;}render();focusHeading();refresh();}
   else{S.wiz=0;render();focusHeading();}
 }
 async function start(){
   try{S.config=await api('GET','/api/config');}catch(e){S.config={auth:'local',invite:true,terms:''};}
   readHash();
+  if(parseRoute(location.hash))S.startRoute=location.hash;
   let me=null;try{me=await api('GET','/api/me');}catch(e){}
   if(me){S.tab='matches';await enter(me);}else render();
 }
@@ -790,15 +926,16 @@ async function addToDraft(id){
   catch(e){toast(t('tCantAdd',personName(id),errText(e)));}
 }
 async function preview(ids){
-  try{const h=await api('POST','/api/preview',{ids:ids});remember(h.people);S.home=h;S.tab='groups';render();window.scrollTo(0,0);focusHeading();toast(t('tPreview'));}
+  try{const h=await api('POST','/api/preview',{ids:ids});remember(h.people);S.home=h;S.gsub='overview';S.tab='groups';render();window.scrollTo(0,0);focusHeading();toast(t('tPreview'));}
   catch(e){toast(t('tCantForm',errText(e)));}
 }
 async function propose(ids){
-  try{const h=await api('POST','/api/groups',{ids:ids});remember(h.people);S.home=h;S.draft=[];S.tab='groups';await loadGroups();render();window.scrollTo(0,0);focusHeading();toast(t('tProposed'));if(h.id&&h.check&&h.check.ok)loadHomes(h.id);}
+  try{const h=await api('POST','/api/groups',{ids:ids});remember(h.people);S.home=h;S.gsub='overview';S.draft=[];S.tab='groups';await loadGroups();render();window.scrollTo(0,0);focusHeading();toast(t('tProposed'));if(h.id&&h.check&&h.check.ok)loadHomes(h.id);}
   catch(e){toast(t('tCantForm',errText(e)));}
 }
-async function openGroup(id){
-  try{const h=await api('GET','/api/groups/'+id);remember(h.people);S.home=h;render();window.scrollTo(0,0);focusHeading();if(h.check&&h.check.ok)loadHomes(id);}
+async function openGroup(id,sub){
+  if(sub)S.gsub=sub;
+  try{const h=await api('GET','/api/groups/'+id);remember(h.people);S.home=h;S.tab='groups';render();window.scrollTo(0,0);focusHeading();if(h.check&&h.check.ok)loadHomes(id);}
   catch(e){toast(errText(e));}
 }
 async function respond(id,accept){
@@ -872,10 +1009,10 @@ app.addEventListener('input',e=>{const el=e.target;
     else{f[k]=v;if(f.pmin!=null&&f.pmax!=null&&f.pmin>f.pmax){if(k==='pmin')f.pmax=f.pmin;else f.pmin=f.pmax;const o=app.querySelector('input[data-hf="'+(k==='pmin'?'pmax':'pmin')+'"]');if(o)o.value=f[k==='pmin'?'pmax':'pmin'];}
       if(f.pmin!=null&&f.pmin<=plo)f.pmin=null;if(f.pmax!=null&&f.pmax>=phi)f.pmax=null;}
     f.show=12;homesControlsSync();updateHomes();return;}
-  if(el.hasAttribute('data-mf')){const f=mfState(),k=el.getAttribute('data-mf');if(k==='q')f.q=el.value;else if(k==='min'){f.min=parseInt(el.value,10);const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');}updateMatches();return;}if(el.id==='a-pass'&&S.authMode==='signup'){updateMeter(el.value);return;}if(el.type==='range'&&S.profile){S.profile[el.getAttribute('data-field')]=parseInt(el.value,10);profileChanged();}});
+  if(el.hasAttribute('data-mf')){const f=mfState(),k=el.getAttribute('data-mf');f.show=12;if(k==='q')f.q=el.value;else if(k==='min'){f.min=parseInt(el.value,10);const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');}updateMatches();return;}if(el.id==='a-pass'&&S.authMode==='signup'){updateMeter(el.value);return;}if(el.type==='range'&&S.profile){S.profile[el.getAttribute('data-field')]=parseInt(el.value,10);profileChanged();}});
 document.addEventListener('click',async e=>{
-  const el=e.target.closest('[data-action],[data-tab]');if(!el||el.disabled)return;
-  if(el.hasAttribute('data-tab')){go(el.getAttribute('data-tab'));return;}
+  /* Tabs and sub-views are links: the address changes and the hashchange handler shows the view */
+  const el=e.target.closest('[data-action]');if(!el||el.disabled)return;
   const id=el.getAttribute('data-id');
   const ids=()=>(id||'').split(',').filter(Boolean);
   switch(el.getAttribute('data-action')){
@@ -887,7 +1024,7 @@ document.addEventListener('click',async e=>{
     case 'wiz-back':wizMove(-1);break;
     case 'wiz-finish':wizFinish();break;
     case 'legal-back':S.view=null;try{history.replaceState(null,'',location.pathname);}catch(err){}render();window.scrollTo(0,0);focusHeading();break;
-    case 'goto':go(id);break;
+    case 'goto':go(id,el.getAttribute('data-sub'));break;
     case 'preset':Object.assign(S.profile,JSON.parse(JSON.stringify(PRESETS[id].v)));rerender();profileChanged();toast(t('tExample',tx(PRESETS[id].label)));break;
     case 'feat':cycleFeature(el,id);break;
     case 'like':el.disabled=true;react(id,'like');break;
@@ -898,8 +1035,8 @@ document.addEventListener('click',async e=>{
     case 'clear-draft':S.draft=[];rerender();break;
     case 'preview':preview(ids());break;
     case 'propose':propose(ids());break;
-    case 'close-preview':S.home=null;go('matches');break;
-    case 'open-group':openGroup(id);break;
+    case 'close-preview':go('groups');break;
+    case 'close-sheet':{const d=document.getElementById('person-sheet');if(d&&d.open)d.close();break;}
     case 'all-groups':S.home=null;go('groups');break;
     case 'respond':respond(id,el.getAttribute('data-accept')==='1');break;
     case 'leave':leave(id);break;
@@ -908,28 +1045,32 @@ document.addEventListener('click',async e=>{
       else if(k==='beds')f.beds=parseInt(v,10)||0;else if(k==='energy')f.energy=v;else f[k]=!f[k];
       f.show=12;rerenderHomes('[data-action="hf"][data-k="'+k+'"][data-v="'+v+'"]');break;}
     case 'hf-reset':if(S.home){S.hf=null;hfFor(S.home.id);rerenderHomes('#hx-filters summary');}break;
+    case 'hview':S.hview=el.getAttribute('data-v');rerenderHomes('[data-action="hview"][data-v="'+S.hview+'"]');break;
     case 'more-homes':if(S.hf){S.hf.show+=12;updateHomes();}break;
     case 'bin':if(S.hf){S.hf.pmin=+el.getAttribute('data-lo');S.hf.pmax=+el.getAttribute('data-hi');const[plo,phi]=priceBounds(homesAll());if(S.hf.pmin<=plo)S.hf.pmin=null;if(S.hf.pmax>=phi)S.hf.pmax=null;S.hf.show=12;rerenderHomes();}break;
-    case 'dot':{const f=S.hf;if(!f)break;const list=hfApply(homesAll(),f).sort(HSORTS[f.sort]||HSORTS.fit),i=list.findIndex(x=>x.id===id);if(i>=f.show){f.show=i+1;updateHomes();}
+    case 'dot':{const f=S.hf;if(!f)break;if(S.hview==='market'){S.hview='list';rerenderHomes();}const list=hfApply(homesAll(),f).sort(HSORTS[f.sort]||HSORTS.fit),i=list.findIndex(x=>x.id===id);if(i>=f.show){f.show=i+1;updateHomes();}
       const card=document.getElementById('home-'+id);if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.classList.add('flash');setTimeout(()=>card.classList.remove('flash'),1600);}break;}
-    case 'mf':{const f=mfState();f[el.getAttribute('data-k')]=el.getAttribute('data-v');el.parentNode.querySelectorAll('.chipbtn').forEach(b=>b.setAttribute('aria-pressed',String(b===el)));updateMatches();break;}
+    case 'more-people':{mfState().show+=12;updateMatches();break;}
+    case 'mf-chart':{const f=mfState();f.chart=!f.chart;el.setAttribute('aria-pressed',String(f.chart));updateMatches();break;}
     case 'score-bin':{const f=mfState();f.min=+el.getAttribute('data-lo');const r=document.getElementById('mf-min');if(r)r.value=f.min;const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');updateMatches();break;}
     case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.authMode='signin';render();break;}
     case 'delete-account':if(window.confirm(t('deleteConfirm'))){try{await api('DELETE','/api/me');S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];render();}catch(err){toast(errText(err));}}break;
   }
 });
-/* Arrow keys move between tabs, as in the prototype */
-tabsEl.addEventListener('keydown',e=>{
-  const keys=['you','matches','groups'],i=keys.indexOf(S.tab);
-  let n=-1;if(e.key==='ArrowRight')n=(i+1)%3;else if(e.key==='ArrowLeft')n=(i+2)%3;else if(e.key==='Home')n=0;else if(e.key==='End')n=2;
-  if(n>=0){e.preventDefault();go(keys[n]).then(()=>{const b=document.getElementById('tab-'+keys[n]);if(b)b.focus();});}
-});
-
 /* ---------- start: Spanish unless the viewer chose English; #lang= overrides both ---------- */
 let saved=null;try{saved=localStorage.getItem(LANG_KEY);}catch(e){}
 setLang(saved==='en'?'en':'es');
 try{const h=new URLSearchParams((location.hash||'').replace(/^#/,''));const lg=h.get('lang');if(lg==='en'||lg==='es')setLang(lg);}catch(e){}
-window.addEventListener('hashchange',()=>{if(readHash()){render();window.scrollTo(0,0);focusHeading();}});
+document.addEventListener('close',e=>{
+  if(e.target.id!=='person-sheet'||!S.person)return;
+  S.person=null;
+  if(S.sheetFromApp){S.sheetFromApp=false;history.back();}else{try{history.replaceState(null,'','#people-'+peopleSub());}catch(err){}render();}
+},true);
+app.addEventListener('click',e=>{if(e.target.id==='person-sheet')e.target.close();});
+window.addEventListener('hashchange',()=>{
+  if(readHash()){render();window.scrollTo(0,0);focusHeading();return;}
+  if(location.hash!==routeHash())applyRoute(location.hash);
+});
 window.__compicasa={S:S,M:M,setLang:setLang,render:render,api:api};
 window.addEventListener('scroll',()=>{tipEl.hidden=true;},{passive:true});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});

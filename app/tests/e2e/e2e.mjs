@@ -58,6 +58,10 @@ async function shot(name) {
 }
 // Homes for sale that fit the group (D-035): each names its agency and links to the agency's own advert.
 async function homesCheck(tag) {
+  // Homes have their own view on a group's page (B-051)
+  await until(`!!document.querySelector('.subtabs [data-gsub="homes"]')`, tag + ': homes tab shows');
+  await click('.subtabs [data-gsub="homes"]');
+  await until(`/-homes$/.test(location.hash)`, tag + ': homes view has its own address');
   if (!await until(`document.querySelectorAll('#homes .home').length>0`, tag + ': homes that fit load')) return;
   ok(await js(`[...document.querySelectorAll('#homes .home')].every(h=>{const a=h.querySelector('a.btn');return a?(a.target==='_blank'&&/noopener/.test(a.rel)&&/^https:/.test(a.href)&&/Ver el anuncio en /.test(a.textContent)):/inventada/.test(h.innerText);})`),
     tag + ': every home links to the agency advert in a new tab, or is marked made-up');
@@ -162,6 +166,14 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   ok(!EN_ONLY.test(await text()), tag + ': no English on the Spanish matches screen');
   ok(await js(`[...document.querySelectorAll('.avatar')].every(a=>a.style.background!=='')`), tag + ': avatar colours applied despite the strict CSP');
   ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), tag + ': no sideways scrolling on matches');
+  // B-051: one navigation, no permanent bottom bar, and each view has an address
+  ok(await js(`document.getElementById('actionbar').hidden`), tag + ': no bottom action bar on People without a group draft');
+  ok(await js(`/^#people-/.test(location.hash)`), tag + ': People has an address');
+  ok(await js(`document.querySelectorAll('.subtabs .stab').length===3`), tag + ': People has three views (to review, liked, matches)');
+  await click('.pcard .more');
+  await until(`!!document.querySelector('dialog.sheet[open]') && /^#person-/.test(location.hash)`, tag + ': More opens the person sheet with its own address');
+  await click('[data-action="close-sheet"]');
+  await until(`!document.querySelector('dialog.sheet[open]') && /^#people-/.test(location.hash)`, tag + ': closing the sheet goes back to People');
   await shot(tag + '-3-matches-es');
 
   if (signup) {
@@ -171,13 +183,20 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
       await click('[data-action="like"]');
       await sleep(250);
     }
+    // Suggested groups live under Groups (B-051)
+    await click('[data-tab="groups"]');
     await until(`document.querySelectorAll('[data-action="propose"]').length>0`, 'a group is suggested');
     await click('.gcard [data-action="preview"]');
     await until(`!!document.querySelector('.kpis') && document.body.innerText.includes('Solo vista previa')`, 'preview shows the brief');
     await shot(tag + '-4-preview-es');
     await click('.notice [data-action="propose"]');
     await until(`document.body.innerText.includes('Formado')`, 'group formed');
-    ok(await js(`document.querySelectorAll('.matrix, .kpis').length`) > 0, 'formed group shows the brief');
+    ok(await js(`document.querySelectorAll('.matrix, .kpis').length`) > 0, 'formed group shows how you fit');
+    ok(await js(`/^#group-[0-9a-f-]{36}$/.test(location.hash)`), 'a group has its own address');
+    await click('.subtabs [data-gsub="brief"]');
+    await until(`!!document.querySelector('.headline') && /-brief$/.test(location.hash)`, 'the home brief is its own view');
+    await js('history.back()');
+    await until(`/^#group-[0-9a-f-]{36}$/.test(location.hash) && !document.querySelector('.headline')`, 'Back returns to the group overview');
     await shot(tag + '-5-group-es');
     await homesCheck(tag);
   } else {

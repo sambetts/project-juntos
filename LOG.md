@@ -2,6 +2,23 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-23 · Session 18: calmer navigation and pages
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Product, the Builder and Tester (B-051) and the CEO (D-038); the plan reviewed by a second model (Fable 5.2)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 17. Sam: "The matches screen is very busy especially. They all are. Make them all clearer & critique the format generally … restructure the nav & the pages so it's not so overwhelming … not have everything presented at once" and "'edit your profile' and 'back to matches' on the bottom seem to take a lot of space". No new answers in the founder queue.
+**Goals:** 1. B-051: critique, plan, second-model review. 2. B-051: build; tests pass. 3. Files current, commit.
+**Needs Sam:** the go to deploy B-050 and B-051 together; nothing new in the founder queue.
+**Did**
+- Ran the app locally (SQLite in the session's scratch folder, outside the repository) and took full-page screenshots of every signed-in screen with Playwright (`playwright-core` in the scratch folder, driving Edge) at 1280 and 390 px. Critique and plan: `product/2026-11-23-ui-restructure.md` (11 findings).
+- A second model (Fable 5.2, as a helper with the plan and screenshots, no edits) reviewed the plan: "build with changes". All eight changes taken (three views per group, not five; no "said no" list; a person sheet instead of inline "More"; suggestions under Groups; first card on the first phone screen; "made-up people" kept in the phone header; a real empty Homes state; tabs as links). The two it suggested and I didn't take are listed in the note.
+- Built (front end only): People, Groups and Profile as plain destinations (header tabs on wide screens, a bottom tab bar on phones); the bottom bar only for the wizard and while building a group. People: *To review*, *Liked*, *Matches*, *Passed* from a link; compact cards, 12 at a time; a person sheet at `#person-<id>`. Groups: invitations, then suggested groups (not ones you already have), then your groups. A group: *Overview*, *Home brief*, *Homes* (list first; *Market* switch for Session 16's tiles and charts). Profile: one summary line per section, opened to edit. Every view has an address and Back works. All new wording in Spanish and English (557 keys in each); the in-app guide (B-050) updated to the new names; service-worker version bumped.
+- Browser test updated for the new structure, plus 7 new checks (42 in all).
+**Decided:** D-038 (CEO): calmer navigation, three destinations, one job per view; no list of who said no to your like. **Approvals used:** none needed (Build mode, local only); nothing deployed or pushed.
+**Learned:** pages are now a quarter to a fifth of their old height (People 7,734 → 1,857 px on desktop; a group with homes 5,047 → 953 px for its overview; the phone group page 10,212 → 1,389 px). The "cropped at 390 px" artefact noted in Sessions 16 and 17 was a real overflow: the old phone pages were 482 px wide; now 390. Sign-in's 10-a-minute limit trips when a screenshot script runs straight after the browser test.
+**Open or blocked:** deploy waits for Sam's go. Still open in the note: home cards are the busiest element left; no Previous/Next in the person sheet; a real phone and screen-reader check (B-025).
+**Saved and checked:** `dotnet test` (40 passed); browser test 42 of 42 against a local run, twice; screenshots of every view at 1280 and 390 px, light and dark, Spanish and English, with no sideways scrolling and no script errors (the one 401 is the signed-out `/api/me` check before sign-up); i18n key check (none missing in either language); `git status` and `git diff` reviewed for STATE, BACKLOG, DECISIONS, the note, `app/README.md` and `app/`. LOG saved last; its check and the commit are confirmed in the closing report.
+**Next session should start with:** 1. Deploy B-050 and B-051 (on Sam's go), then look at it on a real phone. 2. B-047 check the WebJob crawl. 3. B-042.
+
 ## 2026-11-22 · Session 17: an in-app guide to likes and groups
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Product and the Builder and Tester (B-050)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
