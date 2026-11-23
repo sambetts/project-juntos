@@ -18,10 +18,29 @@ public static class Schema
             await db.Database.EnsureCreatedAsync(ct);
             return;
         }
+        await WakeAsync(db, log, ct);
         await BaselineAsync(db, log, ct);
         var pending = (await db.Database.GetPendingMigrationsAsync(ct)).ToList();
         if (pending.Count > 0) log.LogInformation("Applying migrations: {Migrations}", string.Join(", ", pending));
         await db.Database.MigrateAsync(ct);
+    }
+
+    /// <summary>
+    /// The free Azure SQL database pauses after an hour idle and answers "not currently available" (error 40613)
+    /// while it wakes. The connection retries give up after about 50 seconds, which failed the 05:00 crawl on
+    /// 2026-11-23 (B-047), so wait for it here first, for up to five minutes.
+    /// </summary>
+    static async Task WakeAsync(AppDb db, ILogger log, CancellationToken ct)
+    {
+        var until = DateTime.UtcNow.AddMinutes(5);
+        while (true)
+        {
+            try { if (await db.Database.CanConnectAsync(ct)) return; }
+            catch (Exception ex) when (ex is not OperationCanceledException) { log.LogInformation("Database not ready yet: {Error}", ex.Message); }
+            if (DateTime.UtcNow > until) throw new InvalidOperationException("The database didn't wake within five minutes.");
+            log.LogInformation("Waiting for the database to wake");
+            await Task.Delay(TimeSpan.FromSeconds(15), ct);
+        }
     }
 
     /// <summary>
