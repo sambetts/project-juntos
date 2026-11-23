@@ -191,7 +191,7 @@ public class ApiTests : IClassFixture<AppFactory>
         var m = JsonDocument.Parse(raw).RootElement;
         Assert.True(m.GetProperty("compatible").GetArrayLength() > 0);
         var first = m.GetProperty("compatible")[0].GetProperty("person");
-        foreach (var secret in new[] { "pickiness", "open", "acceptsSmoking", "acceptsPets", "maxHouseholds", "sleep", "tidy" })
+        foreach (var secret in new[] { "pickiness", "open", "acceptsSmoking", "acceptsPets", "maxHouseholds", "sleep", "tidy", "maxBudget" })
             Assert.False(first.TryGetProperty(secret, out _), secret + " leaked");
         Assert.DoesNotContain("passwordHash", raw, StringComparison.OrdinalIgnoreCase);
     }

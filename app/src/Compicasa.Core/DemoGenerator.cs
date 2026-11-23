@@ -115,6 +115,7 @@ public static class DemoGenerator
             if (p.Kids > 0 && !p.Needs.ContainsKey("schools")) p.Needs["schools"] = "nice";
             var job = Pick(Jobs); var habit = Pick(Habits); var wish = Pick(Wishes);
             p.Bio = new LocalizedText($"{job.Es} {habit.Es} {wish.Es}", $"{job.En} {habit.En} {wish.En}");
+            p.MaxBudget = Budgets.DemoFor(p); // from the id, so the day's other answers stay as they were
             list.Add(p);
         }
         return list;

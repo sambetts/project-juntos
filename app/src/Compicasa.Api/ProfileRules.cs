@@ -25,6 +25,7 @@ public static class ProfileRules
         if (input.Needs is null || input.Needs.Any(n => !Catalogue.Features.Contains(n.Key) || n.Value is not ("must" or "nice"))) return (null, "badNeeds");
         var bio = input.Bio?.Es?.Trim() ?? "";
         if (bio.Length > 400) return (null, "badBio");
+        if (input.MaxBudget is int mb && mb is < Budgets.Min or > Budgets.Max) return (null, "badBudget");
 
         var p = new Profile
         {
@@ -53,6 +54,7 @@ public static class ProfileRules
             Pickiness = current.Pickiness,
             Color = current.Color,
             Bio = bio.Length == 0 ? null : new LocalizedText(bio, bio),
+            MaxBudget = input.MaxBudget,
         };
         return (p, null);
     }

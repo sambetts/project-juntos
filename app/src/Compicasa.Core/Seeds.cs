@@ -14,7 +14,9 @@ public static class Seeds
     {
         using var s = typeof(Seeds).Assembly.GetManifestResourceStream("Compicasa.Core.seed-profiles.json")
             ?? throw new InvalidOperationException("seed-profiles.json is missing from the assembly");
-        return JsonSerializer.Deserialize<List<Profile>>(s, Json)!;
+        var list = JsonSerializer.Deserialize<List<Profile>>(s, Json)!;
+        foreach (var p in list) p.MaxBudget ??= Budgets.DemoFor(p); // the prototype has no budgets (B-058)
+        return list;
     });
 
     /// <summary>Fresh copies, so callers can't change the shared list.</summary>

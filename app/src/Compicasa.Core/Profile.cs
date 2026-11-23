@@ -5,7 +5,7 @@ public sealed record LocalizedText(string Es, string En);
 
 /// <summary>
 /// A household's profile, as in the prototype's P() defaults. Some fields are private to their owner:
-/// who they'd share with, what they accept, their household cap and pickiness (see <see cref="PublicProfile"/>).
+/// who they'd share with, what they accept, their household cap, pickiness and maximum budget (see <see cref="PublicProfile"/>).
 /// </summary>
 public sealed class Profile
 {
@@ -36,6 +36,9 @@ public sealed class Profile
     public int Pickiness { get; set; } = 60;
     public string Color { get; set; } = "#495057";
     public LocalizedText? Bio { get; set; }
+    /// <summary>The most this household would put towards a home's price, in euros, taxes and fees not included (B-058).
+    /// Private: only its owner sees it; a group's members see their total. Null until they set it. Filters homes, never people (D-044).</summary>
+    public int? MaxBudget { get; set; }
 
     public int Slider(string id) => id switch
     {
@@ -59,7 +62,7 @@ public sealed class Profile
     }
 }
 
-/// <summary>What other people may see of a profile: no dealbreaker settings, sliders or pickiness.</summary>
+/// <summary>What other people may see of a profile: no dealbreaker settings, sliders, pickiness or budget.</summary>
 public sealed record PublicProfile(
     string Id, string Name, string Household, int Adults, int Kids, int Bedrooms, bool PrivateBath, int Cars,
     IReadOnlyList<string> Pets, string Smoking, bool Wfh, string Horizon, IReadOnlyList<string> Areas,

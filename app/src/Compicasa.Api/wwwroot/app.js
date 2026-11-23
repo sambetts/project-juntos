@@ -219,6 +219,7 @@ ${selectField('acceptsSmoking',t('smokersQ'),[{id:'none',label:t('smokersNone')}
   where:u=>`${checkGroup('areas',t('areasLabel'),loc(AREAS),u.areas)}
 ${checkGroup('types',t('typesLabel'),loc(TYPES),u.types)}
 ${radioGroup('horizon',loc(HORIZONS),u.horizon,t('horizonLabel'))}`,
+  budget:u=>`<div class="field"><label for="f-maxBudget">${esc(t('budgetLabel'))}</label><input id="f-maxBudget" type="number" inputmode="numeric" min="10000" max="5000000" step="5000" data-field="maxBudget" value="${u.maxBudget==null?'':u.maxBudget}" placeholder="150000"><p class="hint">${esc(t('budgetHint'))}</p></div>`,
   needs:u=>`<p class="hint">${t('needsHint')}</p>
 <div class="feat">${FEATURES.map(f=>featBtn(f,u.needs[f.id])).join('')}</div>`
 };
@@ -232,6 +233,7 @@ const SUMMARY={
   live:u=>[u.wfh?t('wfhFact'):'',t('sumSmoke_'+u.smoking),t('sumSliders')].filter(Boolean).join(' · '),
   share:u=>[t('sumOpen',u.open.length),t('sumMaxHH',u.maxHouseholds),u.acceptsPets?t('okPets'):''].filter(Boolean).join(' · '),
   where:u=>[cap(listOr(u.areas.map(areaLabel))),homeType(u.types),t('staying',horizonLabel(u.horizon))].filter(Boolean).join(' · '),
+  budget:u=>u.maxBudget==null?t('sumNoBudget'):t('sumBudget',euros(u.maxBudget)),
   needs:u=>{const k=Object.keys(u.needs),m=k.filter(x=>u.needs[x]==='must'),n=k.filter(x=>u.needs[x]==='nice');return [m.length?t('sumMust',listAnd(m.map(x=>featLabel(x).toLowerCase()))):'',n.length?t('sumNice',n.length):''].filter(Boolean).join(' · ')||t('sumNoNeeds');}
 };
 function viewYou(){
@@ -247,6 +249,7 @@ ${sec(t('privateSpace'),'space')}
 ${sec(t('howLive'),'live')}
 ${sec(t('shareWith'),'share')}
 ${sec(t('whereHow'),'where')}
+${sec(esc(t('budgetH')),'budget')}
 ${sec(t('needsH'),'needs')}
 </div>
 <details class="quietbox mt"><summary>${String(t('startFrom')).replace(/:\s*$/,'')}</summary><p class="hint">${esc(t('presetWarn'))}</p><div class="presets">${presetButtons()}</div></details>
@@ -311,7 +314,7 @@ ${missing.length?'':`<p class="hint">${esc(t('scoreAll'))}</p>`}</section>`;
   else{
     const d=r.data,list=d.homes.slice(0,3).map(x=>Object.assign({},x,{pm2:x.price&&x.m2?x.price/x.m2:null})),med=median(list.map(x=>x.pm2));
     const who=d.with?t('dashHomesWith',d.with.name,d.with.mutual):t('dashHomesAlone');
-    homes=`<p class="hint">${esc(who)}</p>${list.length?`<ul class="homes">${list.map(x=>homeItem(x,med)).join('')}</ul><p class="hint mt">${esc(t('dashHomesNote'))}</p>`:`<p>${esc(t('dashHomesNone'))}</p>`}
+    homes=`<p class="hint">${esc(who)}</p>${d.budgetSet===false?`<p class="budgetline">${esc(t('dashBudget'))} <a class="quiet" href="#profile" data-action="open-sec" data-id="budget">${esc(t('hbSetMine'))}</a></p>`:''}${list.length?`<ul class="homes">${list.map(x=>homeItem(x,med)).join('')}</ul><p class="hint mt">${esc(t('dashHomesNote'))}</p>`:`<p>${esc(t('dashHomesNone'))}</p>`}
 ${g.formed?`<p class="mt"><a class="btn small" href="${groupHash(g.formed,'homes')}">${esc(t('dashHomesGroup'))}</a></p>`:''}`;
   }
   return `<header class="phead2"><div><h2>${esc(t('dashH',u.name||''))}</h2><p class="hint">${esc(t('dashLead'))}</p></div></header>
@@ -333,6 +336,7 @@ const WIZ=[
   {id:'live',h:()=>t('howLive'),lead:()=>t('wizLiveLead')},
   {id:'share',h:()=>t('shareWith'),lead:()=>t('wizShareLead')},
   {id:'where',h:()=>t('whereHow'),lead:()=>t('wizWhereLead'),check:u=>u.areas.length&&u.types.length?'':t('err_profileIncomplete')},
+  {id:'budget',h:()=>t('budgetH'),lead:()=>t('wizBudgetLead'),check:u=>u.maxBudget>=10000&&u.maxBudget<=5000000?'':t('err_badBudget')},
   {id:'needs',h:()=>t('needsH'),lead:()=>t('wizNeedsLead')},
   {id:'done',h:()=>t('wizDoneH'),lead:()=>t('wizDoneLead')}
 ];
@@ -806,7 +810,14 @@ function homesSection(gid){
   else if(!r.data.homes.length)body=`<div class="card empty left"><p><b>${esc(t('homesNoneH'))}</b></p><ul class="tips">${t('homesNoneTips').map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${S.home?`<a class="btn" href="${groupHash(S.home,'brief')}">${esc(t('homesNoneBtn'))}</a>`:''}</div>`;
   else body=homesExplorer(gid);
   const count=r&&r.data?`<p class="hint">${esc(t('homesCount',r.data.considered,r.data.real>0))}</p>`:'';
-  return `<section class="explorer" id="homes">${count}${body}<p class="hint mt">${esc(t('homesLead'))} ${esc(t('homesNote'))}</p></section>`;
+  return `<section class="explorer" id="homes">${count}${r&&r.data?budgetLine(r.data):''}${body}<p class="hint mt">${esc(t('homesLead'))} ${esc(t('homesNote'))}</p></section>`;
+}
+/* The group's combined maximum budget (B-058, D-044): the total, never anyone's own figure, and who hasn't set one */
+function budgetLine(d){
+  const unset=d.budgetUnset||[];
+  if(unset.length)return `<p class="budgetline">${esc(t('hbUnset',names(unset)))}${unset.some(isMe)?` <a class="quiet" href="#profile" data-action="open-sec" data-id="budget">${esc(t('hbSetMine'))}</a>`:''}</p>`;
+  if(d.budget==null)return '';
+  return `<p class="budgetline"><b>${esc(t('hbBudget',euros(d.budget)))}</b>${d.overBudget?' '+esc(t('hbOver',d.overBudget)):''}</p>`;
 }
 function homesExplorer(gid){
   const f=hfFor(gid),all=homesAll(),[plo,phi]=priceBounds(all);
@@ -1461,6 +1472,7 @@ app.addEventListener('change',e=>{
   const u=S.profile;
   if(f==='name'){u.name=el.value.trim();}
   else if(f==='bio'){const v=el.value.trim();u.bio=v?{es:v,en:v}:null;}
+  else if(f==='maxBudget'){const v=parseInt(String(el.value).replace(/[^0-9]/g,''),10);if(!isNaN(v)&&(v<10000||v>5000000)){toast(t('err_badBudget'));return;}u.maxBudget=isNaN(v)?null:v;}
   else if(el.hasAttribute('data-multi'))u[f]=Array.prototype.map.call(app.querySelectorAll('input[data-field="'+f+'"]:checked'),x=>x.value);
   else if(el.hasAttribute('data-bool'))u[f]=el.checked;
   else if(NUM_FIELDS.indexOf(f)>=0)u[f]=parseInt(el.value,10);

@@ -23,14 +23,20 @@ public static class HomeFit
     /// <summary>
     /// Hard rules: enough bedrooms, a home type and an area the group accepts. Then a score out of 100:
     /// bathrooms, size against the group's m² range, must-haves the advert confirms, nice-to-haves as a bonus.
-    /// Price isn't used until the group has a price band (B-043).
+    /// With a <paramref name="budget"/> (the members' maximum budgets added up, B-058), a home whose price is over it fails too.
     /// </summary>
-    public static HomeFitResult Fit(HouseBrief b, int m2Min, int m2Max, HomeListing h)
+    public static HomeFitResult Fit(HouseBrief b, int m2Min, int m2Max, HomeListing h, int? budget = null)
     {
         var fits = new List<string>();
         var misses = new List<string>();
         var check = new List<string>();
         var ok = true;
+
+        if (budget is int max)
+        {
+            if (h.Price is not int price) check.Add("price");
+            else if (price > max) { ok = false; misses.Add("price"); } // within it says nothing: every home shown is
+        }
 
         if (h.Beds is int beds && beds >= b.Beds) fits.Add("beds");
         else { ok = false; misses.Add("beds"); }
@@ -67,14 +73,37 @@ public static class HomeFit
     }
 
     /// <summary>The homes that pass the hard rules: real ones first, each best first.</summary>
-    public static IReadOnlyList<(HomeListing Home, HomeFitResult Fit)> Rank(HouseBrief b, int m2Min, int m2Max, IEnumerable<HomeListing> homes, int limit) =>
-        homes.Select(h => (Home: h, Fit: Fit(b, m2Min, m2Max, h)))
+    public static IReadOnlyList<(HomeListing Home, HomeFitResult Fit)> Rank(HouseBrief b, int m2Min, int m2Max, IEnumerable<HomeListing> homes, int limit, int? budget = null) =>
+        homes.Select(h => (Home: h, Fit: Fit(b, m2Min, m2Max, h, budget)))
             .Where(x => x.Fit.Ok)
             .OrderBy(x => x.Home.IsDemo) // real homes always first; made-up ones only fill the gaps
             .ThenByDescending(x => x.Fit.Score)
             .ThenBy(x => x.Home.Price ?? int.MaxValue)
             .ThenBy(x => x.Home.Id, StringComparer.Ordinal)
             .Take(limit).ToList();
+}
+
+/// <summary>
+/// Maximum budgets (B-058, D-044). Each household says the most it would put towards a home's price; a group can afford
+/// a home whose price is within the total. Budgets filter homes only: never use them to match, filter or rank people
+/// (AGENTS.md section 4, D-009).
+/// </summary>
+public static class Budgets
+{
+    public const int Min = 10_000, Max = 5_000_000;
+
+    /// <summary>The total, or null if anyone hasn't set one yet (then prices aren't filtered).</summary>
+    public static int? Combined(IReadOnlyList<Profile> all) =>
+        all.Count > 0 && all.All(p => p.MaxBudget is not null) ? all.Sum(p => p.MaxBudget!.Value) : null;
+
+    /// <summary>A made-up person's budget: 80,000 euros a bedroom plus 50,000 to 170,000, steady for the same id, in steps of 5,000.
+    /// Made up (Assumption), only so the demo filters by price.</summary>
+    public static int DemoFor(Profile p)
+    {
+        var h = 2166136261u;
+        foreach (var ch in p.Id) { h ^= ch; h *= 16777619u; }
+        return p.Bedrooms * 80_000 + 50_000 + (int)(h % 25) * 5_000;
+    }
 }
 
 /// <summary>

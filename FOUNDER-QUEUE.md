@@ -4,6 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-026 · Push the maximum budget to `main` (B-058, D-044) · by 2026-11-30
+**Why:** profiles now have a private maximum budget, and a group's homes are filtered by the members' budgets added up. A push to `main` deploys it through CI/CD (D-041). No migration: profiles are stored as JSON.
+**Options:** A) push now; B) wait to see it locally first.
+**Recommendation:** A. 58 .NET tests and 74 browser checks pass locally. On the live site, your account will have no budget until you set one (Profile, "Your budget"), so groups you're in won't filter by price until then.
+**If no answer:** it stays committed and undeployed.
+
 ### F-025 · Push house voting to `main` (B-056, D-043) · CLOSED 2026-11-23: pushed, see LOG Session 22
 **Why:** a push to `main` deploys through CI/CD (D-041) and applies the `Shortlist` migration (two new tables, nothing dropped).
 **ANSWER (Sam, 2026-11-23, in Claude Code):** "fix the rest then push". Read as approval to fix B-057 and confirm the estimate's tax rate, then push `main` so GitHub Actions deploys Session 22, within D-027. Not an approval for anything else, and not an answer to F-024 (agency emails stay off).

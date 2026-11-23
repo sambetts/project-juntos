@@ -82,7 +82,7 @@ public static class Shortlist
         return h;
     }
 
-    sealed record Ctx(Group G, Community C, List<string> Voters, Dictionary<string, Home> Homes, HouseBrief Brief, int M2Min, int M2Max, HashSet<string> Stopped, bool DemoHomes);
+    sealed record Ctx(Group G, Community C, List<string> Voters, Dictionary<string, Home> Homes, HouseBrief Brief, int M2Min, int M2Max, HashSet<string> Stopped, bool DemoHomes, int? Budget);
 
     static async Task<Ctx> LoadAsync(AppDb db, Community c, Group g, IConfiguration cfg, CancellationToken ct)
     {
@@ -91,14 +91,15 @@ public static class Shortlist
         var hb = Matching.Brief(profiles.Count > 0 ? profiles : [c.Me]);
         var ids = await db.Candidates.Where(x => x.GroupId == g.Id).Select(x => x.HomeId).ToListAsync(ct);
         var homes = await db.Homes.AsNoTracking().Where(h => ids.Contains(h.Id)).ToDictionaryAsync(h => h.Id, ct);
-        return new Ctx(g, c, voters, homes, hb, g.M2Min ?? hb.M2Min, g.M2Max ?? hb.M2Max, HomeSources.Stopped(cfg), Compicasa.Api.DemoHomes.Enabled(cfg));
+        return new Ctx(g, c, voters, homes, hb, g.M2Min ?? hb.M2Min, g.M2Max ?? hb.M2Max, HomeSources.Stopped(cfg), Compicasa.Api.DemoHomes.Enabled(cfg),
+            Budgets.Combined(profiles));
     }
 
     /// <summary>The home, if the group can still act on it: still advertised, its agency not stopped, made-up homes switched on.</summary>
     static Home? Live(Ctx x, string homeId) =>
         x.Homes.TryGetValue(homeId, out var h) && h.GoneAt is null && !x.Stopped.Contains(h.Source) && (!h.IsDemo || x.DemoHomes) ? h : null;
 
-    static int FitScore(Ctx x, Home h) => HomeFit.Fit(x.Brief, x.M2Min, x.M2Max, h.ToListing()).Score;
+    static int FitScore(Ctx x, Home h) => HomeFit.Fit(x.Brief, x.M2Min, x.M2Max, h.ToListing(), x.Budget).Score;
 
     /// <summary>Made-up members vote at once on whatever stage is open for them (after an add, a vote, a price change).</summary>
     static void DemoVotes(Ctx x, List<Candidate> list, DateTimeOffset now)
@@ -116,7 +117,8 @@ public static class Shortlist
                 var added = false;
                 foreach (var id in demos.Where(id => !cand.Votes.Any(v => v.AccountId == id && v.Stage == s && Counts(v, h.Price))))
                 {
-                    var (choice, reason) = DemoVote(id, h.Id, FitScore(x, h));
+                    // Over the group's combined budget (B-058): a made-up member says no, for the price.
+                    var (choice, reason) = x.Budget is int max && h.Price > max ? ("no", (string?)"price") : DemoVote(id, h.Id, FitScore(x, h));
                     var old = cand.Votes.FirstOrDefault(v => v.AccountId == id && v.Stage == s);
                     if (old is null) cand.Votes.Add(old = new CandidateVote { CandidateId = cand.Id, AccountId = id, Stage = s });
                     old.Choice = choice; old.Reason = reason; old.Price = h.Price; old.At = now;
@@ -139,7 +141,7 @@ public static class Shortlist
         var everyoneVoted = x.Voters.All(votes.ContainsKey);
         // A stage's choices stay hidden until everyone has voted on it (so nobody just follows the first vote).
         var revealed = stage == Agreed || everyoneVoted;
-        var fit = home is null ? null : HomeFit.Fit(x.Brief, x.M2Min, x.M2Max, home.ToListing());
+        var fit = home is null ? null : HomeFit.Fit(x.Brief, x.M2Min, x.M2Max, home.ToListing(), x.Budget);
         var stale = cand.Votes.Where(v => !Counts(v, price)).Select(v => v.Price).FirstOrDefault();
         return new
         {

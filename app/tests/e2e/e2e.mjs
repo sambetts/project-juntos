@@ -65,6 +65,8 @@ async function homesCheck(tag) {
   if (!await until(`document.querySelectorAll('#homes .home').length>0`, tag + ': homes that fit load')) return;
   ok(await js(`[...document.querySelectorAll('#homes .home')].every(h=>{const a=h.querySelector('a.btn[rel~="external"]');return a?(a.target==='_blank'&&/noopener/.test(a.rel)&&/^https:/.test(a.href)&&/Ver el anuncio en /.test(a.textContent)):/inventada/.test(h.innerText);})`),
     tag + ': every home links to the agency advert in a new tab, or is marked made-up');
+  // B-058: the group's combined budget, never anyone's own figure
+  ok(await js(`/presupuesto conjunto: [0-9.]+ €/.test(document.querySelector('#homes .budgetline')?.innerText || '')`), tag + ': homes show the combined budget');
   await js(`document.getElementById('homes').scrollIntoView()`);
   await shot(tag + '-5b-homes-es');
   await js('window.scrollTo(0,0)');
@@ -163,22 +165,30 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   }
 
   if (signup) {
-    // The onboarding wizard: eight steps, matches locked until the end.
+    // The onboarding wizard: nine steps, matches locked until the end.
     await until(`!!document.querySelector('.wizard')`, 'onboarding wizard starts');
     ok(await js(`!document.querySelector('#tabs [data-tab]')`), 'no tabs until onboarding is done');
-    ok(/Paso 1 de 8/.test(await text()), 'wizard shows its progress');
+    ok(/Paso 1 de 9/.test(await text()), 'wizard shows its progress');
     ok(await js(`document.getElementById('f-name').value`) === 'Prueba', 'wizard starts from the name given at sign-up');
     await shot(tag + '-2-wizard-1-es');
     await click('[data-action="wiz-next"]');
-    await until(`/Paso 2 de 8/.test(document.body.innerText)`, 'wizard step 2');
+    await until(`/Paso 2 de 9/.test(document.body.innerText)`, 'wizard step 2');
     await click('[data-action="preset"][data-id="room"]');
     await until(`document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'example saved');
     ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), 'no sideways scrolling in the wizard');
-    for (let n = 3; n <= 8; n++) {
+    for (let n = 3; n <= 9; n++) {
       await click('[data-action="wiz-next"]');
-      await until(`/Paso ${n} de 8/.test(document.body.innerText)`, 'wizard step ' + n);
+      await until(`/Paso ${n} de 9/.test(document.body.innerText)`, 'wizard step ' + n);
+      if (n === 7) {
+        // B-058: the budget step needs an amount before it lets you on.
+        await click('[data-action="wiz-next"]');
+        await until(`/10\.000/.test(document.getElementById('wiz-error')?.textContent || '')`, 'wizard asks for a budget');
+        ok(/Paso 7 de 9/.test(await text()), 'wizard stays on the budget step until it has one');
+        await js(`(() => { const el = document.getElementById('f-maxBudget'); el.value = '200000'; el.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+        await until(`document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'budget saved');
+      }
     }
-    await shot(tag + '-2-wizard-8-es');
+    await shot(tag + '-2-wizard-9-es');
     await click('[data-action="wiz-finish"]');
     await until(`!!document.querySelector('#tabs [data-tab]')`, tag + ' onboarding finished');
   } else {

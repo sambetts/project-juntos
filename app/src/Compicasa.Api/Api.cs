@@ -210,7 +210,7 @@ public static partial class Api
             return Results.Ok(new
             {
                 with = partner is null ? null : new { id = partner.Id, name = partner.Name, mutual = c.Mutual(partner.Id), isDemo = c.IsDemo(partner.Id) },
-                r.considered, r.real, r.homes,
+                r.considered, r.real, r.homes, budgetSet = c.Me.MaxBudget is not null, // the pair's total stays hidden (D-044)
             });
         });
 
@@ -326,8 +326,12 @@ public static partial class Api
         if (!DemoHomes.Enabled(cfg)) q = q.Where(h => h.Source != HomeSources.Demo);
         if (hb.Areas.Count > 0) q = q.Where(h => h.Area != null && hb.Areas.Contains(h.Area));
         var candidates = (await q.ToListAsync(ct)).Where(h => !stopped.Contains(h.Source)).Select(h => h.ToListing()).ToList();
-        var ranked = HomeFit.Rank(hb, lo, hi, candidates, limit);
-        return new HomesResult(candidates.Count, candidates.Count(h => !h.IsDemo), ranked.Select(x => (object)new
+        // B-058: the members' maximum budgets added up; homes over it drop out, and we say how many.
+        var budget = Budgets.Combined(all);
+        var ranked = HomeFit.Rank(hb, lo, hi, candidates, limit, budget);
+        var over = budget is null ? 0 : candidates.Count(h => h.Price > budget && HomeFit.Fit(hb, lo, hi, h).Ok);
+        var unset = all.Where(p => p.MaxBudget is null).Select(p => p.Id).ToList();
+        return new HomesResult(candidates.Count, candidates.Count(h => !h.IsDemo), budget, over, unset, ranked.Select(x => (object)new
         {
             x.Home.Id, x.Home.Agency, x.Home.Url, x.Home.Price, x.Home.M2, x.Home.Beds, x.Home.Baths, x.Home.Type,
             x.Home.Municipality, x.Home.District, x.Home.Area, x.Home.Features, x.Home.Energy, x.Home.IsDemo,
@@ -336,7 +340,7 @@ public static partial class Api
     }
 
     /// <summary>Serialised as-is, so the names are the JSON names.</summary>
-    sealed record HomesResult(int considered, int real, List<object> homes);
+    sealed record HomesResult(int considered, int real, int? budget, int overBudget, List<string> budgetUnset, List<object> homes);
 
     /// <summary>Tells a real person about a like (B-037): "liked you" if they haven't answered, "match" if they had
     /// already liked the viewer. Taking a like back removes the unread notice.</summary>

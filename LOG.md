@@ -2,6 +2,26 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-23 · Session 23: a maximum budget per profile
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Product (B-058), Legal & Compliance (the A3 question, the risk and privacy notes) and the CEO (D-044)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 22. Sam: "New change: profiles need to have a maximum € they can spend, which obviously combined with others will filter what houses they can afford." No new answers in the founder queue (F-025 was already closed).
+**Goals:** 1. B-058 maximum budget per profile.
+**Needs Sam:** F-026 (new): push to deploy; recommendation A, push now.
+**Did**
+- Core (`app/src/Compicasa.Core/`): `Profile.MaxBudget` (private, so not in `PublicProfile`); `Budgets.Combined` (the total, or none if anyone hasn't set one) and `Budgets.DemoFor` (made-up budgets from the id, so the day's other made-up answers don't change); `HomeFit.Fit` and `Rank` take an optional budget: a price over it fails the fit (`miss: price`), a missing price goes under "check". Seeds and the daily made-up people get budgets.
+- API: `ProfileRules` accepts 10,000 to 5,000,000 € or empty (`badBudget`); `GET /api/groups/{id}/homes` returns `budget`, `overBudget` and `budgetUnset`; `/api/me/homes` filters by you and your best match and returns only `budgetSet`; on a shortlist, a home over the total shows the miss, and made-up members vote No for the price.
+- Front end: a wizard step "Tu presupuesto" / "Your budget" (step 7 of 9, needs an amount); a profile section with a summary line; the group's combined budget above its homes, or who still needs to set one, with a link to set yours; a nudge on Home; the guide's steps 1 and 4; strings in Spanish and English. I dropped a "within budget" tag after the first screenshots: every home shown is within budget, so it took a tag slot and said nothing.
+- Tests: `BudgetTests.cs` (5: the fit rule, the total, made-up budgets, the API's checks and privacy, a group's filtered homes); `maxBudget` added to the "private settings don't leak" check; the browser test walks nine steps, checks the budget step refuses to move on without an amount, and checks the combined-budget line.
+- Documents: `product/2026-11-23-maximum-budget.md`; D-044; B-058 (done) and B-052 (budgets added); R-006 updated; a question added to A3 of the lawyer brief; F-026; `app/README.md`; STATE.md.
+
+**Decided:** D-044 (CEO): a private maximum budget per profile; a group's total filters its homes, never people.
+**Approvals used:** Sam's request in chat (2026-11-23), for B-058 in this repository. Nothing pushed or deployed.
+**Learned:** the lawyer brief's A3 had planned "fund your share: yes / not sure", with no figures, because socioeconomic status is a protected ground under Ley 15/2022. A figure that only filters homes is a softer use, but it still needs the lawyer before real users (Assumption that it's fine for Sam and made-up people in the PoC). In a group of two, the total gives away the other person's figure; the hint says so rather than hiding the total.
+**Open or blocked:** not deployed (F-026); Sam's own live account has no budget until he sets one; the Spanish needs a native speaker's review (B-031); proposed follow-up: warn in the agreed-home estimate if your share is over your budget.
+**Saved and checked:** `dotnet test` 58 of 58; browser test 74 of 74 against a fresh local run (SQLite in the scratch folder) after the last code change. A first rerun had hit the old server, which was still running, so I stopped it and ran everything again. I checked the phone and desktop screenshots of a group's homes by eye. `git status` and `git diff --stat` show the 20 changed files and 2 new ones expected (`.claude/` left uncommitted as before). LOG.md saved last; the commit is confirmed in the closing report.
+**Next session should start with:** 1. Sam's push (F-026), then set his budget live and check a group's *Homes*. 2. B-042 and B-052 before anyone but Sam signs up. 3. B-047 crawl check.
+
 ## 2026-11-23 · Session 22: house voting for a group
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Product and Builder roles (B-056), Legal & Compliance (the pack's wording) and the CEO (D-043)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

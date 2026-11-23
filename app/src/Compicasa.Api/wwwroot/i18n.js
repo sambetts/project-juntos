@@ -487,10 +487,10 @@ Object.assign(STR.en,{
   helpLead:'A short guide to this proof of concept. It will change as the service grows.',
   helpSecs:[
     {h:'The steps',items:[
-      'Fill in your profile: your household, the space you need, how you live, your dealbreakers and where you want to live.',
+      "Fill in your profile: your household, the space you need, how you live, your dealbreakers, where you want to live and the most you'd put towards the price (only you see it).",
       "In People, under \"To review\", like the people you'd consider buying with. When they like you too, they move to \"Matches\".",
       'Put mutual matches into a group of up to four households (you plus three) and propose it. Everyone you invite says yes or no.',
-      'When everyone has said yes, the group is formed. Under "Groups" you get a joint brief for the home you need together, and homes for sale that fit it.']},
+      'When everyone has said yes, the group is formed. Under "Groups" you get a joint brief for the home you need together, and homes for sale that fit it and your budgets added up.']},
     {h:'Likes and matches',items:[
       '"♥ Like" means you\'d like to explore buying with that person. "Pass" moves them out of the way. "Undo" takes back either.',
       "When you like a real person, they're told, and you appear first in their \"To review\" list, marked \"♥ Liked you\". Made-up people sometimes like you first, too.",
@@ -525,10 +525,10 @@ Object.assign(STR.es,{
   helpLead:'Una guía breve de esta prueba de concepto. Irá cambiando a medida que crezca el servicio.',
   helpSecs:[
     {h:'Los pasos',items:[
-      'Completa tu perfil: tu hogar, el espacio que necesitas, cómo vives, lo que no es negociable para ti y dónde quieres vivir.',
+      'Completa tu perfil: tu hogar, el espacio que necesitas, cómo vives, lo que no es negociable para ti, dónde quieres vivir y lo máximo que pondrías para el precio (solo lo ves tú).',
       'En «Personas», dentro de «Por ver», marca «Me interesa» en quienes te plantearías comprar. Si esa persona también te marca, pasa a «Mutuos».',
       'Reúne a tus matches mutuos en un grupo de hasta cuatro hogares (tú y tres más) y propónlo. Cada persona invitada dice que sí o que no.',
-      'Cuando todo el mundo ha dicho que sí, el grupo queda formado. En «Grupos» tendréis una ficha conjunta de la casa que necesitáis y las viviendas en venta que encajan con ella.']},
+      'Cuando todo el mundo ha dicho que sí, el grupo queda formado. En «Grupos» tendréis una ficha conjunta de la casa que necesitáis y las viviendas en venta que encajan con ella y con la suma de vuestros presupuestos.']},
     {h:'«Me interesa» y matches',items:[
       '«♥ Me interesa» significa que te gustaría explorar comprar con esa persona. «Pasar» la aparta. «Deshacer» anula cualquiera de las dos.',
       'Cuando marcas a una persona real, se le avisa, y apareces la primera en su lista «Por ver» con la etiqueta «♥ Le interesas». A veces, las personas inventadas también te marcan primero.',
@@ -951,4 +951,32 @@ Object.assign(STR.es,{
   err_unknownHome:'Esa vivienda ya no está en nuestro índice.',err_homeGone:'Ese anuncio ya no está publicado.',
   err_alreadyAgreed:'Ya estáis de acuerdo en esa vivienda.',err_badVote:'Elige sí, quizá o no.',
   err_groupBroken:'Para eso el grupo necesita al menos dos hogares.',err_notMember:'Solo pueden hacerlo quienes se han unido al grupo.'
+});
+
+/* Maximum budget (B-058, D-044) */
+Object.assign(STR.en,{
+  budgetH:'Your budget',budgetLabel:"The most you would put towards the home's price (€)",
+  budgetHint:"Your share of the price, without taxes and fees (in Madrid these add roughly another 7.5%). Only you see this figure. In a group, its members see the total of everyone's budgets, so in a group of two the other person can work yours out. It decides which homes your group sees; it never changes who you're matched with.",
+  wizBudgetLead:"How much you could put towards a shared home. Added to the others' budgets, it decides which homes your group can afford.",
+  err_badBudget:'Enter an amount between 10,000 and 5,000,000 €.',
+  sumNoBudget:'not set yet',sumBudget:n=>'up to '+n,
+  miss_price:'over your budget',check_price:'price',
+  hbBudget:n=>'Your combined budget: '+n+'.',
+  hbOver:n=>n===1?'1 home that fits otherwise is over it, so it is hidden.':n+' homes that fit otherwise are over it, so they are hidden.',
+  hbUnset:l=>"Prices aren't filtered yet. Still to set a maximum budget: "+l+'.',
+  hbSetMine:'Set your budget',
+  dashBudget:'Set your maximum budget so these homes fit what you can afford.'
+});
+Object.assign(STR.es,{
+  budgetH:'Tu presupuesto',budgetLabel:'Lo máximo que pondrías para el precio de la vivienda (€)',
+  budgetHint:'Tu parte del precio, sin impuestos ni gastos (en Madrid suman aproximadamente otro 7,5 %). Solo tú ves esta cifra. En un grupo, sus miembros ven la suma de los presupuestos de todos, así que en un grupo de dos la otra persona puede deducir el tuyo. Decide qué viviendas ve tu grupo; nunca cambia con quién te emparejamos.',
+  wizBudgetLead:'Cuánto podrías poner para una casa compartida. Sumado al presupuesto de los demás, decide qué viviendas puede permitirse tu grupo.',
+  err_badBudget:'Escribe una cantidad entre 10.000 y 5.000.000 €.',
+  sumNoBudget:'aún sin indicar',sumBudget:n=>'hasta '+n,
+  miss_price:'por encima del presupuesto',check_price:'precio',
+  hbBudget:n=>'Vuestro presupuesto conjunto: '+n+'.',
+  hbOver:n=>n===1?'1 vivienda que encaja en lo demás lo supera, así que no se muestra.':n+' viviendas que encajan en lo demás lo superan, así que no se muestran.',
+  hbUnset:l=>'Aún no se filtra por precio. Falta indicar el presupuesto máximo: '+l+'.',
+  hbSetMine:'Indica tu presupuesto',
+  dashBudget:'Indica tu presupuesto máximo para que estas viviendas se ajusten a lo que puedes pagar.'
 });
