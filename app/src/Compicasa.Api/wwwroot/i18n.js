@@ -14,8 +14,9 @@ const MAX_BEDROOMS=6;
 /* Where people look (B-059, D-045): Spain's regions (comunidades and ciudades autónomas), each with its provinces.
    An area id is one of Madrid's five finer areas (the pilot starts in Madrid, D-008) or "p" + the province's INE code,
    the same as Regions.Areas in the C# code. itp: the region's general purchase-tax rate for a resale home, in %
-   (the first band where there is a scale), used only for the cost estimate (D-043). Verified 2026-11-23 in each region's
-   consolidated tax law (BOE; Bizkaia's and Álava's own sites), except Gipuzkoa (Reported): product/2026-11-23-all-of-spain.md. */
+   (the first band where there is a scale); scale: the bands for dearer homes, [up to €, rate %] (see itpTax). Used only for
+   the cost estimate (D-043). Verified 2026-11-23 in each region's consolidated tax law (BOE; Bizkaia's and Álava's own
+   sites), except Gipuzkoa (Reported): product/2026-11-23-all-of-spain.md; the scales: research/2026-11-23-itp-scales.md. */
 const MADRID_AREAS=[
   {id:'centre',label:{en:'Central Madrid',es:'Madrid centro'},hint:{en:'inside the M-30',es:'dentro de la M-30'}},
   {id:'city',label:{en:'Rest of Madrid city',es:'Resto de Madrid capital'},hint:{en:'outside the M-30',es:'fuera de la M-30'}},
@@ -26,16 +27,16 @@ const MADRID_AREAS=[
 const REGIONS=[
   {id:'mad',label:{en:'Madrid region',es:'Comunidad de Madrid'},itp:6,areas:MADRID_AREAS},
   {id:'and',label:{en:'Andalusia',es:'Andalucía'},itp:7,prov:[['04','Almería'],['11','Cádiz'],['14','Córdoba'],['18','Granada'],['21','Huelva'],['23','Jaén'],['29','Málaga'],['41',{en:'Seville',es:'Sevilla'}]]},
-  {id:'ara',label:{en:'Aragon',es:'Aragón'},itp:8,prov:[['22','Huesca'],['44','Teruel'],['50','Zaragoza']]},
-  {id:'ast',label:{en:'Asturias',es:'Principado de Asturias'},itp:8,prov:[['33','Asturias']]},
-  {id:'bal',label:{en:'Balearic Islands',es:'Illes Balears'},itp:8,prov:[['07',{en:'Balearic Islands',es:'Illes Balears'}]]},
+  {id:'ara',label:{en:'Aragon',es:'Aragón'},itp:8,scale:{by:'part',bands:[[400000,8],[450000,8.5],[500000,9],[750000,9.5],[null,10]]},prov:[['22','Huesca'],['44','Teruel'],['50','Zaragoza']]},
+  {id:'ast',label:{en:'Asturias',es:'Principado de Asturias'},itp:8,scale:{by:'whole',bands:[[300000,8],[500000,9],[null,10]]},prov:[['33','Asturias']]},
+  {id:'bal',label:{en:'Balearic Islands',es:'Illes Balears'},itp:8,scale:{by:'part',avg2:true,bands:[[400000,8],[600000,9],[1000000,10],[2000000,12],[null,13]]},prov:[['07',{en:'Balearic Islands',es:'Illes Balears'}]]},
   {id:'can',label:{en:'Canary Islands',es:'Canarias'},itp:6.5,prov:[['35','Las Palmas'],['38','Santa Cruz de Tenerife']]},
   {id:'cnt',label:{en:'Cantabria',es:'Cantabria'},itp:9,prov:[['39','Cantabria']]},
-  {id:'cyl',label:{en:'Castile and León',es:'Castilla y León'},itp:8,prov:[['05','Ávila'],['09','Burgos'],['24','León'],['34','Palencia'],['37','Salamanca'],['40','Segovia'],['42','Soria'],['47','Valladolid'],['49','Zamora']]},
+  {id:'cyl',label:{en:'Castile and León',es:'Castilla y León'},itp:8,scale:{by:'part',bands:[[250000,8],[null,10]]},prov:[['05','Ávila'],['09','Burgos'],['24','León'],['34','Palencia'],['37','Salamanca'],['40','Segovia'],['42','Soria'],['47','Valladolid'],['49','Zamora']]},
   {id:'clm',label:{en:'Castilla-La Mancha',es:'Castilla-La Mancha'},itp:9,prov:[['02','Albacete'],['13','Ciudad Real'],['16','Cuenca'],['19','Guadalajara'],['45','Toledo']]},
-  {id:'cat',label:{en:'Catalonia',es:'Cataluña'},itp:10,prov:[['08','Barcelona'],['17','Girona'],['25','Lleida'],['43','Tarragona']]},
-  {id:'val',label:{en:'Valencian Community',es:'Comunitat Valenciana'},itp:9,prov:[['03','Alicante'],['12','Castellón'],['46','Valencia']]},
-  {id:'ext',label:{en:'Extremadura',es:'Extremadura'},itp:8,prov:[['06','Badajoz'],['10','Cáceres']]},
+  {id:'cat',label:{en:'Catalonia',es:'Cataluña'},itp:10,scale:{by:'part',bands:[[600000,10],[900000,11],[1500000,12],[null,13]]},prov:[['08','Barcelona'],['17','Girona'],['25','Lleida'],['43','Tarragona']]},
+  {id:'val',label:{en:'Valencian Community',es:'Comunitat Valenciana'},itp:9,scale:{by:'whole',bands:[[1000000,9],[null,11]]},prov:[['03','Alicante'],['12','Castellón'],['46','Valencia']]},
+  {id:'ext',label:{en:'Extremadura',es:'Extremadura'},itp:8,scale:{by:'part',bands:[[360000,8],[600000,10],[null,11]]},prov:[['06','Badajoz'],['10','Cáceres']]},
   {id:'gal',label:{en:'Galicia',es:'Galicia'},itp:8,prov:[['15','A Coruña'],['27','Lugo'],['32','Ourense'],['36','Pontevedra']]},
   {id:'mur',label:{en:'Murcia',es:'Región de Murcia'},itp:7.75,prov:[['30','Murcia']]},
   {id:'nav',label:{en:'Navarre',es:'Navarra'},itp:6,prov:[['31','Navarra']]},
@@ -48,6 +49,22 @@ REGIONS.forEach(r=>{if(!r.areas)r.areas=r.prov.map(x=>({id:'p'+x[0],label:x[1]})
 /* Every area, in the server's order (Catalogue.Areas: Madrid's five, then provinces by INE code) */
 const AREAS=REGIONS.reduce((a,r)=>a.concat(r.areas),[]).sort((x,y)=>{const k=a=>a.id.charAt(0)==='p'&&a.id.length===3?'1'+a.id:'0'+MADRID_AREAS.findIndex(m=>m.id===a.id);return k(x)<k(y)?-1:1;});
 function areaRegion(id){const a=AREAS.find(x=>x.id===id);return a?REGIONS.find(r=>r.id===a.region):null;}
+/* ITP on a resale home of price P in region r (B-060), as each region's law says: 'part' taxes each slice of the value at
+   its band's rate; 'whole' taxes the whole value at the rate of the band it falls in (a band's limit is included in it);
+   avg2 rounds the average rate to two decimals, the third decimal rounding up only above 5 (Illes Balears, art. 10).
+   The scale is applied to the whole home's value, then split. With no region, the highest tax any region charges at that
+   price, so the estimate isn't too low. Returns {tax, rate}: euros and the average rate in %. */
+function itpTax(P,r){
+  if(!r){let best=null;REGIONS.forEach(x=>{const v=itpTax(P,x);if(!best||v.tax>best.tax)best=v;});return best;}
+  const s=r.scale;
+  if(!s||!(P>0))return {tax:P>0?P*r.itp/100:0,rate:r.itp};
+  let tax=0;
+  if(s.by==='whole')tax=P*s.bands.find(b=>b[0]==null||P<=b[0])[1]/100;
+  else{let from=0;for(const b of s.bands){const to=b[0]==null?P:Math.min(P,b[0]);if(to>from)tax+=(to-from)*b[1]/100;from=to;if(from>=P)break;}}
+  let rate=tax/P*100;
+  if(s.avg2){const th=Math.floor(rate*1000+1e-6);rate=(Math.floor(th/10)+(th%10>5?1:0))/100;tax=P*rate/100;}
+  return {tax:tax,rate:rate};
+}
 const TYPES=[{id:'flat',label:{en:'Flat',es:'Piso'},hint:{en:'piso',es:''}},{id:'house',label:{en:'House',es:'Casa'},hint:{en:'chalet or adosado',es:'chalet o adosado'}}];
 const HOUSEHOLDS=[
   {id:'single',label:{en:'Single',es:'Persona sola'},plural:{en:'singles',es:'personas solas'}},
@@ -889,7 +906,7 @@ Object.assign(STR.en,{
   pkLead:'You all said yes. Here’s help with what comes next: an estimate, questions for your lawyer and a note to the agency.',
   pkCostH:'What it might cost each of you',pkSplit:'Split',pkEqual:'Equal shares',pkRooms:'By rooms',
   pkWho:'Who',pkShare:'Share',pkPrice:'Of the price',pkUpfront:'Savings',pkLoan:'Mortgage',pkTotal:'Total',
-  pkCostNote:(r,reg)=>'Savings means the deposit plus tax and fees. An estimate, not advice: it assumes a 20% deposit (banks usually lend up to 80%), purchase tax (ITP) of '+r+'%, '+(reg?'the general rate for a resale home in '+reg+' (many regions charge more for dearer homes, and some buyers pay less, such as large families or young buyers of a main home)':'the highest general rate in Spain, as we couldn’t tell which region this home is in')+', and about 1.5% for the notary, land registry, paperwork and valuation. A new-build home pays VAT instead (IGIC in the Canary Islands). Ask a gestoría and your bank for real figures.',
+  pkCostNote:(r,reg)=>'Savings means the deposit plus tax and fees. An estimate, not advice: it assumes a 20% deposit (banks usually lend up to 80%), purchase tax (ITP) of '+r+'%, '+(reg?'the general rate for a resale home at this price in '+reg+' (some regions charge more for dearer homes, and some buyers pay less, such as large families or young buyers of a main home)':'the highest general rate in Spain for a home at this price, as we couldn’t tell which region this home is in')+', and about 1.5% for the notary, land registry, paperwork and valuation. A new-build home pays VAT instead (IGIC in the Canary Islands). Ask a gestoría and your bank for real figures.',
   pkQH:'Questions for your lawyer and notary',
   pkQLead:'Not answers: the things to settle, in writing, before you sign anything. A lawyer can turn them into your co-ownership agreement.',
   lq_shares:(n,s)=>'Ownership: you are '+n+' buyers'+(s?' ('+s+')':'')+'. What share will each of you own in the deed, and should it follow what each of you pays?',
@@ -949,7 +966,7 @@ Object.assign(STR.es,{
   pkLead:'Todos habéis dicho que sí. Os ayudamos con lo que viene: una estimación, preguntas para vuestro abogado y una nota para la agencia.',
   pkCostH:'Lo que podría costar a cada uno',pkSplit:'Reparto',pkEqual:'A partes iguales',pkRooms:'Según las habitaciones',
   pkWho:'Quién',pkShare:'Parte',pkPrice:'Del precio',pkUpfront:'Ahorros',pkLoan:'Hipoteca',pkTotal:'Total',
-  pkCostNote:(r,reg)=>'«Ahorros» es la entrada más impuestos y gastos. Es una estimación, no un consejo: supone una entrada del 20 % (los bancos suelen financiar hasta el 80 %), un ITP del '+r+' %, '+(reg?'el tipo general para vivienda usada en '+reg+' (muchas comunidades cobran más por las viviendas más caras, y algunos compradores pagan menos, como las familias numerosas o los jóvenes que compran su vivienda habitual)':'el tipo general más alto de España, porque no sabemos en qué comunidad está esta vivienda')+', y en torno a un 1,5 % de notaría, registro, gestoría y tasación. Una vivienda nueva paga IVA en su lugar (IGIC en Canarias). Pide las cifras reales a una gestoría y a tu banco.',
+  pkCostNote:(r,reg)=>'«Ahorros» es la entrada más impuestos y gastos. Es una estimación, no un consejo: supone una entrada del 20 % (los bancos suelen financiar hasta el 80 %), un ITP del '+r+' %, '+(reg?'el tipo general para una vivienda usada de este precio en '+reg+' (algunas comunidades cobran más por las viviendas más caras, y algunos compradores pagan menos, como las familias numerosas o los jóvenes que compran su vivienda habitual)':'el tipo general más alto de España para una vivienda de este precio, porque no sabemos en qué comunidad está esta vivienda')+', y en torno a un 1,5 % de notaría, registro, gestoría y tasación. Una vivienda nueva paga IVA en su lugar (IGIC en Canarias). Pide las cifras reales a una gestoría y a tu banco.',
   pkQH:'Preguntas para vuestro abogado y notario',
   pkQLead:'No son respuestas: es lo que conviene dejar por escrito antes de firmar nada. Un abogado puede convertirlo en vuestro pacto de copropiedad.',
   lq_shares:(n,s)=>'Propiedad: sois '+n+' compradores'+(s?' ('+s+')':'')+'. ¿Qué parte tendrá cada uno en la escritura y debe corresponder a lo que paga cada uno?',
