@@ -1035,7 +1035,7 @@ function agreedPack(h,sl,x){
 <div class="split" aria-hidden="true">${sh.map(s=>`<span data-w="${(s.share*100).toFixed(1)}" data-bg="${esc((PEOPLE[s.id]||{}).color||'#495057')}"></span>`).join('')}</div>
 <div class="tablewrap"><table class="costs"><thead><tr><th scope="col">${esc(t('pkWho'))}</th><th scope="col">${esc(t('pkShare'))}</th><th scope="col" class="c-price">${esc(t('pkPrice'))}</th><th scope="col">${esc(t('pkUpfront'))}</th><th scope="col">${esc(t('pkLoan'))}</th></tr></thead>
 <tbody>${sh.map(row).join('')}</tbody><tfoot><tr><th scope="row">${esc(t('pkTotal'))}</th><td>100 %</td><td class="c-price">${esc(euros(P))}</td><td>${esc(euros(Math.round(P*up)))}</td><td>${esc(euros(Math.round(P*loan)))}</td></tr></tfoot></table></div>
-<p class="hint">${esc(t('pkCostNote',num(tax.rate,1),tax.region))}</p></section>`;
+<p class="hint">${esc(t('pkCostNote',num(tax.rate,2),tax.region))}</p></section>`;
   }
   const qs=lawyerQuestions(h,ids,P?slShares(h,ids):null);
   const key='q'+x.id;COPY[key]=t('pkQH')+'\n\n'+qs.map((q,i)=>(i+1)+'. '+q).join('\n');

@@ -13,9 +13,9 @@ function pl(n,one,many){return n+' '+(n===1?one:many);}
 const MAX_BEDROOMS=6;
 /* Where people look (B-059, D-045): Spain's regions (comunidades and ciudades autónomas), each with its provinces.
    An area id is one of Madrid's five finer areas (the pilot starts in Madrid, D-008) or "p" + the province's INE code,
-   the same as Regions.Areas in the C# code. itp: the region's general purchase-tax rate for a resale home, in %,
-   used only for the cost estimate (D-043). Reported (secondary sources checked 2026-11-23, product/2026-11-23-all-of-spain.md);
-   where sources disagree the higher rate is used; Madrid's is Verified. Many regions charge more for dearer homes. */
+   the same as Regions.Areas in the C# code. itp: the region's general purchase-tax rate for a resale home, in %
+   (the first band where there is a scale), used only for the cost estimate (D-043). Verified 2026-11-23 in each region's
+   consolidated tax law (BOE; Bizkaia's and Álava's own sites), except Gipuzkoa (Reported): product/2026-11-23-all-of-spain.md. */
 const MADRID_AREAS=[
   {id:'centre',label:{en:'Central Madrid',es:'Madrid centro'},hint:{en:'inside the M-30',es:'dentro de la M-30'}},
   {id:'city',label:{en:'Rest of Madrid city',es:'Resto de Madrid capital'},hint:{en:'outside the M-30',es:'fuera de la M-30'}},
@@ -36,8 +36,8 @@ const REGIONS=[
   {id:'cat',label:{en:'Catalonia',es:'Cataluña'},itp:10,prov:[['08','Barcelona'],['17','Girona'],['25','Lleida'],['43','Tarragona']]},
   {id:'val',label:{en:'Valencian Community',es:'Comunitat Valenciana'},itp:9,prov:[['03','Alicante'],['12','Castellón'],['46','Valencia']]},
   {id:'ext',label:{en:'Extremadura',es:'Extremadura'},itp:8,prov:[['06','Badajoz'],['10','Cáceres']]},
-  {id:'gal',label:{en:'Galicia',es:'Galicia'},itp:9,prov:[['15','A Coruña'],['27','Lugo'],['32','Ourense'],['36','Pontevedra']]},
-  {id:'mur',label:{en:'Murcia',es:'Región de Murcia'},itp:8,prov:[['30','Murcia']]},
+  {id:'gal',label:{en:'Galicia',es:'Galicia'},itp:8,prov:[['15','A Coruña'],['27','Lugo'],['32','Ourense'],['36','Pontevedra']]},
+  {id:'mur',label:{en:'Murcia',es:'Región de Murcia'},itp:7.75,prov:[['30','Murcia']]},
   {id:'nav',label:{en:'Navarre',es:'Navarra'},itp:6,prov:[['31','Navarra']]},
   {id:'pv',label:{en:'Basque Country',es:'País Vasco'},itp:4,prov:[['01','Álava'],['20','Gipuzkoa'],['48','Bizkaia']]},
   {id:'rio',label:{en:'La Rioja',es:'La Rioja'},itp:7,prov:[['26','La Rioja']]},

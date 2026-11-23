@@ -2,6 +2,24 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-23 · Session 24, continued: the regional ITP rates checked
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Research (the rates) and the Builder (the fix)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** Session 24's deploy (F-027, CI/CD run succeeded; the live site served the new province list). Sam: "verify the ITP rates on each region's official site".
+**Goals:** 1. Check every region's ITP rate in a primary source (B-059 follow-up).
+**Needs Sam:** F-028 (new): push the corrected rates; recommendation A, push now.
+**Did**
+- Read the general rate for a resale home in each region's current consolidated tax law: 15 regions, Navarra and Ceuta and Melilla (the state rule) on BOE's consolidated texts; Bizkaia and Álava in the provincial governments' own consolidated texts. Sources, articles and last-update dates are in `product/2026-11-23-all-of-spain.md`. The Ministry of Finance's summary (Tributación Autonómica 2026) refused connections from two networks, so it wasn't used.
+- Corrected two rates in `wwwroot/i18n.js`: Galicia 9% to 8% (DL 1/2011 art. 14) and Murcia 8% to 7.75% (DL 1/2010 art. 6); the cost note now shows two decimals (7,75 %); service worker version bumped.
+- B-059 and D-045's evidence updated; B-060 (full scales, proposed) and B-061 (an intermittent browser-test timeout) added; F-028.
+
+**Decided:** nothing new; D-045's evidence corrected (CEO).
+**Approvals used:** none beyond Sam's request; nothing pushed.
+**Learned:** the first pass from secondary sources had two rates wrong, both too high, which shows why the "higher rate if unsure" rule wasn't enough. The estimate uses only the first band; seven regions charge more for dearer homes (B-060). Gipuzkoa's current law isn't published as an official consolidated text that I could find, so its 4% stays Reported. Ceuta and Melilla's reductions under a 1955 law weren't checked, so the 6% there may overstate the tax. Castilla y León's consolidated text on BOE was last updated 14/05/2024, so a later change could be missing.
+**Open or blocked:** F-028; B-060; B-061.
+**Saved and checked:** `dotnet test` 73 of 73. The browser test passed 3 of 6 local runs of this change. Each of the 3 failures was the step that closes a person's card (two on phone, one on desktop), which this change doesn't touch. The last committed version passed 5 of 5, so the fault is intermittent and recorded as B-061. `git status` and `git diff` show the expected changes. LOG.md saved last; the commit is confirmed in the closing report.
+**Next session should start with:** 1. F-028 push. 2. Count homes outside Madrid after the next crawl. 3. B-061, then B-060.
+
 ## 2026-11-23 · Session 24: all of Spain
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Product (B-059), Research (ITP rates), Legal & Compliance (R-023) and the CEO (D-045)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
