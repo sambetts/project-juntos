@@ -258,6 +258,23 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   await until(`!!document.querySelector('dialog.sheet[open]') && /^#person-/.test(location.hash)`, tag + ': More opens the person sheet with its own address');
   await click('[data-action="close-sheet"]');
   await until(`!document.querySelector('dialog.sheet[open]') && /^#people-/.test(location.hash)`, tag + ': closing the sheet goes back to People');
+  // B-061: a refresh can redraw the page just after the sheet closes. Force both timings: a redraw before the
+  // dialog's "close" event, and a redraw while the Back it triggers is on its way. Either used to reopen the sheet.
+  for (const [when, how] of [['before the close event', `b.click();window.__compicasa.render();`],
+    ['while going back', `document.addEventListener('close',()=>window.__compicasa.render(),{once:true});b.click();`]]) {
+    await click('.pcard .more');
+    if (!await until(`!!document.querySelector('dialog.sheet[open]') && /^#person-/.test(location.hash)`, `${tag}: the sheet opens again (${when})`)) continue;
+    await js(`(()=>{const b=document.querySelector('[data-action="close-sheet"]');${how}})()`);
+    await until(`!document.querySelector('dialog.sheet[open]') && /^#people-/.test(location.hash)`, `${tag}: the sheet stays closed after a redraw ${when}`);
+    await sleep(400);
+    ok(await js(`!document.querySelector('dialog.sheet[open]') && /^#people-/.test(location.hash)`), `${tag}: still on People a moment later (${when})`);
+  }
+  // B-061: a redraw between a link changing the address and its hashchange must not write the old address back
+  const peopleAt = await js('location.hash');
+  await js(`(()=>{location.hash='#people-liked';window.__compicasa.render();})()`);
+  await until(`location.hash==='#people-liked' && document.querySelector('.subtabs [aria-current="page"]')?.getAttribute('href')==='#people-liked'`, tag + ': a redraw before the hashchange keeps the new view');
+  await js(`location.hash=${JSON.stringify(peopleAt)}`);
+  await until(`document.querySelector('.subtabs [aria-current="page"]')?.getAttribute('href')===${JSON.stringify(peopleAt)}`, tag + ': back on the first People view');
   await shot(tag + '-3-matches-es');
 
   if (signup) {
