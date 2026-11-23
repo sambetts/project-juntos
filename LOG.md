@@ -18,7 +18,8 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Learned:** the first pass from secondary sources had two rates wrong, both too high, which shows why the "higher rate if unsure" rule wasn't enough. The estimate uses only the first band; seven regions charge more for dearer homes (B-060). Gipuzkoa's current law isn't published as an official consolidated text that I could find, so its 4% stays Reported. Ceuta and Melilla's reductions under a 1955 law weren't checked, so the 6% there may overstate the tax. Castilla y León's consolidated text on BOE was last updated 14/05/2024, so a later change could be missing.
 **Open or blocked:** F-028; B-060; B-061.
 **Saved and checked:** `dotnet test` 73 of 73. The browser test passed 3 of 6 local runs of this change. Each of the 3 failures was the step that closes a person's card (two on phone, one on desktop), which this change doesn't touch. The last committed version passed 5 of 5, so the fault is intermittent and recorded as B-061. `git status` and `git diff` show the expected changes. LOG.md saved last; the commit is confirmed in the closing report.
-**Next session should start with:** 1. F-028 push. 2. Count homes outside Madrid after the next crawl. 3. B-061, then B-060.
+**After the closing report:** Sam: "push" (F-028, closed); pushed `main` for CI/CD to deploy (D-041).
+**Next session should start with:** 1. Check the F-028 deploy. 2. Count homes outside Madrid after the next crawl. 3. B-061, then B-060.
 
 ## 2026-11-23 · Session 24: all of Spain
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Product (B-059), Research (ITP rates), Legal & Compliance (R-023) and the CEO (D-045)

@@ -4,11 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-028 · Push the corrected tax rates to `main` (B-059) · by 2026-11-24
+### F-028 · Push the corrected tax rates to `main` (B-059) · CLOSED 2026-11-23: pushed, see LOG Session 24 continued
 **Why:** checked against each region's own law, two rates in the cost estimate were too high: Galicia is 8% (we had 9%) and Murcia 7.75% (we had 8%). A push to `main` deploys the fix (D-041). No migration.
 **Options:** A) push now; B) wait and push with the next change.
 **Recommendation:** A. A one-line data fix; 73 .NET tests pass and the browser test passes, apart from an intermittent timeout on closing a person's card that has nothing to do with this change (B-061).
 **If no answer:** it stays committed; the live estimate overstates tax for homes in Galicia and Murcia.
+**ANSWER (Sam, 2026-11-23, in Claude Code):** "push". Read as approval to push `main` so GitHub Actions deploys the rate fix, within D-027. Not an approval for anything else.
 
 ### F-027 · Push "all of Spain" to `main` (B-059, D-045) · CLOSED 2026-11-23: pushed, see LOG Session 24
 **Why:** the app now covers every province, not only Madrid: the area picker, placing homes, the crawl and the tax in the cost estimate. A push to `main` deploys it through CI/CD (D-041). No migration.
