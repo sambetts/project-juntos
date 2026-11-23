@@ -107,12 +107,15 @@ public static class Budgets
 }
 
 /// <summary>
-/// Places a home in the app's five Madrid areas (Catalogue.Areas) from its town and postcode.
+/// Places a home in the province of Madrid in one of the app's five Madrid areas from its town and postcode
+/// (homes elsewhere in Spain are placed by province: Regions.AreaFor).
 /// Approximate (Assumption, Session 15): "inside the M-30" is judged by postcode, and some postcodes straddle it.
 /// Real geography replaces this with B-043.
 /// </summary>
 public static class MadridZones
 {
+    public static readonly string[] Ids = ["centre", "city", "north", "south", "east"];
+
     static readonly HashSet<string> Central =
     [
         "28001", "28002", "28003", "28004", "28005", "28006", "28007", "28008", "28009", "28010", "28012", "28013",

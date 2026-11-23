@@ -8,7 +8,8 @@ public static class Catalogue
 {
     public const int MaxBedrooms = 6;
 
-    public static readonly string[] Areas = ["centre", "city", "north", "south", "east"];
+    /// <summary>Madrid's five areas, then every other province of Spain as "pNN" (Regions, B-059).</summary>
+    public static readonly string[] Areas = Regions.Areas;
     public static readonly string[] Types = ["flat", "house"];
     public static readonly string[] Households = ["single", "couple", "family", "singleParent"];
     public static readonly string[] Features = ["parking", "garden", "terrace", "pool", "lift", "stepfree", "schools", "transport", "quiet", "storage"];

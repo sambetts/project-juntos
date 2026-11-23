@@ -11,13 +11,43 @@ function t(k){const v=STR[LANG][k]!==undefined?STR[LANG][k]:STR.es[k];return typ
 function pl(n,one,many){return n+' '+(n===1?one:many);}
 
 const MAX_BEDROOMS=6;
-const AREAS=[
+/* Where people look (B-059, D-045): Spain's regions (comunidades and ciudades autónomas), each with its provinces.
+   An area id is one of Madrid's five finer areas (the pilot starts in Madrid, D-008) or "p" + the province's INE code,
+   the same as Regions.Areas in the C# code. itp: the region's general purchase-tax rate for a resale home, in %,
+   used only for the cost estimate (D-043). Reported (secondary sources checked 2026-11-23, product/2026-11-23-all-of-spain.md);
+   where sources disagree the higher rate is used; Madrid's is Verified. Many regions charge more for dearer homes. */
+const MADRID_AREAS=[
   {id:'centre',label:{en:'Central Madrid',es:'Madrid centro'},hint:{en:'inside the M-30',es:'dentro de la M-30'}},
   {id:'city',label:{en:'Rest of Madrid city',es:'Resto de Madrid capital'},hint:{en:'outside the M-30',es:'fuera de la M-30'}},
   {id:'north',label:{en:'North & west towns',es:'Municipios del norte y oeste'},hint:'Las Rozas, Pozuelo, Alcobendas, Tres Cantos'},
   {id:'south',label:{en:'South towns',es:'Municipios del sur'},hint:'Getafe, Leganés, Alcorcón, Móstoles'},
   {id:'east',label:{en:'East corridor',es:'Corredor del Henares'},hint:'Alcalá, Torrejón, Coslada'}
 ];
+const REGIONS=[
+  {id:'mad',label:{en:'Madrid region',es:'Comunidad de Madrid'},itp:6,areas:MADRID_AREAS},
+  {id:'and',label:{en:'Andalusia',es:'Andalucía'},itp:7,prov:[['04','Almería'],['11','Cádiz'],['14','Córdoba'],['18','Granada'],['21','Huelva'],['23','Jaén'],['29','Málaga'],['41',{en:'Seville',es:'Sevilla'}]]},
+  {id:'ara',label:{en:'Aragon',es:'Aragón'},itp:8,prov:[['22','Huesca'],['44','Teruel'],['50','Zaragoza']]},
+  {id:'ast',label:{en:'Asturias',es:'Principado de Asturias'},itp:8,prov:[['33','Asturias']]},
+  {id:'bal',label:{en:'Balearic Islands',es:'Illes Balears'},itp:8,prov:[['07',{en:'Balearic Islands',es:'Illes Balears'}]]},
+  {id:'can',label:{en:'Canary Islands',es:'Canarias'},itp:6.5,prov:[['35','Las Palmas'],['38','Santa Cruz de Tenerife']]},
+  {id:'cnt',label:{en:'Cantabria',es:'Cantabria'},itp:9,prov:[['39','Cantabria']]},
+  {id:'cyl',label:{en:'Castile and León',es:'Castilla y León'},itp:8,prov:[['05','Ávila'],['09','Burgos'],['24','León'],['34','Palencia'],['37','Salamanca'],['40','Segovia'],['42','Soria'],['47','Valladolid'],['49','Zamora']]},
+  {id:'clm',label:{en:'Castilla-La Mancha',es:'Castilla-La Mancha'},itp:9,prov:[['02','Albacete'],['13','Ciudad Real'],['16','Cuenca'],['19','Guadalajara'],['45','Toledo']]},
+  {id:'cat',label:{en:'Catalonia',es:'Cataluña'},itp:10,prov:[['08','Barcelona'],['17','Girona'],['25','Lleida'],['43','Tarragona']]},
+  {id:'val',label:{en:'Valencian Community',es:'Comunitat Valenciana'},itp:9,prov:[['03','Alicante'],['12','Castellón'],['46','Valencia']]},
+  {id:'ext',label:{en:'Extremadura',es:'Extremadura'},itp:8,prov:[['06','Badajoz'],['10','Cáceres']]},
+  {id:'gal',label:{en:'Galicia',es:'Galicia'},itp:9,prov:[['15','A Coruña'],['27','Lugo'],['32','Ourense'],['36','Pontevedra']]},
+  {id:'mur',label:{en:'Murcia',es:'Región de Murcia'},itp:8,prov:[['30','Murcia']]},
+  {id:'nav',label:{en:'Navarre',es:'Navarra'},itp:6,prov:[['31','Navarra']]},
+  {id:'pv',label:{en:'Basque Country',es:'País Vasco'},itp:4,prov:[['01','Álava'],['20','Gipuzkoa'],['48','Bizkaia']]},
+  {id:'rio',label:{en:'La Rioja',es:'La Rioja'},itp:7,prov:[['26','La Rioja']]},
+  {id:'ceu',label:{en:'Ceuta',es:'Ceuta'},itp:6,prov:[['51','Ceuta']]},
+  {id:'mel',label:{en:'Melilla',es:'Melilla'},itp:6,prov:[['52','Melilla']]}
+];
+REGIONS.forEach(r=>{if(!r.areas)r.areas=r.prov.map(x=>({id:'p'+x[0],label:x[1]}));r.areas.forEach(a=>{a.region=r.id;});});
+/* Every area, in the server's order (Catalogue.Areas: Madrid's five, then provinces by INE code) */
+const AREAS=REGIONS.reduce((a,r)=>a.concat(r.areas),[]).sort((x,y)=>{const k=a=>a.id.charAt(0)==='p'&&a.id.length===3?'1'+a.id:'0'+MADRID_AREAS.findIndex(m=>m.id===a.id);return k(x)<k(y)?-1:1;});
+function areaRegion(id){const a=AREAS.find(x=>x.id===id);return a?REGIONS.find(r=>r.id===a.region):null;}
 const TYPES=[{id:'flat',label:{en:'Flat',es:'Piso'},hint:{en:'piso',es:''}},{id:'house',label:{en:'House',es:'Casa'},hint:{en:'chalet or adosado',es:'chalet o adosado'}}];
 const HOUSEHOLDS=[
   {id:'single',label:{en:'Single',es:'Persona sola'},plural:{en:'singles',es:'personas solas'}},
@@ -110,7 +140,7 @@ en:{
   shareWith:"Who you'd share with",happyShare:'Happy to share a home with',demoHousehold:'Demo only: whether a real service may let people choose by household type is being checked with a lawyer.',
   maxHHLabel:'Households in the home, at most',maxHH2:'2 (for example, half each)',maxHH4:'4 (co-living)',okPets:'Happy to live with pets',
   smokersQ:'Smokers in the house',smokersNone:'No smokers',smokersOut:'Fine if they smoke outside',smokersAny:"Don't mind",
-  whereHow:'Where and how long',areasLabel:'Areas you would consider (Madrid region)',typesLabel:'Type of home',horizonLabel:'How long you plan to live there',
+  whereHow:'Where and how long',areasLabel:'Where you would consider buying',areasHint:'Anywhere in Spain: open a region and tick the places you would consider. Madrid is split into five areas.',areasChosen:l=>'Chosen: '+l+'.',typesLabel:'Type of home',horizonLabel:'How long you plan to live there',
   needsH:'What the home needs',needsHint:'Tap once for <b>nice to have</b>, twice for <b>must-have</b>, a third time to clear. Accessibility needs, such as a lift or step-free access, shape the home brief and never your match scores.',
   lvMust:'Must-have',lvNice:'Nice to have',lvNone:'Not needed',
   ownBathFact:'own bathroom',sharesBath:'shares a bathroom',wfhFact:'works from home',staying:l=>'staying '+l,
@@ -215,7 +245,7 @@ es:{
   shareWith:'Con quién compartirías',happyShare:'Me parece bien compartir casa con',demoHousehold:'Solo en esta demo: un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
   maxHHLabel:'Máximo de hogares en la vivienda',maxHH2:'2 (por ejemplo, mitad y mitad)',maxHH4:'4 (coliving)',okPets:'Me parece bien vivir con mascotas',
   smokersQ:'¿Se puede fumar en casa?',smokersNone:'Prefiero que no fume nadie',smokersOut:'Sí, si se fuma fuera',smokersAny:'Me da igual',
-  whereHow:'Dónde y cuánto tiempo',areasLabel:'Zonas que te plantearías (Comunidad de Madrid)',typesLabel:'Tipo de vivienda',horizonLabel:'Cuánto tiempo piensas vivir allí',
+  whereHow:'Dónde y cuánto tiempo',areasLabel:'Dónde te plantearías comprar',areasHint:'En cualquier parte de España: abre una comunidad y marca los sitios que te plantearías. Madrid está dividida en cinco zonas.',areasChosen:l=>'Has elegido: '+l+'.',typesLabel:'Tipo de vivienda',horizonLabel:'Cuánto tiempo piensas vivir allí',
   needsH:'Qué necesita la casa',needsHint:'Toca una vez para marcarlo como <b>deseable</b>, dos para <b>imprescindible</b> y una tercera para quitarlo. Las necesidades de accesibilidad, como un ascensor o el acceso sin escalones, dan forma a la ficha de la casa y nunca cambian tus puntuaciones.',
   lvMust:'Imprescindible',lvNice:'Deseable',lvNone:'No hace falta',
   ownBathFact:'baño propio',sharesBath:'comparte baño',wfhFact:'teletrabaja',staying:l=>'horizonte: '+l,
@@ -859,7 +889,7 @@ Object.assign(STR.en,{
   pkLead:'You all said yes. Here’s help with what comes next: an estimate, questions for your lawyer and a note to the agency.',
   pkCostH:'What it might cost each of you',pkSplit:'Split',pkEqual:'Equal shares',pkRooms:'By rooms',
   pkWho:'Who',pkShare:'Share',pkPrice:'Of the price',pkUpfront:'Savings',pkLoan:'Mortgage',pkTotal:'Total',
-  pkCostNote:'Savings means the deposit plus tax and fees. An estimate, not advice: it assumes a 20% deposit (banks usually lend up to 80%), purchase tax (ITP) of 6%, the Comunidad de Madrid’s general rate for a resale home (some buyers pay less, such as large families or for a main home up to 250,000 €), and about 1.5% for the notary, land registry, paperwork and valuation. Ask a gestoría and your bank for real figures.',
+  pkCostNote:(r,reg)=>'Savings means the deposit plus tax and fees. An estimate, not advice: it assumes a 20% deposit (banks usually lend up to 80%), purchase tax (ITP) of '+r+'%, '+(reg?'the general rate for a resale home in '+reg+' (many regions charge more for dearer homes, and some buyers pay less, such as large families or young buyers of a main home)':'the highest general rate in Spain, as we couldn’t tell which region this home is in')+', and about 1.5% for the notary, land registry, paperwork and valuation. A new-build home pays VAT instead (IGIC in the Canary Islands). Ask a gestoría and your bank for real figures.',
   pkQH:'Questions for your lawyer and notary',
   pkQLead:'Not answers: the things to settle, in writing, before you sign anything. A lawyer can turn them into your co-ownership agreement.',
   lq_shares:(n,s)=>'Ownership: you are '+n+' buyers'+(s?' ('+s+')':'')+'. What share will each of you own in the deed, and should it follow what each of you pays?',
@@ -919,7 +949,7 @@ Object.assign(STR.es,{
   pkLead:'Todos habéis dicho que sí. Os ayudamos con lo que viene: una estimación, preguntas para vuestro abogado y una nota para la agencia.',
   pkCostH:'Lo que podría costar a cada uno',pkSplit:'Reparto',pkEqual:'A partes iguales',pkRooms:'Según las habitaciones',
   pkWho:'Quién',pkShare:'Parte',pkPrice:'Del precio',pkUpfront:'Ahorros',pkLoan:'Hipoteca',pkTotal:'Total',
-  pkCostNote:'«Ahorros» es la entrada más impuestos y gastos. Es una estimación, no un consejo: supone una entrada del 20 % (los bancos suelen financiar hasta el 80 %), un ITP del 6 %, el tipo general de la Comunidad de Madrid para vivienda usada (algunos compradores pagan menos, como las familias numerosas o por una vivienda habitual de hasta 250.000 €), y en torno a un 1,5 % de notaría, registro, gestoría y tasación. Pide las cifras reales a una gestoría y a tu banco.',
+  pkCostNote:(r,reg)=>'«Ahorros» es la entrada más impuestos y gastos. Es una estimación, no un consejo: supone una entrada del 20 % (los bancos suelen financiar hasta el 80 %), un ITP del '+r+' %, '+(reg?'el tipo general para vivienda usada en '+reg+' (muchas comunidades cobran más por las viviendas más caras, y algunos compradores pagan menos, como las familias numerosas o los jóvenes que compran su vivienda habitual)':'el tipo general más alto de España, porque no sabemos en qué comunidad está esta vivienda')+', y en torno a un 1,5 % de notaría, registro, gestoría y tasación. Una vivienda nueva paga IVA en su lugar (IGIC en Canarias). Pide las cifras reales a una gestoría y a tu banco.',
   pkQH:'Preguntas para vuestro abogado y notario',
   pkQLead:'No son respuestas: es lo que conviene dejar por escrito antes de firmar nada. Un abogado puede convertirlo en vuestro pacto de copropiedad.',
   lq_shares:(n,s)=>'Propiedad: sois '+n+' compradores'+(s?' ('+s+')':'')+'. ¿Qué parte tendrá cada uno en la escritura y debe corresponder a lo que paga cada uno?',
@@ -956,7 +986,7 @@ Object.assign(STR.es,{
 /* Maximum budget (B-058, D-044) */
 Object.assign(STR.en,{
   budgetH:'Your budget',budgetLabel:"The most you would put towards the home's price (€)",
-  budgetHint:"Your share of the price, without taxes and fees (in Madrid these add roughly another 7.5%). Only you see this figure. In a group, its members see the total of everyone's budgets, so in a group of two the other person can work yours out. It decides which homes your group sees; it never changes who you're matched with.",
+  budgetHint:"Your share of the price, without taxes and fees (these add roughly another 5.5% to 11.5%, depending on the region). Only you see this figure. In a group, its members see the total of everyone's budgets, so in a group of two the other person can work yours out. It decides which homes your group sees; it never changes who you're matched with.",
   wizBudgetLead:"How much you could put towards a shared home. Added to the others' budgets, it decides which homes your group can afford.",
   err_badBudget:'Enter an amount between 10,000 and 5,000,000 €.',
   sumNoBudget:'not set yet',sumBudget:n=>'up to '+n,
@@ -969,7 +999,7 @@ Object.assign(STR.en,{
 });
 Object.assign(STR.es,{
   budgetH:'Tu presupuesto',budgetLabel:'Lo máximo que pondrías para el precio de la vivienda (€)',
-  budgetHint:'Tu parte del precio, sin impuestos ni gastos (en Madrid suman aproximadamente otro 7,5 %). Solo tú ves esta cifra. En un grupo, sus miembros ven la suma de los presupuestos de todos, así que en un grupo de dos la otra persona puede deducir el tuyo. Decide qué viviendas ve tu grupo; nunca cambia con quién te emparejamos.',
+  budgetHint:'Tu parte del precio, sin impuestos ni gastos (suman aproximadamente otro 5,5 % a 11,5 %, según la comunidad). Solo tú ves esta cifra. En un grupo, sus miembros ven la suma de los presupuestos de todos, así que en un grupo de dos la otra persona puede deducir el tuyo. Decide qué viviendas ve tu grupo; nunca cambia con quién te emparejamos.',
   wizBudgetLead:'Cuánto podrías poner para una casa compartida. Sumado al presupuesto de los demás, decide qué viviendas puede permitirse tu grupo.',
   err_badBudget:'Escribe una cantidad entre 10.000 y 5.000.000 €.',
   sumNoBudget:'aún sin indicar',sumBudget:n=>'hasta '+n,

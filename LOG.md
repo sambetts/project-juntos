@@ -2,6 +2,26 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-23 · Session 24: all of Spain
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Product (B-059), Research (ITP rates), Legal & Compliance (R-023) and the CEO (D-045)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 23. Sam asked whether the app supports places other than Madrid; I answered that it doesn't (the areas, the crawl and the tax in the cost estimate are all Madrid's). Sam: "Do it. We need to support all of Spain". No new answers in the founder queue.
+**Goals:** 1. B-059 all of Spain.
+**Needs Sam:** F-027 (new): push to deploy; recommendation A, push now.
+**Did**
+- Core: `Regions.cs`: area ids are Madrid's five areas, then every other province as `p` + its INE code (56 in all); `ProvinceOf` (postcode to province) and `AreaFor` (province, or a Madrid area inside Madrid). `Catalogue.Areas` now comes from it, so profile checks, matching and a group's common areas take any province. Made-up people: about a quarter look in one of seven other big cities.
+- Homes: the Tecnocasa adapter accepts adverts in any province and places them with `Regions.AreaFor`; 36 made-up homes in 12 towns outside Madrid (126 in all, added to existing databases by id, the first 90 unchanged).
+- Front end: a folding area picker with one group per region (Madrid first), a live summary and counts; region and province names and each region's ITP rate in `i18n.js`; the agreed-home estimate uses the home's region (10% if it can't be placed); the cost and budget hints no longer say Madrid; service worker version bumped.
+- Tests: `RegionsTests.cs` (7 tests, 15 cases with the postcode theory); demo home count 126; the browser test ticks Sevilla in the wizard and checks the summary, the count and no sideways scroll.
+- Documents: `product/2026-11-23-all-of-spain.md`; D-045; B-059; F-027; R-023 note; `app/README.md`; `product/homes-index.md`; STATE.md.
+
+**Decided:** D-045 (CEO): the app covers all of Spain; Madrid keeps its five areas; D-008's Madrid pilot unchanged.
+**Approvals used:** Sam's "Do it. We need to support all of Spain" (2026-11-23, in Claude Code), for B-059 in this repository. Nothing pushed or deployed.
+**Learned:** the ITP rates were found only in secondary sources, which disagree for Cantabria, Galicia and Murcia; the higher rate is used, and all except Madrid's are labelled Reported. Ceuta and Melilla are Assumptions. The first browser run failed two new checks: ticking a box saves without redrawing, so the picker's summary didn't change. It now updates in place.
+**Open or blocked:** not deployed (F-027); ITP rates to confirm on each region's own site before real users; finer areas inside other big cities wait for B-043.
+**Saved and checked:** `dotnet test` 73 of 73; browser test 78 of 78 against a fresh local run (SQLite in the scratch folder) after the last code change; the phone screenshot of the area picker checked by eye. `git status` and `git diff --stat` show the 17 changed files and 3 new ones expected (`.claude/` left uncommitted as before). LOG.md saved last; the commit is confirmed in the closing report.
+**Next session should start with:** 1. After Sam's push, check the deploy, then after the next crawl count homes outside Madrid. 2. Confirm the ITP rates. 3. B-042 and B-052 before anyone but Sam signs up.
+
 ## 2026-11-23 · Session 23: a maximum budget per profile
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Product (B-058), Legal & Compliance (the A3 question, the risk and privacy notes) and the CEO (D-044)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

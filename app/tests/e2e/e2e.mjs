@@ -179,6 +179,18 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
     for (let n = 3; n <= 9; n++) {
       await click('[data-action="wiz-next"]');
       await until(`/Paso ${n} de 9/.test(document.body.innerText)`, 'wizard step ' + n);
+      if (n === 6) {
+        // B-059: areas anywhere in Spain, one folding group per region; Madrid open to start with.
+        ok(await js(`document.querySelectorAll('details.region').length === 19`), 'area picker lists the 19 regions');
+        ok(await js(`document.querySelector('details.region[data-region="mad"]').open`), 'area picker opens Madrid');
+        await js(`(() => { document.querySelector('details.region[data-region="and"]').open = true; document.querySelector('input[data-field="areas"][value="p41"]').click(); })()`);
+        await until(`/Has elegido:.*Sevilla/.test(document.body.innerText) && document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'a province outside Madrid can be chosen and saved');
+        await shot(tag + '-2-wizard-6-areas-es');
+        ok(await js(`document.querySelector('details.region[data-region="and"]').open && /1/.test(document.querySelector('details.region[data-region="and"] summary').textContent)`), 'its region stays open with a count');
+        await js(`document.querySelector('input[data-field="areas"][value="p41"]').click()`);
+        await until(`!/Sevilla/.test(document.querySelector('.regions')?.previousElementSibling?.textContent || '')`, 'and taken off again');
+        ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), 'no sideways scrolling in the area picker');
+      }
       if (n === 7) {
         // B-058: the budget step needs an amount before it lets you on.
         await click('[data-action="wiz-next"]');

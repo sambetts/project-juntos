@@ -17,7 +17,7 @@ Groups agree what their shared home needs (the home brief). The homes index show
 Agency website                      Our crawler (daily WebJob)                Our database
 --------------                      ---------------------------------          ------------
 robots.txt  ---------------------->  check what we may read
-sitemap (adverts + last changed) ->  list homes for sale in Madrid province
+sitemap (adverts + last changed) ->  list homes for sale in Spain        
 advert page (changed ones only) -->  read the facts  ----------------------->  Homes table
                                      adverts gone from the sitemap ---------->  marked gone
 
@@ -29,10 +29,10 @@ Group page                          The app
 "See the advert at <agency>" ------>  opens the agency's own page in a new tab
 ```
 
-1. **Find:** each agency network has a small adapter. It reads the agency's sitemap, which lists every advert and when it last changed, and keeps homes for sale in the province of Madrid.
+1. **Find:** each agency network has a small adapter. It reads the agency's sitemap, which lists every advert and when it last changed, and keeps homes for sale anywhere in Spain (Madrid only until B-059).
 2. **Read:** it fetches only new or changed adverts and pulls out the facts. Tecnocasa's pages carry them as JSON; other agencies will need their own adapter (B-048).
 3. **Store:** one row per home, with when we first and last saw it. Homes that drop out of the sitemap are marked gone and stop showing.
-4. **Place:** the town and postcode put each home in one of the app's five Madrid areas (central Madrid inside the M-30, the rest of the city, north and west towns, south towns, the Henares corridor). This is approximate until real geography arrives (B-043).
+4. **Place:** outside Madrid, the postcode puts each home in its province (B-059, D-045). Inside Madrid, the town and postcode put it in one of the app's five Madrid areas (central Madrid inside the M-30, the rest of the city, north and west towns, south towns, the Henares corridor). This is approximate until real geography arrives (B-043).
 5. **Match:** for a group, a home must have enough bedrooms, be a type and in an area the group accepts. It then scores out of 100 for bathrooms, size against the group's m² range, and must-haves the advert confirms; nice-to-haves add a little. Things an advert can't tell us (near the Metro, a quiet street) are listed for the group to check. Price waits for the group price band (B-043).
 6. **Show:** real homes come first, best fit first, and the 90 made-up homes ("Agencia de ejemplo", no link) fill any gaps, so the demo always has something.
 

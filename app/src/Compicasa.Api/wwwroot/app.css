@@ -648,3 +648,9 @@ table.costs thead th{white-space:normal;vertical-align:bottom}
 @media (max-width:520px){table.costs .c-price{display:none}table.costs th,table.costs td{padding:6px 4px}}
 /* B-058: the group's combined budget */
 .budgetline{margin:.25rem 0 .75rem;padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border)}
+/* Areas across Spain (B-059): one folding group per region */
+.regions{display:grid;gap:6px}
+.region{border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.region>summary{cursor:pointer;padding:10px 12px;font-weight:600;list-style-position:inside}
+.region>summary .pill{margin-inline-start:6px}
+.region>.seg{padding:0 12px 12px}

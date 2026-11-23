@@ -165,7 +165,7 @@ public class HomesTests
         IConfiguration Cfg(string? demo) => new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Homes:Demo"] = demo }).Build();
 
         await DemoHomes.EnsureAsync(db, clock, Cfg(null));
-        Assert.Equal(90, await db.Homes.CountAsync(h => h.Source == HomeSources.Demo));
+        Assert.Equal(126, await db.Homes.CountAsync(h => h.Source == HomeSources.Demo));
         db.Homes.Add(new Home { Id = "tecnocasa:1", Source = "tecnocasa", Agency = "Tecnocasa", Url = "https://www.tecnocasa.es/venta/piso/madrid/getafe/1.html", FirstSeenAt = clock.GetUtcNow(), LastSeenAt = clock.GetUtcNow(), CheckedAt = clock.GetUtcNow() });
         await db.SaveChangesAsync();
 

@@ -110,6 +110,28 @@ function radioGroup(field,opts,val,label){
 function checkGroup(field,label,opts,vals){
   return `<div class="field"><span class="label">${esc(label)}</span><div class="seg">${opts.map(o=>`<label class="opt"><input type="checkbox" data-field="${field}" data-multi="1" value="${esc(o.id)}"${vals.indexOf(o.id)>=0?' checked':''}>${esc(o.label)}${o.hint?` <span class="hint">${esc(o.hint)}</span>`:''}</label>`).join('')}</div></div>`;
 }
+/* Areas across Spain (B-059): one folding group per region, open where you have chosen something (Madrid if nothing yet)
+   or where you opened it. The checkboxes are the same multi field as any other, so saving is unchanged. */
+const OPEN_REGIONS=new Set();
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.getAttribute&&d.getAttribute('data-region')){if(d.open)OPEN_REGIONS.add(d.getAttribute('data-region'));else OPEN_REGIONS.delete(d.getAttribute('data-region'));}},true);
+function areaPicker(vals){
+  const chosen=AREAS.filter(a=>vals.indexOf(a.id)>=0);
+  const sorted=REGIONS.slice(0,1).concat(REGIONS.slice(1).sort((a,b)=>tx(a.label).localeCompare(tx(b.label),LANG)));
+  const groups=sorted.map(r=>{
+    const n=r.areas.filter(a=>vals.indexOf(a.id)>=0).length,open=n>0||OPEN_REGIONS.has(r.id)||(!vals.length&&r.id==='mad');
+    return `<details class="region" data-region="${r.id}"${open?' open':''}><summary>${esc(tx(r.label))}${areaCount(n)}</summary><div class="seg">${r.areas.map(a=>`<label class="opt"><input type="checkbox" data-field="areas" data-multi="1" value="${esc(a.id)}"${vals.indexOf(a.id)>=0?' checked':''}>${esc(tx(a.label))}${a.hint?` <span class="hint">${esc(tx(a.hint))}</span>`:''}</label>`).join('')}</div></details>`;}).join('');
+  return `<div class="field"><span class="label">${esc(t('areasLabel'))}</span><p class="hint" id="areas-chosen" aria-live="polite">${esc(areasChosenText(chosen))}</p><div class="regions">${groups}</div></div>`;
+}
+function areaCount(n){return n?` <span class="pill">${n}</span>`:'';}
+function areasChosenText(chosen){return chosen.length?t('areasChosen',listAnd(chosen.map(a=>tx(a.label)))):t('areasHint');}
+/* Ticking a box saves without redrawing (focus stays put), so the summary and counts are updated in place */
+function refreshAreaPicker(vals){
+  const h=document.getElementById('areas-chosen');if(!h)return;
+  h.textContent=areasChosenText(AREAS.filter(a=>vals.indexOf(a.id)>=0));
+  document.querySelectorAll('details.region').forEach(d=>{const r=REGIONS.find(x=>x.id===d.getAttribute('data-region'));if(!r)return;
+    const n=r.areas.filter(a=>vals.indexOf(a.id)>=0).length,sum=d.querySelector('summary'),old=sum.querySelector('.pill');
+    if(old)old.remove();if(n)sum.insertAdjacentHTML('beforeend',areaCount(n));});
+}
 function checkField(field,label,val){return `<div class="field"><label class="opt"><input type="checkbox" data-field="${field}" data-bool="1"${val?' checked':''}>${esc(label)}</label></div>`;}
 function selectField(field,label,opts,val){
   const o2=opts.map(o=>typeof o==='object'?o:{id:o,label:String(o)});
@@ -216,7 +238,7 @@ ${selectField('smoking',t('smokeQ'),[{id:'no',label:t('smokeNo')},{id:'outside',
 ${selectField('maxHouseholds',t('maxHHLabel'),[{id:2,label:t('maxHH2')},{id:3,label:'3'},{id:4,label:t('maxHH4')}],u.maxHouseholds)}
 ${checkField('acceptsPets',t('okPets'),u.acceptsPets)}
 ${selectField('acceptsSmoking',t('smokersQ'),[{id:'none',label:t('smokersNone')},{id:'outside',label:t('smokersOut')},{id:'any',label:t('smokersAny')}],u.acceptsSmoking)}`,
-  where:u=>`${checkGroup('areas',t('areasLabel'),loc(AREAS),u.areas)}
+  where:u=>`${areaPicker(u.areas)}
 ${checkGroup('types',t('typesLabel'),loc(TYPES),u.types)}
 ${radioGroup('horizon',loc(HORIZONS),u.horizon,t('horizonLabel'))}`,
   budget:u=>`<div class="field"><label for="f-maxBudget">${esc(t('budgetLabel'))}</label><input id="f-maxBudget" type="number" inputmode="numeric" min="10000" max="5000000" step="5000" data-field="maxBudget" value="${u.maxBudget==null?'':u.maxBudget}" placeholder="150000"><p class="hint">${esc(t('budgetHint'))}</p></div>`,
@@ -933,8 +955,10 @@ function homeItem(x,medPm2,onGroup){
    homes, from the person's own email app: contacting real agencies needs Sam (F-024). */
 const SL_NOTES=['shortlisted','agreeView','agreeOffer','agreed'];
 /* Assumptions for the cost estimate, shown with it (product/2026-11-23-house-voting.md):
-   deposit 20% (banks usually lend up to 80%), ITP 6% (Comunidad de Madrid, resale), other costs about 1.5% */
-const COSTS={deposit:0.20,itp:0.06,other:0.015};
+   deposit 20% (banks usually lend up to 80%), the region's general ITP rate for a resale home (REGIONS in i18n.js, B-059),
+   other costs about 1.5%. A home we can't place uses the highest general rate, 10%, so the estimate isn't too low. */
+const COSTS={deposit:0.20,other:0.015,itpUnknown:10};
+function itpFor(home){const r=home&&areaRegion(home.area);return r?{rate:r.itp,region:tx(r.label)}:{rate:COSTS.itpUnknown,region:null};}
 const COPY={};
 async function loadShortlist(gid){
   if(!S.sl||S.sl.gid!==gid)S.sl={gid:gid,loading:true};
@@ -1004,14 +1028,14 @@ function agreedPack(h,sl,x){
   const o=x.home,P=o.price,ids=sl.voters;
   let cost='';
   if(P){
-    const sh=slShares(h,ids),up=COSTS.deposit+COSTS.itp+COSTS.other,loan=1-COSTS.deposit;
+    const tax=itpFor(o),sh=slShares(h,ids),up=COSTS.deposit+tax.rate/100+COSTS.other,loan=1-COSTS.deposit;
     const row=s=>`<tr><th scope="row">${esc(dn(s.id))}</th><td>${num(Math.round(s.share*100))} %</td><td class="c-price">${esc(euros(Math.round(P*s.share)))}</td><td>${esc(euros(Math.round(P*up*s.share)))}</td><td>${esc(euros(Math.round(P*loan*s.share)))}</td></tr>`;
     cost=`<section class="pack"><h4>${esc(t('pkCostH'))}</h4>
 <div class="seg2" role="group" aria-label="${esc(t('pkSplit'))}"><button type="button" class="chipbtn" data-action="sl-split" data-v="equal" aria-pressed="${S.slSplit!=='rooms'}">${esc(t('pkEqual'))}</button><button type="button" class="chipbtn" data-action="sl-split" data-v="rooms" aria-pressed="${S.slSplit==='rooms'}">${esc(t('pkRooms'))}</button></div>
 <div class="split" aria-hidden="true">${sh.map(s=>`<span data-w="${(s.share*100).toFixed(1)}" data-bg="${esc((PEOPLE[s.id]||{}).color||'#495057')}"></span>`).join('')}</div>
 <div class="tablewrap"><table class="costs"><thead><tr><th scope="col">${esc(t('pkWho'))}</th><th scope="col">${esc(t('pkShare'))}</th><th scope="col" class="c-price">${esc(t('pkPrice'))}</th><th scope="col">${esc(t('pkUpfront'))}</th><th scope="col">${esc(t('pkLoan'))}</th></tr></thead>
 <tbody>${sh.map(row).join('')}</tbody><tfoot><tr><th scope="row">${esc(t('pkTotal'))}</th><td>100 %</td><td class="c-price">${esc(euros(P))}</td><td>${esc(euros(Math.round(P*up)))}</td><td>${esc(euros(Math.round(P*loan)))}</td></tr></tfoot></table></div>
-<p class="hint">${esc(t('pkCostNote'))}</p></section>`;
+<p class="hint">${esc(t('pkCostNote',num(tax.rate,1),tax.region))}</p></section>`;
   }
   const qs=lawyerQuestions(h,ids,P?slShares(h,ids):null);
   const key='q'+x.id;COPY[key]=t('pkQH')+'\n\n'+qs.map((q,i)=>(i+1)+'. '+q).join('\n');
@@ -1473,7 +1497,7 @@ app.addEventListener('change',e=>{
   if(f==='name'){u.name=el.value.trim();}
   else if(f==='bio'){const v=el.value.trim();u.bio=v?{es:v,en:v}:null;}
   else if(f==='maxBudget'){const v=parseInt(String(el.value).replace(/[^0-9]/g,''),10);if(!isNaN(v)&&(v<10000||v>5000000)){toast(t('err_badBudget'));return;}u.maxBudget=isNaN(v)?null:v;}
-  else if(el.hasAttribute('data-multi'))u[f]=Array.prototype.map.call(app.querySelectorAll('input[data-field="'+f+'"]:checked'),x=>x.value);
+  else if(el.hasAttribute('data-multi')){u[f]=Array.prototype.map.call(app.querySelectorAll('input[data-field="'+f+'"]:checked'),x=>x.value);if(f==='areas')refreshAreaPicker(u[f]);}
   else if(el.hasAttribute('data-bool'))u[f]=el.checked;
   else if(NUM_FIELDS.indexOf(f)>=0)u[f]=parseInt(el.value,10);
   else u[f]=el.value;

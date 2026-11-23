@@ -52,7 +52,7 @@ public interface IHomeSource
 
 /// <summary>
 /// Tecnocasa (tecnocasa.es). Its sitemaps list every advert with the date it last changed, and each advert page
-/// carries its facts as JSON in an ":estate" attribute. We keep homes for sale in the province of Madrid only.
+/// carries its facts as JSON in an ":estate" attribute. We keep homes for sale anywhere in Spain (B-059; Madrid only until then).
 /// </summary>
 public sealed partial class TecnocasaSource : IHomeSource
 {
@@ -68,7 +68,7 @@ public sealed partial class TecnocasaSource : IHomeSource
         ["chalet-adosado"] = "house", ["chalet-pareado"] = "house", ["casa-unifamiliar"] = "house",
     };
 
-    [GeneratedRegex(@"^https://www\.tecnocasa\.es/venta/(?<type>[a-z-]+)/madrid/[a-z0-9-]+/\d+\.html$")]
+    [GeneratedRegex(@"^https://www\.tecnocasa\.es/venta/(?<type>[a-z-]+)/[a-z0-9-]+/[a-z0-9-]+/\d+\.html$")]
     private static partial Regex AdvertUrl();
 
     public async IAsyncEnumerable<Discovered> DiscoverAsync(Func<Uri, CancellationToken, Task<byte[]?>> fetch, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct)
@@ -123,7 +123,7 @@ public sealed partial class TecnocasaSource : IHomeSource
             Municipality = town,
             Postcode = postcode,
             District = Str(e, "district", "title") ?? Str(e, "quarter"),
-            Area = MadridZones.For(town, postcode),
+            Area = Regions.AreaFor(town, postcode),
             Features = string.Join(',', features),
             Energy = Str(e, "energy_data", "class")?.ToUpperInvariant() is { Length: 1 } en && "ABCDEFG".Contains(en) ? en : null,
         };
@@ -350,7 +350,8 @@ public sealed class Crawl(AppDb db, TimeProvider clock, ILogger log, HttpClient 
     public static string? Clip(string? s, int n) => s is null ? null : s.Length <= n ? s : s[..n];
 }
 
-/// <summary>Made-up homes for the PoC, so groups always see something (D-035). Fixed, not refreshed: they carry no link.</summary>
+/// <summary>Made-up homes for the PoC, so groups always see something (D-035). Fixed, not refreshed: they carry no link.
+/// 90 in the Comunidad de Madrid, then 36 in other provinces (B-059), drawn separately so the first 90 stay as they were.</summary>
 public static class DemoHomes
 {
     public static IEnumerable<Home> Make(DateTimeOffset now)
@@ -394,17 +395,57 @@ public static class DemoHomes
                 FirstSeenAt = now, LastSeenAt = now, CheckedAt = now,
             };
         }
+        // Elsewhere in Spain. Prices per m² are made up (Assumption), only roughly in line with each city
+        var rnd2 = new Random(2059);
+        var elsewhere = new (string Town, string Postcode, string Province, int PerM2)[]
+        {
+            ("Barcelona", "08013", "Barcelona", 4600), ("L'Hospitalet de Llobregat", "08901", "Barcelona", 3000), ("Sabadell", "08201", "Barcelona", 2400),
+            ("València", "46010", "Valencia", 2500), ("Torrent", "46900", "Valencia", 1700),
+            ("Sevilla", "41010", "Sevilla", 2400), ("Dos Hermanas", "41701", "Sevilla", 1600),
+            ("Málaga", "29010", "Málaga", 3300), ("Bilbao", "48007", "Bizkaia", 3300),
+            ("Zaragoza", "50009", "Zaragoza", 2100), ("Alicante", "03010", "Alicante", 2200), ("A Coruña", "15005", "A Coruña", 2300),
+        };
+        for (var i = 91; i <= 126; i++)
+        {
+            var (town, pc, province, perM2) = elsewhere[rnd2.Next(elsewhere.Length)];
+            var house = rnd2.NextDouble() < 0.25;
+            var beds = rnd2.Next(2, house ? 7 : 6);
+            var baths = Math.Max(1, Math.Min(beds - 1, rnd2.Next(1, 4)));
+            var m2 = beds * rnd2.Next(18, 28) + 25 + (house ? 40 : 0);
+            var feats = new List<string>();
+            if (!house && rnd2.NextDouble() < 0.7) feats.Add("lift");
+            if (rnd2.NextDouble() < (house ? 0.8 : 0.25)) feats.Add("parking");
+            if (house ? rnd2.NextDouble() < 0.85 : rnd2.NextDouble() < 0.1) feats.Add("garden");
+            if (rnd2.NextDouble() < 0.4) feats.Add("terrace");
+            if (rnd2.NextDouble() < (house ? 0.4 : 0.15)) feats.Add("pool");
+            if (rnd2.NextDouble() < 0.35) feats.Add("storage");
+            yield return new Home
+            {
+                Id = $"{HomeSources.Demo}:{i:000}",
+                Source = HomeSources.Demo,
+                Agency = "Inmobiliaria de ejemplo",
+                Url = null,
+                Price = (int)Math.Round(m2 * perM2 * (0.85 + rnd2.NextDouble() * 0.3) / 1000.0) * 1000,
+                M2 = m2, Beds = beds, Baths = baths, Type = house ? "house" : "flat",
+                Province = province, Municipality = town, Postcode = pc, Area = Regions.AreaFor(town, pc),
+                Features = string.Join(',', feats),
+                Energy = "ABCDEFG"[rnd2.Next(1, 7)].ToString(),
+                FirstSeenAt = now, LastSeenAt = now, CheckedAt = now,
+            };
+        }
     }
 
     /// <summary>Made-up homes are on unless "Homes:Demo" is false. Off on the live site, where the crawler fills the index (F-019).</summary>
     public static bool Enabled(IConfiguration cfg) => !string.Equals(cfg["Homes:Demo"], "false", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>Adds the made-up homes if they're on and missing; deletes them if they're off.</summary>
+    /// <summary>Adds any made-up homes that are missing if they're on; deletes them if they're off.</summary>
     public static async Task EnsureAsync(AppDb db, TimeProvider clock, IConfiguration cfg, CancellationToken ct = default)
     {
         if (!Enabled(cfg)) { await db.Homes.Where(h => h.Source == HomeSources.Demo).ExecuteDeleteAsync(ct); return; }
-        if (await db.Homes.AnyAsync(h => h.Source == HomeSources.Demo, ct)) return;
-        db.Homes.AddRange(Make(clock.GetUtcNow()));
+        var have = (await db.Homes.Where(h => h.Source == HomeSources.Demo).Select(h => h.Id).ToListAsync(ct)).ToHashSet();
+        var missing = Make(clock.GetUtcNow()).Where(h => !have.Contains(h.Id)).ToList();
+        if (missing.Count == 0) return;
+        db.Homes.AddRange(missing);
         await db.SaveChangesAsync(ct);
     }
 }

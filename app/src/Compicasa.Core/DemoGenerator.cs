@@ -9,6 +9,9 @@ public static class DemoGenerator
 {
     public const int BatchSize = 30;
 
+    /// <summary>Barcelona, Valencia, Sevilla, Málaga, Bizkaia, Zaragoza, Alicante (area ids: Regions).</summary>
+    static readonly string[] OtherCities = ["p08", "p46", "p41", "p29", "p48", "p50", "p03"];
+
     static readonly string[] Names =
     [
         "Alba", "Adrián", "Alejandro", "Alicia", "Álvaro", "Andrea", "Ángela", "Antonio", "Beatriz", "Blanca", "Carlos", "Carla",
@@ -103,7 +106,8 @@ public static class DemoGenerator
             p.AcceptsPets = p.Pets.Count > 0 || rnd.NextDouble() < 0.75;
             p.Smoking = rnd.NextDouble() < 0.15 ? "outside" : "no";
             p.AcceptsSmoking = p.Smoking != "no" ? "outside" : Pick(new[] { "none", "outside", "outside", "any" });
-            p.Areas = Some(Catalogue.Areas, 1);
+            // Most made-up people look in Madrid, where the pilot starts (D-008); about a quarter in one of Spain's other big cities (B-059)
+            p.Areas = rnd.NextDouble() < 0.75 ? Some(MadridZones.Ids, 1) : [Pick(OtherCities)];
             p.Types = household is "family" ? (rnd.NextDouble() < 0.7 ? ["house"] : ["flat", "house"]) : Some(Catalogue.Types, 1);
             p.Open = household is "family" or "singleParent" ? Some(Catalogue.Households, 2) : Some(Catalogue.Households, 2);
             if (!p.Open.Contains(household)) p.Open = Catalogue.Households.Where(h => h == household || p.Open.Contains(h)).ToList();
