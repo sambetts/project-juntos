@@ -2,6 +2,22 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-23 · Session 20: a Home page from the logo
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-053) and the CEO (D-040)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 19 (deployed, F-021). Sam: "The Compicasa logo should take you to a home page, which doesn't exist yet. The home should have a summary of where you are in the house/people search and your profile score, and some houses that might already interest them. Also remove the 'Proof of concept · made-up people' from the top." ("try again": an earlier attempt had saved nothing; the tree was clean.) No new answers in the founder queue.
+**Goals:** 1. B-053 Home page and logo link. 2. Remove the header badge. 3. Tests pass; files current; commit.
+**Needs Sam:** F-022 (new): the go to deploy.
+**Did**
+- Back end (`app/src/Compicasa.Api/Api.cs`): the homes query moved into `HomesForAsync`, shared by the group's homes and a new `GET /api/me/homes`, which ranks up to 6 homes for the viewer plus their best mutual match (else the most compatible person not passed on; else the viewer alone). Same fit rules and agencies-only index as before (D-035).
+- Front end (`wwwroot/`): `#home` (`viewDash`): greeting, the one next step, four steps (profile, people, a group, a home) with the current one highlighted, a profile score card (`profileScore`, weights in D-040) whose gaps link to the right profile section, and three homes using the existing home cards. Land there after sign-in and after the wizard; the logo and name are now a link to `#home` and also close the guide or a legal page. The header badge and its strings and styles are removed. New strings in Spanish and English; service-worker version bumped.
+- Tests: the group-homes .NET test also checks `/api/me/homes` (partner, mutual, at most 6, enough bedrooms; signed-out callers refused); 8 new browser checks (land on Home, four steps, score and homes, no badge, no English, no sideways scrolling, the logo goes Home from the guide).
+**Decided:** D-040 (CEO): Home page from the logo, the profile score's definition, homes for you and your best match, the badge removed. **Approvals used:** none needed (Build mode, local only); nothing deployed or pushed.
+**Learned:** a profile score from optional answers only: the wizard already insists on a name, areas and home types, so most new profiles start at 50 (Assumption: the weights have no user evidence yet). On the first run of the updated browser test one existing check ("closing the sheet goes back to People", phone) timed out once; it passed on the runs before and after, so it looks timing-related, not caused by this change (not confirmed). A browser-test run straight after another trips the sign-up limit, as noted in STATE.
+**Open or blocked:** deploy waits for F-022. The guide (`#help`) doesn't mention the Home page yet.
+**Saved and checked:** `dotnet test` 47 of 47; browser test 54 of 54 against a local run (SQLite in the temp folder), and again after the last change (54 of 55 with the timing slip above, then 54 of 54); phone and desktop screenshots of Home looked at; `git status` and `git diff` reviewed for STATE, BACKLOG, DECISIONS, FOUNDER-QUEUE, `app/README.md` and `app/`. LOG saved last; its check and the commit are confirmed in the closing report.
+**Next session should start with:** 1. F-022 deploy, then Sam's look on a phone. 2. B-042 and B-052 before anyone but Sam signs up. 3. B-047 crawl check.
+
 ## 2026-11-23 · Session 19: notifications, messages and the group lifecycle
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Product, the Builder and Tester (B-036, B-037, B-038) and the CEO (D-039)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

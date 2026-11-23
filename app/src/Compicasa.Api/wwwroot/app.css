@@ -25,7 +25,10 @@ header.top .wrap{display:flex;align-items:center;gap:12px;padding-block:10px;fle
 .logo{inline-size:42px;block-size:42px;border-radius:12px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;font-size:20px}
 .brand h1{font-size:20px;margin:0}
 .brand p{margin:0;color:var(--muted);font-size:13px}
-.badge{margin-inline-start:auto;font-size:12px;color:var(--teal);background:var(--teal-soft);padding:6px 10px;border-radius:999px;font-weight:600;white-space:nowrap}
+/* The logo and name link to Home (Session 20); the spacer pushes the bell, guide and language to the end */
+.brandlink{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;border-radius:12px;min-inline-size:0}
+.brandlink:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
+.hgrow{flex:1 1 auto}
 /* One navigation: tabs in the header row on wide screens, a bottom tab bar on phones */
 nav.tabs{margin-inline-start:18px}
 #tabs{display:flex;gap:4px}
@@ -316,7 +319,7 @@ input[type=search]{inline-size:100%;padding:9px 12px;border-radius:10px;border:1
 
 /* ---------- Session 18 (B-051): calmer shell. One header row; bottom tab bar on phones ---------- */
 @media (max-width:1000px){.brand p{display:none}}
-@media (max-width:860px){header.top .badge{display:none}nav.tabs{margin-inline-start:auto}#help-link{margin-inline-start:0}}
+@media (max-width:860px){#help-link{margin-inline-start:0}}
 @media (max-width:720px){
   header.top{position:static}
   header.top .wrap{gap:10px;padding-block:8px}
@@ -338,7 +341,6 @@ input[type=search]{inline-size:100%;padding:9px 12px;border-radius:10px;border:1
 
 /* ---------- Session 18 (B-051): pages. Summary first, one job per view ---------- */
 a.tab{text-decoration:none}
-.badge .short{display:none}
 #app h2[tabindex="-1"]:focus{outline:none}
 .mt-s{margin-block-start:8px}
 .quiet{color:var(--muted);text-decoration:underline;text-underline-offset:2px;font-size:13.5px}
@@ -435,9 +437,6 @@ select.inline{inline-size:auto}
 .draft-who .avatar{margin-inline-end:-14px;border:2px solid var(--surface)}
 .draft-who span{margin-inline-start:18px}
 @media (max-width:720px){
-  .badge{display:inline-block;padding:4px 8px;font-size:11px}
-  header.top .badge{display:inline-block}
-  .badge .long{display:none}.badge .short{display:inline}
   .brand h1{font-size:17px}
   body.has-bar nav.tabs{display:none}
   body.has-nav .actionbar{inset-block-end:0}
@@ -517,3 +516,24 @@ p.gone{margin:8px 0 0;inline-size:100%}
   #alerts-link{margin-inline-start:auto}
   #help-link{margin-inline-start:0}
 }
+
+/* ---------- Session 20: Home (the logo's page) ---------- */
+.dash-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.dstep{display:flex;flex-direction:column;gap:4px;block-size:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:inherit;text-decoration:none}
+.dstep:hover{background:var(--surface-2)}
+.dstep .dn{inline-size:26px;block-size:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--surface-2);color:var(--muted)}
+.dstep.done .dn{background:var(--teal-soft);color:var(--teal)}
+.dstep.now{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.dstep.now .dn{background:var(--brand);color:var(--brand-ink)}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:16px;align-items:start}
+.scorehead{display:flex;gap:14px;align-items:center;margin-block-end:8px}
+.scorehead .ring{margin-inline-start:0}
+.scorehead h3{margin:0 0 2px}
+.checks li{align-items:center}
+.checks .ck{inline-size:22px;block-size:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none;background:var(--teal-soft);color:var(--teal)}
+.checks li.miss .ck{background:var(--surface-2);color:var(--muted)}
+.checks li.miss div{color:var(--muted)}
+.checks li .quiet{margin-inline-start:auto;white-space:nowrap}
+.dash-homes .homes{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))}
+@media (max-width:860px){.dash-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:720px){.dash-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}

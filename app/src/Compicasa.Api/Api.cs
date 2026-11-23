@@ -190,25 +190,27 @@ public static partial class Api
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             var all = new List<Profile> { c.Me };
             all.AddRange(Views.OthersInOrder(g, a.Id).Select(c.Get).OfType<Profile>());
-            var hb = Matching.Brief(all);
-            int lo = g.M2Min ?? hb.M2Min, hi = g.M2Max ?? hb.M2Max;
-            var stopped = HomeSources.Stopped(cfg);
-            var q = db.Homes.AsNoTracking().Where(h => h.GoneAt == null && h.Beds >= hb.Beds);
-            if (!DemoHomes.Enabled(cfg)) q = q.Where(h => h.Source != HomeSources.Demo);
-            if (hb.Areas.Count > 0) q = q.Where(h => h.Area != null && hb.Areas.Contains(h.Area));
-            var candidates = (await q.ToListAsync(http.RequestAborted)).Where(h => !stopped.Contains(h.Source)).Select(h => h.ToListing()).ToList();
             // Up to 200, so the group can filter, sort and chart them in the browser (Session 16 design review).
-            var ranked = HomeFit.Rank(hb, lo, hi, candidates, 200);
+            return Results.Ok(await HomesForAsync(db, cfg, all, g.M2Min, g.M2Max, 200, http.RequestAborted));
+        });
+
+        // The Home page (Session 20): a few homes for the viewer and their best match, before any group exists.
+        // The partner is the best-scoring mutual match, or failing that the best-scoring person not passed on.
+        me.MapGet("/me/homes", async (HttpContext http, AppDb db, IConfiguration cfg) =>
+        {
+            var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            var partner = c.Others.Values.Select(o => o.Profile)
+                .Where(p => Matching.Hard(c.Me, p).Ok && !c.IPassed(p.Id))
+                .Select(p => (P: p, Score: Matching.Explain(c.Me, p).Score.Total))
+                .OrderByDescending(x => c.Mutual(x.P.Id)).ThenByDescending(x => x.Score).ThenBy(x => x.P.Id, StringComparer.Ordinal)
+                .Select(x => x.P).FirstOrDefault();
+            List<Profile> all = partner is null ? [c.Me] : [c.Me, partner];
+            var r = await HomesForAsync(db, cfg, all, null, null, 6, http.RequestAborted);
             return Results.Ok(new
             {
-                considered = candidates.Count,
-                real = candidates.Count(h => !h.IsDemo),
-                homes = ranked.Select(x => new
-                {
-                    x.Home.Id, x.Home.Agency, x.Home.Url, x.Home.Price, x.Home.M2, x.Home.Beds, x.Home.Baths, x.Home.Type,
-                    x.Home.Municipality, x.Home.District, x.Home.Area, x.Home.Features, x.Home.Energy, x.Home.IsDemo,
-                    x.Fit.Score, x.Fit.Fits, x.Fit.Misses, x.Fit.Check,
-                }),
+                with = partner is null ? null : new { id = partner.Id, name = partner.Name, mutual = c.Mutual(partner.Id), isDemo = c.IsDemo(partner.Id) },
+                r.considered, r.real, r.homes,
             });
         });
 
@@ -313,6 +315,28 @@ public static partial class Api
     /// <summary>Still in the group: invited and not answered, or said yes. People who declined, left, expired or were
     /// withdrawn no longer see it.</summary>
     static bool InGroup(Group g, string id) => g.Members.Any(m => m.AccountId == id && MemberStatus.IsActive(m.Status));
+
+    /// <summary>Homes for sale that fit these people's shared brief (D-035), best first. Each carries its agency and the link to its own advert.</summary>
+    static async Task<HomesResult> HomesForAsync(AppDb db, IConfiguration cfg, IReadOnlyList<Profile> all, int? m2Min, int? m2Max, int limit, CancellationToken ct)
+    {
+        var hb = Matching.Brief(all);
+        int lo = m2Min ?? hb.M2Min, hi = m2Max ?? hb.M2Max;
+        var stopped = HomeSources.Stopped(cfg);
+        var q = db.Homes.AsNoTracking().Where(h => h.GoneAt == null && h.Beds >= hb.Beds);
+        if (!DemoHomes.Enabled(cfg)) q = q.Where(h => h.Source != HomeSources.Demo);
+        if (hb.Areas.Count > 0) q = q.Where(h => h.Area != null && hb.Areas.Contains(h.Area));
+        var candidates = (await q.ToListAsync(ct)).Where(h => !stopped.Contains(h.Source)).Select(h => h.ToListing()).ToList();
+        var ranked = HomeFit.Rank(hb, lo, hi, candidates, limit);
+        return new HomesResult(candidates.Count, candidates.Count(h => !h.IsDemo), ranked.Select(x => (object)new
+        {
+            x.Home.Id, x.Home.Agency, x.Home.Url, x.Home.Price, x.Home.M2, x.Home.Beds, x.Home.Baths, x.Home.Type,
+            x.Home.Municipality, x.Home.District, x.Home.Area, x.Home.Features, x.Home.Energy, x.Home.IsDemo,
+            x.Fit.Score, x.Fit.Fits, x.Fit.Misses, x.Fit.Check,
+        }).ToList());
+    }
+
+    /// <summary>Serialised as-is, so the names are the JSON names.</summary>
+    sealed record HomesResult(int considered, int real, List<object> homes);
 
     /// <summary>Tells a real person about a like (B-037): "liked you" if they haven't answered, "match" if they had
     /// already liked the viewer. Taking a like back removes the unread notice.</summary>

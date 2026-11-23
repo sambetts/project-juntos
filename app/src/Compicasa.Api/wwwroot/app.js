@@ -258,6 +258,73 @@ ${!S.blocks?`<p class="hint">${esc(t('loading'))}</p>`:(S.blocks.length?`<ul cla
 </section>`;
 }
 
+/* ---------- Home (Session 20): the logo's page. Where you are, your profile score, homes that might interest you ---------- */
+/* How much the profile tells others: optional answers that the wizard doesn't insist on. It never changes a match score. */
+function profileScore(u){
+  const bio=u.bio&&u.bio.es?u.bio.es.trim():'',live=SLIDERS.some(x=>u[x.id]!==3)||u.wfh;
+  const needs=Object.keys(u.needs||{}),must=needs.some(k=>u.needs[k]==='must'),nice=needs.some(k=>u.needs[k]==='nice');
+  const items=[
+    {k:'name',w:10,ok:!!(u.name&&u.name.trim()),sec:'name'},
+    {k:bio&&bio.length<40?'bioShort':'bio',w:25,ok:bio.length>=40,part:bio?10:0,sec:'name'},
+    {k:'areas',w:10,ok:u.areas.length>0,sec:'where'},
+    {k:'types',w:10,ok:u.types.length>0,sec:'where'},
+    {k:'must',w:20,ok:must,sec:'needs'},
+    {k:'nice',w:10,ok:nice,sec:'needs'},
+    {k:live?'liveOk':'live',w:15,ok:live,sec:'live'}
+  ];
+  return {score:items.reduce((s,x)=>s+(x.ok?x.w:(x.part||0)),0),items:items};
+}
+function myGroups(){
+  const gs=S.groups||[];
+  return {invites:gs.filter(g=>g.myStatus==='pending'),formed:gs.find(g=>g.state==='formed'&&g.myStatus==='accepted'),
+    open:gs.filter(g=>g.myStatus==='accepted'&&g.state!=='formed'&&g.state!=='broken')};
+}
+function viewDash(){
+  const u=S.profile;if(!u)return `<p class="lead">${esc(t('loading'))}</p>`;
+  const ps=profileScore(u),c=peopleCounts(),g=myGroups(),loading=!S.matches||!S.groups;
+  /* The four steps; "now" is the step the one next step belongs to */
+  const done=[ps.score>=60,c.matches>0,!!g.formed,false];
+  /* One next step, in journey order: answer an invitation, look at homes, form a group, then the profile, then review people */
+  let next=null;
+  if(!loading){
+    if(g.invites.length)next=[t('dn_invite'),t('dn_inviteBtn'),'#group-'+g.invites[0].id,2];
+    else if(g.formed)next=[t('dn_home'),t('dn_homeBtn'),groupHash(g.formed,'homes'),3];
+    else if(c.matches&&!g.open.length)next=[t('dn_group',c.matches),t('dn_groupBtn'),'#groups',2];
+    else if(ps.score<60)next=[t('dn_profile'),t('dn_profileBtn'),'#profile',0];
+    else if(c.review)next=[t('dn_review',c.review),t('dn_reviewBtn'),'#people-review',1];
+    else next=[t('dn_wait'),'','',g.open.length?2:1];
+  }
+  const now=next?next[3]:-1;
+  const grpLine=g.formed?t('dsGroupFormed'):(g.invites.length?t('dsGroupInvite',g.invites.length):(g.open.length?t('dsGroupWaiting'):t('dsGroupNone')));
+  const steps=[['profile','#profile',t('dsScore',ps.score)],['people','#people-'+peopleSub(),loading?t('loading'):t('dsPeople',c.review,c.matches)],
+    ['group','#groups',loading?t('loading'):grpLine],['home',g.formed?groupHash(g.formed,'homes'):'#groups',g.formed?t('dsHomeNow'):t('dsHomeLater')]];
+  const stepper=`<ol class="dash-steps">${steps.map((s,i)=>`<li><a class="dstep${done[i]?' done':''}${i===now?' now':''}" href="${s[1]}"${i===now?' aria-current="step"':''}><span class="dn" aria-hidden="true">${done[i]?'✓':i+1}</span><b>${esc(t('ds_'+s[0]))}</b><span class="hint">${esc(s[2])}</span></a></li>`).join('')}</ol>`;
+  const nextBox=next?`<div class="nextstep"><span>${esc(next[0])}</span>${next[1]?`<a class="btn small primary" href="${next[2]}">${esc(next[1])}</a>`:''}</div>`:'';
+  const cls=ps.score>=80?'hi':(ps.score>=60?'mid':'lo'),missing=ps.items.filter(x=>!x.ok);
+  const scoreCard=`<section class="card dash-score"><div class="scorehead"><div class="ring ${cls}" data-p="${ps.score}" role="img" aria-label="${esc(t('scoreAria',ps.score))}"><b>${ps.score}%</b></div><div><h3>${esc(t('scoreH'))}</h3><p class="hint">${esc(t('scoreLead'))}</p></div></div>
+<ul class="clean checks">${ps.items.map(x=>`<li class="${x.ok?'ok':'miss'}"><span class="ck" aria-hidden="true">${x.ok?'✓':'+'}</span><div>${esc(t('sc_'+x.k))}</div>${x.ok?'':`<a class="quiet" href="#profile" data-action="open-sec" data-id="${x.sec}">${esc(t('scoreAdd'))}</a>`}</li>`).join('')}</ul>
+${missing.length?'':`<p class="hint">${esc(t('scoreAll'))}</p>`}</section>`;
+  const r=S.dashHomes;
+  let homes;
+  if(!r||r.loading)homes=`<div class="skeleton"></div>`;
+  else if(r.error)homes=`<p class="error">${esc(r.error)}</p>`;
+  else{
+    const d=r.data,list=d.homes.slice(0,3).map(x=>Object.assign({},x,{pm2:x.price&&x.m2?x.price/x.m2:null})),med=median(list.map(x=>x.pm2));
+    const who=d.with?t('dashHomesWith',d.with.name,d.with.mutual):t('dashHomesAlone');
+    homes=`<p class="hint">${esc(who)}</p>${list.length?`<ul class="homes">${list.map(x=>homeItem(x,med)).join('')}</ul><p class="hint mt">${esc(t('dashHomesNote'))}</p>`:`<p>${esc(t('dashHomesNone'))}</p>`}
+${g.formed?`<p class="mt"><a class="btn small" href="${groupHash(g.formed,'homes')}">${esc(t('dashHomesGroup'))}</a></p>`:''}`;
+  }
+  return `<header class="phead2"><div><h2>${esc(t('dashH',u.name||''))}</h2><p class="hint">${esc(t('dashLead'))}</p></div></header>
+${nextBox}
+<section class="mb"><h3 class="sr">${esc(t('dashStepsH'))}</h3>${stepper}</section>
+<div class="dash-grid">${scoreCard}<section class="card dash-homes"><h3>${esc(t('dashHomesH'))}</h3>${homes}</section></div>`;
+}
+async function loadDashHomes(){
+  if(S.dashHomes)return;S.dashHomes={loading:true};
+  try{S.dashHomes={data:await api('GET','/api/me/homes')};}catch(e){S.dashHomes={error:errText(e)};}
+  if(S.tab==='home')rerender();
+}
+
 /* ---------- onboarding wizard: the same sections, one per step; matches unlock at the end ---------- */
 const WIZ=[
   {id:'name',h:()=>t('wizNameH'),lead:()=>t('wizNameLead'),check:u=>u.name&&u.name.trim()?'':t('wizNeedName')},
@@ -650,6 +717,7 @@ async function loadBlocks(){
 /* Load what the current view needs and hasn't got yet */
 function ensureData(){
   if(!inApp())return;
+  if(S.tab==='home'&&!S.dashHomes)loadDashHomes();
   if(S.tab==='alerts'&&!S.inbox)loadInbox();
   if(S.tab==='messages'&&!S.chatKey&&!S.chats)loadChats();
   if(S.tab==='you'&&!S.blocks)loadBlocks();
@@ -916,7 +984,8 @@ function renderChrome(){
   document.title=t('title');
   const set=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
   set('brandname',BRAND);
-  set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));{const bd=document.getElementById('badge');if(bd)bd.innerHTML='<span class="long">'+esc(t('badge'))+'</span><span class="short">'+esc(t('badgeShort'))+'</span>';}
+  set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));
+  const bl=document.getElementById('brandlink');if(bl)bl.setAttribute('aria-label',BRAND+' · '+t('homeLink'));
   const foot=document.getElementById('footnote');
   if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
   const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('navAria'));nav.hidden=!inApp();}
@@ -965,7 +1034,7 @@ function renderBar(){
 function render(){
   renderChrome();
   renderTabs();
-  const views={you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
+  const views={home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
   app.innerHTML=S.view?(S.view==='help'?viewHelp():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
   applyStyles(app);
   if(document.getElementById('hx-results'))updateHomes();
@@ -979,12 +1048,13 @@ function render(){
 
 /* ---------- addresses (Session 18, B-051): every view has one, so Back and shared links work ----------
    #people-review|-liked|-matches|-passed · #person-<id> (a sheet over People) · #groups ·
-   #group-<id>[-brief|-homes] · #preview[-brief] · #profile.
+   #group-<id>[-brief|-homes] · #preview[-brief] · #profile · #home (the logo's page, Session 20).
    #help, #terms, #privacy, #lang= and #authError= are read by readHash as before. */
 const GSUBS=['overview','brief','homes','chat'];
 function groupHash(h,sub){return (h.preview?'#preview':'#group-'+h.id)+(sub&&sub!=='overview'?'-'+sub:'');}
 function routeHash(){
   if(!inApp())return '';
+  if(S.tab==='home')return '#home';
   if(S.tab==='you')return '#profile';
   if(S.tab==='alerts')return '#alerts';
   if(S.tab==='messages')return S.chatKey?'#chat-'+S.chatKey.id:'#messages';
@@ -995,6 +1065,7 @@ function routeHash(){
 function parseRoute(h){
   h=(h||'').replace(/^#/,'');
   let m;
+  if(h==='home')return {tab:'home'};
   if(h==='profile')return {tab:'you'};
   if((m=/^people(?:-(review|liked|matches|passed))?$/.exec(h)))return {tab:'matches',ps:m[1]||null};
   if((m=/^person-([A-Za-z0-9_.-]{1,64})$/.exec(h)))return {tab:'matches',person:m[1]};
@@ -1030,7 +1101,7 @@ function applyRoute(h){
   if(S.person){S.sheetFromApp=before.tab==='matches';openSheet();}
   else if(samePage&&!before.person){const cur=app.querySelector('.subtabs [aria-current="page"]');if(cur){cur.focus({preventScroll:true});const nav=cur.closest('.subtabs');if(nav.getBoundingClientRect().top<0)nav.scrollIntoView({block:'start'});}}
   else if(!before.person){window.scrollTo(0,0);focusHeading();}
-  if(!samePage&&(r.tab==='matches'||r.tab==='groups')&&!r.gid)refresh();
+  if(!samePage&&(r.tab==='matches'||r.tab==='groups'||r.tab==='home')&&!r.gid)refresh();
   return true;
 }
 function rerender(){const y=window.scrollY||0;render();window.scrollTo(0,y);}
@@ -1057,7 +1128,7 @@ async function enter(me){
   S.me=me;S.authError='';
   PEOPLE[S.me.id]={name:S.me.name,color:'#52607a'};
   try{S.profile=await api('GET','/api/profile');}catch(e){toast(errText(e));}
-  if(S.me.onboarded){S.tab=S.tab||'matches';
+  if(S.me.onboarded){S.tab=S.tab||'home';
     /* Opening the app at an address: applyRoute sees the same tab as before and skips loading, so always load here (found in Session 19) */
     if(S.startRoute&&applyRoute(S.startRoute)){S.startRoute=null;refresh();return;}render();focusHeading();refresh();}
   else{S.wiz=0;render();focusHeading();}
@@ -1067,7 +1138,7 @@ async function start(){
   readHash();
   if(parseRoute(location.hash))S.startRoute=location.hash;
   let me=null;try{me=await api('GET','/api/me');}catch(e){}
-  if(me){S.tab='matches';await enter(me);}else render();
+  if(me){S.tab='home';await enter(me);}else render();
 }
 /* #terms, #privacy, #help, #authError=code (back from External ID), #lang=en */
 function readHash(){
@@ -1094,7 +1165,7 @@ function saveNow(){
       const body=Object.assign({},S.profile,{bio:S.profile.bio&&S.profile.bio.es?S.profile.bio:null});
       S.profile=await api('PUT','/api/profile',body);
       PEOPLE[S.me.id]=Object.assign({},PEOPLE[S.me.id],{name:S.profile.name,household:S.profile.household,adults:S.profile.adults,kids:S.profile.kids});
-      S.save='saved';S.matches=null;
+      S.save='saved';S.matches=null;S.dashHomes=null;
       if(S.me.onboarded)await loadMatches();
       return true;
     }catch(e){S.save='saveFailed';toast(errText(e));return false;}
@@ -1117,7 +1188,7 @@ async function wizMove(step){
 }
 async function wizFinish(){
   if(!(await flushSave()))return;
-  try{S.me=await api('POST','/api/me/onboarded');S.tab='matches';render();window.scrollTo(0,0);focusHeading();refresh();}
+  try{S.me=await api('POST','/api/me/onboarded');S.tab='home';render();window.scrollTo(0,0);focusHeading();refresh();}
   catch(e){const err=document.getElementById('wiz-error');if(err)err.textContent=errText(e);}
 }
 
@@ -1127,6 +1198,7 @@ async function react(id,kind){
     const r=await api('PUT','/api/reactions/'+encodeURIComponent(id),{kind:kind});
     if(kind==='like'){const n=personName(id);toast(r.mutual?(r.isDemo?t('tMutual',n):t('tMutualReal',n)):(r.isDemo?t('tNoMatch',n):t('tWaiting',n)));}
     if(kind!=='like')S.draft=S.draft.filter(x=>x!==id);
+    S.dashHomes=null;
     await loadMatches();rerender();
   }catch(e){toast(errText(e));rerender();}
 }
@@ -1189,7 +1261,7 @@ app.addEventListener('submit',async e=>{
       return;
     }
     const me=await api('POST',up?'/api/auth/signup':'/api/auth/login',data);
-    S.busy=false;S.tab=up?'you':'matches';
+    S.busy=false;S.tab=up?'you':'home';
     await enter(me);
   }catch(err){S.busy=false;btn.disabled=false;errEl.textContent=errText(err);}
 });
@@ -1243,6 +1315,7 @@ document.addEventListener('click',async e=>{
     case 'wiz-finish':wizFinish();break;
     case 'legal-back':S.view=null;try{history.replaceState(null,'',location.pathname);}catch(err){}render();window.scrollTo(0,0);focusHeading();break;
     case 'goto':go(id,el.getAttribute('data-sub'));break;
+    case 'open-sec':S.openSecs=Object.assign({},S.openSecs,{[id]:true});break;
     case 'preset':Object.assign(S.profile,JSON.parse(JSON.stringify(PRESETS[id].v)));rerender();profileChanged();toast(t('tExample',tx(PRESETS[id].label)));break;
     case 'feat':cycleFeature(el,id);break;
     case 'like':el.disabled=true;react(id,'like');break;
@@ -1278,7 +1351,7 @@ document.addEventListener('click',async e=>{
     case 'more-people':{mfState().show+=12;updateMatches();break;}
     case 'mf-chart':{const f=mfState();f.chart=!f.chart;el.setAttribute('aria-pressed',String(f.chart));updateMatches();break;}
     case 'score-bin':{const f=mfState();f.min=+el.getAttribute('data-lo');const r=document.getElementById('mf-min');if(r)r.value=f.min;const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');updateMatches();break;}
-    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.inbox=null;S.chats=null;S.chat=null;S.chatKey=null;S.blocks=null;S.counts={alerts:0,messages:0,invites:0};S.authMode='signin';render();break;}
+    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.inbox=null;S.chats=null;S.chat=null;S.chatKey=null;S.blocks=null;S.dashHomes=null;S.counts={alerts:0,messages:0,invites:0};S.authMode='signin';render();break;}
     case 'delete-account':if(window.confirm(t('deleteConfirm'))){try{await api('DELETE','/api/me');S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];render();}catch(err){toast(errText(err));}}break;
   }
 });
@@ -1306,7 +1379,8 @@ document.addEventListener('submit',async e=>{
 /* Enter sends; Shift+Enter starts a new line */
 app.addEventListener('keydown',e=>{if(e.target.id==='chat-input'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendChat();}});
 window.addEventListener('hashchange',()=>{
-  if(readHash()){render();window.scrollTo(0,0);focusHeading();return;}
+  /* the logo (#home) also closes the guide and the legal pages */
+  if(readHash()){if(!applyRoute(location.hash)){render();window.scrollTo(0,0);focusHeading();}return;}
   if(location.hash!==routeHash())applyRoute(location.hash);
 });
 window.__compicasa={S:S,M:M,setLang:setLang,render:render,api:api};

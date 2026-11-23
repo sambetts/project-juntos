@@ -57,7 +57,6 @@ en:{
   and:'and',or:'or',you:'you',youName:'You',vs:'vs',
   title:()=>BRAND+' – find the people to buy a home with (prototype)',
   tagline:'Find the people to buy a home with (working name)',
-  badge:'Prototype · made-up people · simulated replies · Madrid',
   footnote:'Prototype with made-up people and simulated replies. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.',
   steps:'Steps',langOther:'Español',langOtherCode:'es',langOtherAria:'Ver en español',tLang:'Showing the English version',
   kids:n=>pl(n,'kid','kids'),
@@ -163,7 +162,6 @@ es:{
   and:'y',or:'o',you:'tú',youName:'Tú',vs:'frente a',
   title:()=>BRAND+' – encuentra con quién comprar casa (prototipo)',
   tagline:'Encuentra con quién comprar casa (nombre provisional)',
-  badge:'Prototipo · personas inventadas · respuestas simuladas · Madrid',
   footnote:'Prototipo con personas inventadas y respuestas simuladas. Solo cubre la afinidad y el espacio: el dinero, las cuotas de propiedad, el pacto de copropiedad y los anuncios reales llegarán más adelante. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud. Un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
   steps:'Pasos',langOther:'English',langOtherCode:'en',langOtherAria:'View in English',tLang:'Mostrando la versión en español',
   kids:n=>pl(n,'hijo','hijos'),
@@ -270,7 +268,6 @@ es:{
 /* Added for the working PoC (B-028): accounts, real replies, invitations and group states. Overrides come first. */
 Object.assign(STR.en,{
   title:()=>BRAND+' – find the people to buy a home with',
-  badge:'Proof of concept · made-up people',
   footnote:"Proof of concept. Everyone you meet here is made up, and a new batch arrives every morning; please don't enter real personal details. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.",
   tabHome:'3 · Groups and home',srInGroup:'groups',
   authH:'Find the people to buy a home with',
@@ -304,7 +301,6 @@ Object.assign(STR.en,{
 });
 Object.assign(STR.es,{
   title:()=>BRAND+' – encuentra con quién comprar casa',
-  badge:'Prueba de concepto · personas inventadas',
   footnote:'Prueba de concepto. Todas las personas que verás aquí son inventadas, y cada mañana llega un grupo nuevo; por favor, no introduzcas datos personales reales. Solo cubre la afinidad y el espacio: el dinero, las cuotas de propiedad, el pacto de copropiedad y los anuncios reales llegarán más adelante. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud. Un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
   tabHome:'3 · Grupos y casa',srInGroup:'grupos',
   authH:'Encuentra con quién comprar casa',
@@ -555,7 +551,6 @@ Object.assign(STR.es,{
 /* Session 18: calmer navigation and pages (B-051). One job per view; summaries first. */
 Object.assign(STR.en,{
   navAria:'Main sections',navPeople:'People',navGroups:'Groups',navProfile:'Profile',srInvites:'invitations waiting for your answer',
-  badgeShort:'Made-up people',
   peopleH:'People who could buy with you',
   sumCompat:n=>n+' compatible',sumMedian:n=>'median affinity '+n+' %',
   ps_review:'To review',ps_liked:'Liked',ps_matches:'Matches',
@@ -592,7 +587,6 @@ Object.assign(STR.en,{
 });
 Object.assign(STR.es,{
   navAria:'Secciones principales',navPeople:'Personas',navGroups:'Grupos',navProfile:'Perfil',srInvites:'invitaciones esperan tu respuesta',
-  badgeShort:'Personas inventadas',
   peopleH:'Personas con quien comprar',
   sumCompat:n=>n+(n===1?' compatible':' compatibles'),sumMedian:n=>'afinidad mediana '+n+' %',
   ps_review:'Por ver',ps_liked:'Te interesan',ps_matches:'Mutuos',
@@ -769,4 +763,52 @@ Object.assign(STR.es,{
   scr_gRooms:'Sobre las habitaciones: el reparto que se propone me vale, pero lo podemos hablar.',
   scr_gLawyer:'Antes de nada serio, deberíamos ir juntos a un abogado: cómo poner la casa a nuestro nombre y qué pasa si alguien se va.',
   scr_gMore:'(Las respuestas de los miembros inventados están guionizadas. Los miembros reales contestarían aquí).'
+});
+
+/* The Home page (Session 20): where you are, your profile score, and homes that might interest you. */
+Object.assign(STR.en,{
+  homeLink:'Home',dashH:n=>'Hello, '+n,dashLead:'Where you are in finding people to buy with, and a home.',
+  dashStepsH:'Where you are',ds_profile:'Your profile',ds_people:'People',ds_group:'A group',ds_home:'A home',
+  dsScore:s=>'Profile score '+s+'%',dsPeople:(r,m)=>r+' to review · '+pl(m,'match','matches'),
+  dsGroupNone:'No group yet',dsGroupInvite:n=>pl(n,'invitation','invitations')+' for you',dsGroupWaiting:'Waiting for answers',dsGroupFormed:'Your group is formed',
+  dsHomeLater:'Once your group is formed',dsHomeNow:'Look at homes together',
+  dn_profile:'A fuller profile gets better matches.',dn_profileBtn:'Improve your profile',
+  dn_invite:'Someone has invited you to a group.',dn_inviteBtn:'See the invitation',
+  dn_review:n=>pl(n,'person','people')+' to review.',dn_reviewBtn:'Review people',
+  dn_group:n=>'You have '+pl(n,'match','matches')+': the next step is a group.',dn_groupBtn:'See groups',
+  dn_home:'Your group is formed: look at homes together.',dn_homeBtn:'See homes',
+  dn_wait:'Waiting for others to answer. New people arrive every morning.',
+  scoreH:'Profile score',scoreLead:"How much your profile tells others. It doesn't change anyone's match score.",scoreAria:s=>'Profile score '+s+'%',
+  sc_name:'A name',sc_bio:'A few lines about you',sc_bioShort:'A few more lines about you',sc_areas:"Areas you'd consider",sc_types:'Kinds of home',
+  sc_must:'What the home must have',sc_nice:'Nice-to-haves',sc_live:'How you live (every slider is still in the middle)',sc_liveOk:'How you live',
+  scoreAdd:'Add',scoreAll:'Your profile is complete.',
+  dashHomesH:'Homes that might interest you',
+  dashHomesWith:(n,mutual)=>'For you and '+n+(mutual?', your best match.':', your most compatible person so far.'),
+  dashHomesAlone:'For you alone, until you have people to match with.',
+  dashHomesNone:'No home in our index fits yet. New adverts are added every day.',
+  dashHomesNote:"Ranked by how well they fit what you'd both need. Price isn't used yet.",
+  dashHomesGroup:'See all homes for your group'
+});
+Object.assign(STR.es,{
+  homeLink:'Inicio',dashH:n=>'Hola, '+n,dashLead:'En qué punto estás para encontrar con quién comprar, y una casa.',
+  dashStepsH:'En qué punto estás',ds_profile:'Tu perfil',ds_people:'Personas',ds_group:'Un grupo',ds_home:'Una casa',
+  dsScore:s=>'Puntuación del perfil: '+s+' %',dsPeople:(r,m)=>r+' por ver · '+pl(m,'match','matches'),
+  dsGroupNone:'Aún sin grupo',dsGroupInvite:n=>pl(n,'invitación','invitaciones')+' para ti',dsGroupWaiting:'Esperando respuestas',dsGroupFormed:'Tu grupo está formado',
+  dsHomeLater:'Cuando tu grupo esté formado',dsHomeNow:'Mirad casas juntos',
+  dn_profile:'Un perfil más completo da mejores afinidades.',dn_profileBtn:'Completa tu perfil',
+  dn_invite:'Alguien te ha invitado a un grupo.',dn_inviteBtn:'Ver la invitación',
+  dn_review:n=>pl(n,'persona','personas')+' por ver.',dn_reviewBtn:'Revisar personas',
+  dn_group:n=>'Tienes '+pl(n,'match','matches')+': el siguiente paso es un grupo.',dn_groupBtn:'Ver grupos',
+  dn_home:'Tu grupo está formado: mirad casas juntos.',dn_homeBtn:'Ver casas',
+  dn_wait:'Esperando a que respondan los demás. Cada mañana llegan personas nuevas.',
+  scoreH:'Puntuación del perfil',scoreLead:'Cuánto cuenta tu perfil a los demás. No cambia la afinidad con nadie.',scoreAria:s=>'Puntuación del perfil: '+s+' %',
+  sc_name:'Un nombre',sc_bio:'Unas líneas sobre ti',sc_bioShort:'Unas líneas más sobre ti',sc_areas:'Zonas que te valen',sc_types:'Tipos de vivienda',
+  sc_must:'Lo que la casa tiene que tener',sc_nice:'Lo que estaría bien',sc_live:'Cómo vives (todos los controles siguen en el centro)',sc_liveOk:'Cómo vives',
+  scoreAdd:'Añadir',scoreAll:'Tu perfil está completo.',
+  dashHomesH:'Casas que te pueden interesar',
+  dashHomesWith:(n,mutual)=>'Para ti y '+n+(mutual?', tu mejor match.':', la persona más afín por ahora.'),
+  dashHomesAlone:'Solo para ti, hasta que tengas personas afines.',
+  dashHomesNone:'Aún no hay ninguna casa en nuestro índice que encaje. Cada día se añaden anuncios.',
+  dashHomesNote:'Ordenadas por lo bien que encajan con lo que necesitaríais. El precio aún no cuenta.',
+  dashHomesGroup:'Ver todas las casas de tu grupo'
 });

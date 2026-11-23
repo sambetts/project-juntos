@@ -157,6 +157,19 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
     await until(`!!document.querySelector('#tabs [data-tab]')`, tag + ' signed in');
   }
 
+  // Home (Session 20): where you land, and where the logo takes you
+  await until(`location.hash==='#home' && !!document.querySelector('.dash-steps')`, tag + ': lands on Home');
+  ok(await js(`document.querySelectorAll('.dstep').length===4`), tag + ': Home shows the four steps');
+  await until(`!!document.querySelector('.dash-score .ring') && !!document.querySelector('.dash-homes .home, .dash-homes p:not(.hint)')`, tag + ': Home shows the profile score and homes');
+  ok(!(await js(`!!document.getElementById('badge')`)), tag + ': no "proof of concept" badge in the header');
+  ok(!EN_ONLY.test(await text()), tag + ': no English on the Spanish Home page');
+  ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), tag + ': no sideways scrolling on Home');
+  await shot(tag + '-3-home-es');
+  await send('Page.navigate', { url: base + '/#help' });
+  await until(`!!document.querySelector('.help')`, tag + ': guide opens signed in');
+  await click('#brandlink');
+  await until(`location.hash==='#home' && !!document.querySelector('.dash-steps') && !document.querySelector('.help')`, tag + ': the logo goes to Home');
+
   // Matches
   await click('[data-tab="matches"]');
   await until(`document.querySelectorAll('.pcard').length>0`, tag + ' matches load');

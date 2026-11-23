@@ -4,6 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-022 · Deploy the Home page (B-053, D-040)
+**Why:** built and tested locally (47 .NET tests, 54 browser checks). The logo now opens a Home page: where you are (profile, people, group, home) with one next step, a profile score, and three homes for you and your best match. The "Proof of concept · made-up people" badge is gone from the header; the footer and the "Made up" tags remain. No database change.
+**Options:** A) deploy with `deploy.ps1 -App` and run the live checks · B) not yet
+**Recommendation:** A, today or tomorrow.
+**If no answer:** stays local; the live site keeps Session 19's version.
+
 ### F-021 · Deploy notifications, messages and the group lifecycle (B-036, B-037, B-038) · CLOSED 2026-11-23: deployed, see LOG Session 19
 **Why:** built and tested locally (47 .NET tests, 46 browser checks, 14 two-person checks). The deploy also adds a database migration (`Social`: five new tables and four columns, nothing dropped) and fixes a live bug: opening or reloading the app at a People address (e.g. `#people-review`) stays on "Loading".
 **Note:** likes now tell the other person (D-039). On the live site only you are real, so you'll see the made-up side: "♥ Liked you", scripted replies, the bell.

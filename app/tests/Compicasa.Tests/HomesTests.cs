@@ -265,6 +265,15 @@ public class HomesApiTests : IClassFixture<AppFactory>
         var outsider = _app.Browser();
         await AppFactory.SignUpAsync(outsider, $"homes-out-{Guid.NewGuid():N}@example.com");
         Assert.Equal(HttpStatusCode.NotFound, (await outsider.GetAsync($"/api/groups/{gid}/homes")).StatusCode);
+
+        // The Home page (Session 20): a few homes for you and your best match, before any group is needed.
+        var mine = await a.GetFromJsonAsync<JsonElement>("/api/me/homes");
+        Assert.Equal(bId, mine.GetProperty("with").GetProperty("id").GetString());
+        Assert.True(mine.GetProperty("with").GetProperty("mutual").GetBoolean());
+        var few = mine.GetProperty("homes").EnumerateArray().ToList();
+        Assert.InRange(few.Count, 1, 6);
+        Assert.All(few, h => Assert.True(h.GetProperty("beds").GetInt32() >= 2));
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _app.Browser().GetAsync("/api/me/homes")).StatusCode);
     }
 
     [Fact]
