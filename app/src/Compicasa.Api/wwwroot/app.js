@@ -1359,6 +1359,7 @@ document.addEventListener('click',async e=>{
 let saved=null;try{saved=localStorage.getItem(LANG_KEY);}catch(e){}
 setLang(saved==='en'?'en':'es');
 try{const h=new URLSearchParams((location.hash||'').replace(/^#/,''));const lg=h.get('lang');if(lg==='en'||lg==='es')setLang(lg);}catch(e){}
+document.documentElement.setAttribute('lang',LANG); /* so the start-up screen speaks the chosen language before the first render */
 document.addEventListener('close',e=>{
   if(e.target.id!=='person-sheet'||!S.person)return;
   S.person=null;

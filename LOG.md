@@ -2,6 +2,21 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-23 · Session 21: a start-up screen
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder (B-054)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 20. Sam, with a screenshot of the live site showing only the header: "When I load the site from cold, it takes a while to show anything. We need a cool looking loading screen." No new answers in the founder queue.
+**Goals:** 1. B-054 start-up screen.
+**Needs Sam:** nothing new; it goes live on his next push to `main` (D-041).
+**Did**
+- `wwwroot/index.html`: the start-up screen sits inside `#app`, so it paints with the HTML, before `app.js` or the slow first API calls (`/api/config`, `/api/me`); the first `render()` replaces it, so no extra code removes it. The logo draws itself on a 2.8 s loop (roof and walls traced, the two doors rise, then it clears), with a pulsing glow and three dots. Text in Spanish and English; CSS shows the one matching `html[lang]`, which `app.js` now sets as soon as it reads the saved language. After 6 s: "El servidor se está despertando…" / "The server is waking up…". Static with reduced motion. No inline script or style, so the CSP is unchanged.
+- `app.css`: the `.boot` styles. `sw.js`: version bumped to `compicasa-shell-2026-11-23-loader`.
+**Decided:** nothing needing a D-number (a reversible look-and-feel choice).
+**Learned:** the blank page in Sam's screenshot is the HTML waiting on the first API calls, not the HTML itself being slow (the header had already painted); the screen covers that wait. A cold App Service start before any HTML arrives still shows the browser's own blank page, except for return visitors whose service worker has the shell (Assumption: not measured).
+**Open or blocked:** not deployed; not seen on a phone.
+**Saved and checked:** looked at in a local run (`dotnet` of the built app on port 5206, via a new `.claude/launch.json`, left uncommitted because it holds this machine's path): the reduced-motion version (the preview pane prefers reduced motion), then with that rule switched off the drawing and doors animated and looped, and the 6-second line appeared. No .NET or browser tests run (markup and styles only). `git diff` reviewed for BACKLOG, STATE, LOG and `wwwroot/`. LOG saved last; its check and the commit are confirmed in the closing report.
+**Next session should start with:** 1. B-042 and B-052 before anyone but Sam signs up. 2. B-047 crawl check. 3. Mention Home in the guide (`#help`).
+
 ## 2026-11-23 · Session 20: a Home page from the logo
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with the Builder and Tester (B-053) and the CEO (D-040)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
