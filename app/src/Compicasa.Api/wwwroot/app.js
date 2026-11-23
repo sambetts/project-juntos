@@ -526,7 +526,15 @@ ${x.likedMe?`<p><span class="chip liked">${esc(t('likedYou'))}</span></p>`:''}
 <div class="pactions sheet-act">${cardActions(x)}</div>
 </div></dialog>`;
 }
-function openSheet(){const d=document.getElementById('person-sheet');if(d&&!d.open){try{d.showModal();}catch(e){d.setAttribute('open','');}const b=d.querySelector('.xbtn');if(b)b.focus();}}
+function openSheet(){const d=document.getElementById('person-sheet');if(d&&!d.open){try{d.showModal();}catch(e){d.setAttribute('open','');}d.dataset.shown='1';const b=d.querySelector('.xbtn');if(b)b.focus();}}
+/* The sheet was closed (✕, Escape or the backdrop): leave its address. Back if the app opened it, so Back doesn't reopen it */
+function sheetClosed(){
+  const d=document.getElementById('person-sheet');if(d)delete d.dataset.shown;
+  if(!S.person)return;
+  S.person=null;
+  if(S.sheetFromApp){S.sheetFromApp=false;S.goingBack=true;history.back();}
+  else{try{history.replaceState(null,'','#people-'+peopleSub());}catch(err){}render();}
+}
 
 function matrix(ids,pairs){
   const s={};pairs.forEach(p=>{s[p.a+'|'+p.b]=p.score;s[p.b+'|'+p.a]=p.score;});
@@ -1289,6 +1297,10 @@ function renderBar(){
   document.body.classList.toggle('has-bar',!!h);
 }
 function render(){
+  /* B-061: a dialog's "close" event comes a moment after close(). If a render lands in between (a refresh finishing),
+     the closed sheet would be replaced by a new open one and the close lost; so settle a closed sheet first */
+  const sh=document.getElementById('person-sheet');
+  if(sh&&sh.dataset.shown&&!sh.open&&S.person){sheetClosed();if(!S.goingBack)return;}
   renderChrome();
   renderTabs();
   const views={home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
@@ -1335,9 +1347,16 @@ function parseRoute(h){
   return null;
 }
 function syncHash(){
-  const h=routeHash();if(!h||location.hash===h)return;
+  /* while the sheet's history.back() is on its way, adding an address would make Back land on the sheet again (B-061) */
+  if(S.goingBack)return;
+  const h=routeHash();if(!h)return;
+  if(location.hash===h){S.atHash=h;return;}
+  /* the address moved to another of our views (a link, Back) and its hashchange hasn't run yet: a render now
+     (a refresh finishing) must not write the old view's address over it; the hashchange handler will show it */
+  if(S.atHash&&location.hash!==S.atHash&&parseRoute(location.hash))return;
   /* the first address replaces "#lang=en" and the like; later ones add a history entry */
   if(parseRoute(location.hash))location.hash=h;else{try{history.replaceState(null,'',h);}catch(e){}}
+  S.atHash=h;
 }
 /* Apply an address; true if it was one of ours */
 function applyRoute(h){
@@ -1630,9 +1649,7 @@ try{const h=new URLSearchParams((location.hash||'').replace(/^#/,''));const lg=h
 document.documentElement.setAttribute('lang',LANG); /* so the start-up screen speaks the chosen language before the first render */
 applyTheme();
 document.addEventListener('close',e=>{
-  if(e.target.id!=='person-sheet'||!S.person)return;
-  S.person=null;
-  if(S.sheetFromApp){S.sheetFromApp=false;history.back();}else{try{history.replaceState(null,'','#people-'+peopleSub());}catch(err){}render();}
+  if(e.target.id==='person-sheet')sheetClosed();
 },true);
 app.addEventListener('click',e=>{if(e.target.id==='person-sheet')e.target.close();});
 /* The report dialog sits outside #app */
@@ -1648,7 +1665,8 @@ document.addEventListener('submit',async e=>{
 });
 /* Enter sends; Shift+Enter starts a new line */
 app.addEventListener('keydown',e=>{if(e.target.id==='chat-input'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendChat();}});
-window.addEventListener('hashchange',()=>{if(S.menuOpen){S.menuOpen=false;renderMenu();}
+window.addEventListener('popstate',()=>{S.goingBack=false;});
+window.addEventListener('hashchange',()=>{S.goingBack=false;S.atHash=location.hash;if(S.menuOpen){S.menuOpen=false;renderMenu();}
   /* the logo (#home) also closes the guide and the legal pages */
   if(readHash()){if(!applyRoute(location.hash)){render();window.scrollTo(0,0);focusHeading();}return;}
   if(location.hash!==routeHash())applyRoute(location.hash);
