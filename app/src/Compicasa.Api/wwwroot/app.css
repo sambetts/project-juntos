@@ -6,11 +6,15 @@
   --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
 }
 @media (prefers-color-scheme: dark){
-  :root{--bg:#0e131b;--surface:#161d28;--surface-2:#1e2735;--text:#e8edf4;--muted:#9ba7b9;--border:#2a3546;
+  :root:not([data-theme="light"]){--bg:#0e131b;--surface:#161d28;--surface-2:#1e2735;--text:#e8edf4;--muted:#9ba7b9;--border:#2a3546;
     --brand:#ff7a45;--brand-soft:#3a2216;--brand-ink:#1b1209;--teal:#4fd1c5;--teal-soft:#123230;
     --good:#5bd39b;--good-bg:#12302a;--warn:#f3b45f;--warn-bg:#382a14;--ring-track:#273246;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);}
 }
+:root[data-theme="dark"]{--bg:#0e131b;--surface:#161d28;--surface-2:#1e2735;--text:#e8edf4;--muted:#9ba7b9;--border:#2a3546;
+    --brand:#ff7a45;--brand-soft:#3a2216;--brand-ink:#1b1209;--teal:#4fd1c5;--teal-soft:#123230;
+    --good:#5bd39b;--good-bg:#12302a;--warn:#f3b45f;--warn-bg:#382a14;--ring-track:#273246;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.3);}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.45;font-size:15px;padding-block-end:24px}
@@ -203,9 +207,11 @@ footer.note p{margin:0 0 6px}
 :root{--chart-ctx:#d5dbe6;--chart-grid:#e9edf3;--ink-2:#3a4354;--hero-a:#fff4ec;--hero-b:#eef6f5;
   --plan-wall:#c7ceda;--plan-bed:#fde3d6;--plan-bath:#d6efeb;--plan-live:#f1f3f8;--plan-garden:#dcefd9;--plan-pool:#bfe0f5;--plan-park:#e3e6ee;--plan-terrace:#efe7d8}
 @media (prefers-color-scheme: dark){
-  :root{--chart-ctx:#334055;--chart-grid:#222c3b;--ink-2:#c9d2e0;--hero-a:#24170f;--hero-b:#0f2422;
+  :root:not([data-theme="light"]){--chart-ctx:#334055;--chart-grid:#222c3b;--ink-2:#c9d2e0;--hero-a:#24170f;--hero-b:#0f2422;
     --plan-wall:#3a4659;--plan-bed:#4a2a1b;--plan-bath:#16403b;--plan-live:#1f2836;--plan-garden:#1d3a20;--plan-pool:#173d57;--plan-park:#2a3344;--plan-terrace:#3a3223}
 }
+:root[data-theme="dark"]{--chart-ctx:#334055;--chart-grid:#222c3b;--ink-2:#c9d2e0;--hero-a:#24170f;--hero-b:#0f2422;
+    --plan-wall:#3a4659;--plan-bed:#4a2a1b;--plan-bath:#16403b;--plan-live:#1f2836;--plan-garden:#1d3a20;--plan-pool:#173d57;--plan-park:#2a3344;--plan-terrace:#3a3223}
 body{font-feature-settings:"tnum" 1;-webkit-font-smoothing:antialiased}
 h2{letter-spacing:-.015em}
 .logo{inline-size:42px;block-size:42px;display:block;flex:none}
@@ -329,7 +335,7 @@ input[type=search]{inline-size:100%;padding:9px 12px;border-radius:10px;border:1
   .hbtn{padding:6px 10px;min-inline-size:36px;text-align:center}
   .hbtn .long{display:none}.hbtn .short{display:inline}
   nav.tabs{position:fixed;inset-inline:0;inset-block-end:0;margin:0;z-index:8;background:var(--surface);border-block-start:1px solid var(--border);box-shadow:0 -4px 16px rgba(16,24,40,.06);padding-block-end:env(safe-area-inset-bottom)}
-  #tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+  #tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
   nav.tabs .tab{flex-direction:column;gap:2px;justify-content:center;border-radius:0;padding:7px 4px 6px;font-size:12px;min-block-size:56px;position:relative}
   nav.tabs .tab[aria-selected="true"]{background:transparent}
   nav.tabs .tab[aria-selected="true"] .ico{stroke-width:2.2}
@@ -574,3 +580,30 @@ html[lang="en"] .boot [lang="es"]{display:none}
   .boot-logo .lg-fill,.boot-logo .bl-d1,.boot-logo .bl-d2{animation:none;transform:none;opacity:1}
   .boot-dots i{opacity:.6}
 }
+
+/* Header menu (Session 21): profile, language, colour scheme and help in one place; sections come from menuSections() in app.js */
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+.menuwrap{position:relative;flex:none}
+.menu-btn{display:inline-flex;align-items:center;justify-content:center;padding-inline:9px}
+.menu-btn .ico{inline-size:22px;block-size:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round}
+.menu-btn[aria-expanded="true"]{background:var(--brand-soft);color:var(--brand);border-color:transparent}
+.menu{position:absolute;inset-inline-end:0;inset-block-start:calc(100% + 8px);z-index:20;inline-size:min(300px,calc(100vw - 24px));max-block-size:calc(100vh - 90px);overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(16,24,40,.18);padding:8px;animation:menu-in .14s ease-out}
+.menu[hidden]{display:none}
+.menu .msec{padding:6px 4px}
+.menu .msec+.msec{border-block-start:1px solid var(--border);margin-block-start:4px;padding-block-start:10px}
+.menu .mhead{margin:0 8px 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.menu .mwho{margin:2px 8px 8px;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.menu .mwho strong{color:var(--text);font-size:15px;display:block}
+.menu .mitem{display:flex;align-items:center;gap:10px;inline-size:100%;padding:9px 10px;border-radius:10px;border:0;background:transparent;color:var(--text);text-decoration:none;font-weight:600;font-size:14.5px;cursor:pointer;text-align:start}
+.menu .mitem:hover,.menu .mitem:focus-visible{background:var(--surface-2)}
+.menu .mitem[aria-current="page"]{background:var(--brand-soft);color:var(--brand)}
+.menu .mitem .ico{inline-size:20px;block-size:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.menu .mseg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin:0 4px;padding:3px;background:var(--surface-2);border-radius:12px}
+.menu .mopt{appearance:none;border:0;background:transparent;color:var(--muted);font-weight:600;font-size:13.5px;padding:8px 6px;border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.menu .mopt .ico{inline-size:16px;block-size:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.menu .mopt[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(16,24,40,.15)}
+.menu .mopt:focus-visible,.menu .mitem:focus-visible,.menu-btn:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+@keyframes menu-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.menu{animation:none}}
+@media (max-width:720px){.menu{position:fixed;inset-inline:12px;inset-block-start:58px;inline-size:auto}}

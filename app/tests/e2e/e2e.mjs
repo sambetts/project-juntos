@@ -170,6 +170,27 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   await click('#brandlink');
   await until(`location.hash==='#home' && !!document.querySelector('.dash-steps') && !document.querySelector('.help')`, tag + ': the logo goes to Home');
 
+  // Header menu (Session 21): profile, language, colour scheme, help; Profile left the tab bar
+  ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===3 && !document.querySelector('#tabs [data-tab="you"]')`), tag + ': three tabs, Profile in the menu');
+  await click('#menu-btn');
+  await until(`!document.getElementById('menu').hidden && document.getElementById('menu-btn').getAttribute('aria-expanded')==='true'`, tag + ': menu opens');
+  ok(await js(`['#menu a[href="#profile"]','#menu [data-action="logout"]','#menu [data-action="lang"][data-id="en"]','#menu [data-action="theme"][data-id="dark"]','#menu a[href="#help"]'].every(q=>!!document.querySelector(q))`), tag + ': menu has profile, sign out, language, theme and the guide');
+  ok(await js(`(()=>{const r=document.getElementById('menu').getBoundingClientRect();return r.left>=0&&r.right<=window.innerWidth+1;})()`), tag + ': menu fits on screen');
+  await shot(tag + '-3b-menu-es');
+  await click('#menu [data-action="theme"][data-id="dark"]');
+  ok(await js(`document.documentElement.dataset.theme==='dark' && localStorage.getItem('compicasa-theme')==='dark' && getComputedStyle(document.body).backgroundColor==='rgb(14, 19, 27)'`), tag + ': dark theme applies and is remembered');
+  await click('#menu [data-action="theme"][data-id="light"]');
+  ok(await js(`document.documentElement.dataset.theme==='light' && getComputedStyle(document.body).backgroundColor==='rgb(245, 246, 250)'`), tag + ': light theme applies');
+  await click('#menu [data-action="theme"][data-id="auto"]');
+  ok(await js(`!document.documentElement.hasAttribute('data-theme') && localStorage.getItem('compicasa-theme')==='auto'`), tag + ': automatic theme follows the device');
+  await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`);
+  await until(`document.getElementById('menu').hidden && document.activeElement && document.activeElement.id==='menu-btn'`, tag + ': Escape closes the menu and returns focus');
+  await click('#menu-btn');
+  await click('#menu a[href="#profile"]');
+  await until(`location.hash==='#profile' && document.getElementById('menu').hidden`, tag + ': Profile opens from the menu, which closes');
+  await click('#brandlink');
+  await until(`location.hash==='#home'`, tag + ': back Home');
+
   // Matches
   await click('[data-tab="matches"]');
   await until(`document.querySelectorAll('.pcard').length>0`, tag + ' matches load');
@@ -217,7 +238,7 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
     await until(`!!document.getElementById('chat-form') && /-chat$/.test(location.hash)`, 'the group chat is its own view');
     await click('[data-tab="messages"]');
     await until(`document.querySelectorAll('ul.convs li').length>0`, 'Messages lists conversations');
-    ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===4`), 'four destinations, with Messages');
+    ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===3`), 'three destinations, with Messages (Profile is in the menu)');
     await click('ul.convs a[href^="#chat-"]');
     await until(`!!document.getElementById('chat-form') && /^#chat-/.test(location.hash)`, 'a conversation with a match opens');
     await fill('chat-input', 'Hola, ¿qué tal?');
@@ -243,11 +264,14 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   }
 
   // Switch to English and check the same screen.
-  await click('#lang-switch');
+  await click('#menu-btn');
+  await click('#menu [data-action="lang"][data-id="en"]');
   await until(`document.documentElement.lang==='en'`, tag + ' switches to English');
   ok(!ES_ONLY.test(await text()), tag + ': no Spanish UI words on the English screen');
   await shot(tag + '-6-group-en');
-  await click('#lang-switch');
+  await click('#menu [data-action="lang"][data-id="es"]');
+  await until(`document.documentElement.lang==='es'`, tag + ' switches back to Spanish');
+  await js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))`);
 }
 
 // The draft legal pages open from the footer, signed in or not.

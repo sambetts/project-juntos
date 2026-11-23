@@ -991,11 +991,7 @@ function renderChrome(){
   const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('navAria'));nav.hidden=!inApp();}
   const bell=document.getElementById('alerts-link');
   if(bell){const n=S.counts.alerts||0;bell.hidden=!inApp();bell.innerHTML=ICONS.bell+(n?`<span class="count" aria-hidden="true">${n}</span>`:'');bell.setAttribute('aria-label',t('alertsAria',n));if(S.tab==='alerts')bell.setAttribute('aria-current','page');else bell.removeAttribute('aria-current');}
-  /* Short forms for phones ("?" and "EN"), long ones for wider screens; CSS picks */
-  const hl=document.getElementById('help-link');
-  if(hl){hl.innerHTML=`<span class="long">${esc(t('helpLink'))}</span><span class="short" aria-hidden="true">?</span>`;hl.setAttribute('aria-label',t('helpLink'));}
-  const sw=document.getElementById('lang-switch');
-  if(sw){sw.innerHTML=`<span class="long">${esc(t('langOther'))}</span><span class="short" aria-hidden="true">${esc(t('langOtherCode').toUpperCase())}</span>`;sw.setAttribute('lang',t('langOtherCode'));sw.setAttribute('data-id',t('langOtherCode'));sw.setAttribute('aria-label',t('langOtherAria'));}
+  renderMenu();
   document.body.classList.toggle('has-nav',inApp());
 }
 /* The tabs show once someone is signed in and onboarded, and not on a legal page */
@@ -1007,7 +1003,7 @@ function renderTabs(){
   /* Only invitations get a badge: they wait for your answer (B-051 review) */
   const invites=S.groups?S.groups.filter(g=>g.myStatus==='pending').length:(S.counts.invites||0),unread=S.counts.messages||0;
   const tabs=[['matches','#people-'+peopleSub(),t('navPeople'),'','',ICONS.people],['groups','#groups',t('navGroups'),invites?String(invites):'',t('srInvites'),ICONS.groups],
-    ['messages','#messages',t('navMessages'),unread?String(unread):'',t('srUnread'),ICONS.chat],['you','#profile',t('navProfile'),'','',ICONS.profile]];
+    ['messages','#messages',t('navMessages'),unread?String(unread):'',t('srUnread'),ICONS.chat]];
   tabsEl.innerHTML=tabs.map(x=>`<a class="tab" href="${x[1]}" id="tab-${x[0]}" data-tab="${x[0]}"${S.tab===x[0]?' aria-current="page"':''}>${x[5]}<span>${esc(x[2])}</span>${x[3]?`<span class="count"><span aria-hidden="true">${x[3]}</span><span class="sr">: ${x[3]} ${esc(x[4])}</span></span>`:''}</a>`).join('');
 }
 /* Line icons for the tabs (stroke only, coloured by CSS) */
@@ -1016,8 +1012,62 @@ const ICONS={
   groups:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h2v5M12.5 20v-5h2v5"/></svg>',
   profile:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>',
   chat:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6.5A2.5 2.5 0 0 1 7 4h10a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 17 16h-6l-4.5 4v-4H7a2.5 2.5 0 0 1-2.5-2.5z"/></svg>',
+  help:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.7"/><path d="M12 17h.01"/></svg>',
+  doc:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10.5A.5.5 0 0 1 6.5 20V4a.5.5 0 0 1 .5-.5z"/><path d="M14 3.5V8h4M9.5 12.5h5M9.5 16h5"/></svg>',
+  out:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4.5h4a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5h-4"/><path d="M10 8l-4 4 4 4M6 12h9"/></svg>',
+  auto:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
+  sun:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
+  moon:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/></svg>',
   bell:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>'
 };
+/* ---------- header menu (Session 21): profile, language, colour scheme, help ----------
+   To add a setting or a place, add an item or a section in menuSections(); renderMenu() draws it.
+   Item kinds: {href,label,icon} a link · {action,id,label,icon} a button · {choice:[{action,id,label,icon,on}],label} a segmented choice */
+const THEME_KEY='compicasa-theme';
+let THEME=(()=>{try{const v=localStorage.getItem(THEME_KEY);return v==='light'||v==='dark'?v:'auto';}catch(e){return 'auto';}})();
+function applyTheme(){
+  const d=document.documentElement;
+  if(THEME==='auto')d.removeAttribute('data-theme');else d.setAttribute('data-theme',THEME);
+  const m=document.querySelector('meta[name="color-scheme"]');if(m)m.setAttribute('content',THEME==='auto'?'light dark':THEME);
+}
+function setTheme(v){THEME=v==='light'||v==='dark'?v:'auto';try{localStorage.setItem(THEME_KEY,THEME);}catch(e){}applyTheme();rerender();}
+function menuSections(){
+  const secs=[];
+  if(S.me){
+    const items=[];
+    if(S.me.onboarded)items.push({href:'#profile',label:t('navProfile'),icon:ICONS.profile,current:!S.view&&S.tab==='you'});
+    items.push({action:'logout',label:t('signOut'),icon:ICONS.out});
+    secs.push({id:'account',who:(S.profile&&S.profile.name)||S.me.name||'',items:items});
+  }
+  secs.push({id:'lang',label:t('menuLang'),items:[{choice:[{action:'lang',id:'es',label:'Español',lang:'es',on:LANG==='es'},{action:'lang',id:'en',label:'English',lang:'en',on:LANG==='en'}],label:t('menuLang')}]});
+  secs.push({id:'theme',label:t('menuTheme'),items:[{choice:[['auto',ICONS.auto,t('themeAuto')],['light',ICONS.sun,t('themeLight')],['dark',ICONS.moon,t('themeDark')]].map(x=>({action:'theme',id:x[0],icon:x[1],label:x[2],on:THEME===x[0]})),label:t('menuTheme')}]});
+  secs.push({id:'more',label:t('menuMore'),items:[{href:'#help',label:t('helpLink'),icon:ICONS.help,current:S.view==='help'},{href:'#terms',label:t('footTerms'),icon:ICONS.doc,current:S.view==='terms'},{href:'#privacy',label:t('footPrivacy'),icon:ICONS.doc,current:S.view==='privacy'}]});
+  return secs;
+}
+function menuItem(it){
+  if(it.choice)return `<div class="mseg" role="group" aria-label="${esc(it.label)}">${it.choice.map(o=>`<button type="button" class="mopt" data-action="${o.action}" data-id="${o.id}" aria-pressed="${o.on?'true':'false'}"${o.lang?` lang="${o.lang}"`:''}>${o.icon||''}<span>${esc(o.label)}</span></button>`).join('')}</div>`;
+  if(it.href)return `<a class="mitem" href="${it.href}"${it.current?' aria-current="page"':''}>${it.icon||''}<span>${esc(it.label)}</span></a>`;
+  return `<button type="button" class="mitem" data-action="${it.action}"${it.id?` data-id="${it.id}"`:''}>${it.icon||''}<span>${esc(it.label)}</span></button>`;
+}
+function renderMenu(){
+  const btn=document.getElementById('menu-btn'),menu=document.getElementById('menu');if(!btn||!menu)return;
+  btn.setAttribute('aria-label',t('menuAria'));btn.setAttribute('aria-expanded',S.menuOpen?'true':'false');
+  menu.setAttribute('aria-label',t('menuAria'));
+  menu.hidden=!S.menuOpen;
+  if(!S.menuOpen){menu.innerHTML='';return;}
+  /* Keep focus on the same control when a choice redraws the menu */
+  const a=document.activeElement,keep=a&&menu.contains(a)?[a.getAttribute('data-action'),a.getAttribute('data-id'),a.getAttribute('href')]:null;
+  menu.innerHTML=menuSections().map(sec=>`<div class="msec" data-sec="${sec.id}">${sec.who!==undefined?`<p class="mwho"><strong>${esc(sec.who)}</strong>${esc(t('menuSignedIn'))}</p>`:''}${sec.label?`<p class="mhead">${esc(sec.label)}</p>`:''}${sec.items.map(menuItem).join('')}</div>`).join('');
+  if(keep){const el=[...menu.querySelectorAll('[data-action],[href]')].find(x=>x.getAttribute('data-action')===keep[0]&&x.getAttribute('data-id')===keep[1]&&x.getAttribute('href')===keep[2]);if(el)el.focus();}
+}
+function openMenu(){S.menuOpen=true;renderMenu();const f=document.querySelector('#menu .mitem, #menu .mopt');if(f)f.focus();}
+function closeMenu(focusBtn){if(!S.menuOpen)return;S.menuOpen=false;renderMenu();if(focusBtn){const b=document.getElementById('menu-btn');if(b)b.focus();}}
+document.addEventListener('click',e=>{
+  if(!S.menuOpen)return;
+  if(!e.target.closest('.menuwrap')){closeMenu(false);return;}
+  if(e.target.closest('#menu a, #menu [data-action="logout"]'))closeMenu(false);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.menuOpen){e.preventDefault();closeMenu(true);}});
 /* The bottom bar only appears when it carries a real action: the wizard's Back and Next, or a group you're building */
 function renderBar(){
   const bar=document.getElementById('actionbar');
@@ -1307,6 +1357,8 @@ document.addEventListener('click',async e=>{
   const ids=()=>(id||'').split(',').filter(Boolean);
   switch(el.getAttribute('data-action')){
     case 'lang':switchLang(id);break;
+    case 'menu':S.menuOpen?closeMenu(false):openMenu();break;
+    case 'theme':setTheme(id);break;
     case 'auth-mode':S.authMode=id;S.authError='';render();break;
     case 'ext-signin':location.href='/auth/external?lang='+LANG;break;
     case 'pw-toggle':{const inp=document.getElementById('a-pass'),show=inp.type==='password';inp.type=show?'text':'password';el.setAttribute('aria-pressed',String(show));el.textContent=show?t('hidePw'):t('showPw');inp.focus();break;}
@@ -1360,6 +1412,7 @@ let saved=null;try{saved=localStorage.getItem(LANG_KEY);}catch(e){}
 setLang(saved==='en'?'en':'es');
 try{const h=new URLSearchParams((location.hash||'').replace(/^#/,''));const lg=h.get('lang');if(lg==='en'||lg==='es')setLang(lg);}catch(e){}
 document.documentElement.setAttribute('lang',LANG); /* so the start-up screen speaks the chosen language before the first render */
+applyTheme();
 document.addEventListener('close',e=>{
   if(e.target.id!=='person-sheet'||!S.person)return;
   S.person=null;
@@ -1379,7 +1432,7 @@ document.addEventListener('submit',async e=>{
 });
 /* Enter sends; Shift+Enter starts a new line */
 app.addEventListener('keydown',e=>{if(e.target.id==='chat-input'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendChat();}});
-window.addEventListener('hashchange',()=>{
+window.addEventListener('hashchange',()=>{if(S.menuOpen){S.menuOpen=false;renderMenu();}
   /* the logo (#home) also closes the guide and the legal pages */
   if(readHash()){if(!applyRoute(location.hash)){render();window.scrollTo(0,0);focusHeading();}return;}
   if(location.hash!==routeHash())applyRoute(location.hash);

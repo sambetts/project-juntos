@@ -812,3 +812,11 @@ Object.assign(STR.es,{
   dashHomesNote:'Ordenadas por lo bien que encajan con lo que necesitaríais. El precio aún no cuenta.',
   dashHomesGroup:'Ver todas las casas de tu grupo'
 });
+Object.assign(STR.en,{
+  menuAria:'Menu and settings',menuSignedIn:'Signed in',menuLang:'Language',menuTheme:'Appearance',menuMore:'More',
+  themeAuto:'Auto',themeLight:'Light',themeDark:'Dark'
+});
+Object.assign(STR.es,{
+  menuAria:'Menú y ajustes',menuSignedIn:'Sesión iniciada',menuLang:'Idioma',menuTheme:'Apariencia',menuMore:'Más',
+  themeAuto:'Automático',themeLight:'Claro',themeDark:'Oscuro'
+});
