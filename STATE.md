@@ -6,7 +6,11 @@ _Last updated 2026-11-23 after Session 25 (Claude Code, Opus 5.5): a public in-a
 Sam cleared F-001 and switched to Build mode on 2026-11-22 (D-023). Agents may build prototypes, code and unpublished drafts in this repository, using made-up data only. Nothing public, paid or sent, no one contacted and no real personal data collected without Sam (AGENTS.md sections 3 and 4). **One scoped exception (D-027):** the PoC runs in Sam's Azure subscription as if in production, closed by an invite code, with made-up people; the AI administers it through the Azure CLI. Real users, a domain, app stores or promoting it still need Sam. Pilot mode needs every gate in section 2 of `product/phase1-validation-plan.md` and Sam's dated go-ahead.
 
 ## Session in progress
-None. At the start of a session, list its goals here as a checklist; clear it at the end.
+Session 26 (2026-11-23, Claude Code, Opus 5.5), three items in parallel, each in its own git worktree branch, to be merged by the Chief of Staff:
+- [ ] B-063 live in or rent out (spec, app, lawyer-brief questions)
+- [ ] B-061 the flaky sheet-close step in the browser test
+- [ ] B-060 full regional ITP scales
+B-062 was pushed on Sam's go (F-029); check its CI/CD run. B-064 waits for Sam's description.
 
 ## In short
 The idea: help compatible strangers buy one home together in Spain, starting with the social side (matching plus a joint "what our home needs" brief). On public evidence, no rival lets strangers form a group before choosing a whole home, but affinity questionnaires, co-ownership shares with a notarised pact, and exit services already exist, so the group-first idea is what we must test. A working proof of concept now runs in Azure, in UK South on Sam's existing App Service plan with a free database (closed, made-up people, no extra cost: D-036); nothing else is public or bought. The project is the private GitHub repository project-juntos (D-022), and is also a proof of concept for building a new company with AI (D-026). Sam's plan (2026-11-21): build a small product and see if it gains interest. The product is Spanish first, with English supported; project documents stay in English (D-024). The pilot can't run until every gate in section 2 of its plan is met.
