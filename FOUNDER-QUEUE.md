@@ -4,6 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-031 · Widen the mission wording to include buying to rent out (D-047) · by 2026-11-30
+**Why:** AGENTS.md section 1 says the mission is helping people buy a home to live in together. Since B-063 (your request) the app also matches people buying to rent out. Changing the rulebook's mission needs you.
+**Options:** A) add "or to rent out" to section 1; B) keep the mission about homes to live in, and treat renting out as a secondary path; C) remove the rent-out path.
+**Recommendation:** A, with "to live in first" kept as the pilot's focus (D-008), since the feature is built and you called it a big differentiator.
+**If no answer:** the feature stays live; the mission text stays as it is.
+
 ### F-030 · Push Session 26's work to `main` (B-063, B-061, B-060) · CLOSED 2026-11-23: approved in advance
 **Why:** a push to `main` deploys the app (D-041).
 **ANSWER (Sam, 2026-11-23, in Claude Code, after the three items were started):** "push when everything done. Weeee, straight to prod we goooo". Read as approval to push `main` once B-063, B-061 and B-060 are merged and the .NET and browser tests pass, within D-027. Not an approval for anything else (no real users, emails or spending).
