@@ -49,6 +49,7 @@ public sealed class DemoData(AppDb db, TimeProvider clock, ILogger<DemoData> log
         {
             await db.Reactions.Where(r => stale.Contains(r.FromId) || stale.Contains(r.ToId)).ExecuteDeleteAsync(ct);
             var groupIds = await db.GroupMembers.Where(m => stale.Contains(m.AccountId)).Select(m => m.GroupId).Distinct().ToListAsync(ct);
+            await Threads.ForgetAsync(db, stale, groupIds, ct);
             await db.GroupMembers.Where(m => groupIds.Contains(m.GroupId)).ExecuteDeleteAsync(ct);
             await db.Groups.Where(g => groupIds.Contains(g.Id)).ExecuteDeleteAsync(ct);
             await db.Accounts.Where(a => stale.Contains(a.Id)).ExecuteDeleteAsync(ct);

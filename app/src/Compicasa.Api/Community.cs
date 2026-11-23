@@ -18,8 +18,11 @@ public sealed class Community
 
     public static async Task<Community> LoadAsync(AppDb db, Account viewer, CancellationToken ct)
     {
-        // Real people who haven't finished onboarding stay out of sight.
-        var accounts = await db.Accounts.AsNoTracking().Where(a => a.Id != viewer.Id && (a.Kind != AccountKind.User || a.OnboardedAt != null)).ToListAsync(ct);
+        // Real people who haven't finished onboarding stay out of sight, and so does anyone either side has blocked (B-036).
+        var blocked = (await db.Blocks.AsNoTracking().Where(b => b.FromId == viewer.Id || b.ToId == viewer.Id)
+            .Select(b => new { b.FromId, b.ToId }).ToListAsync(ct)).Select(b => b.FromId == viewer.Id ? b.ToId : b.FromId).ToHashSet();
+        var accounts = (await db.Accounts.AsNoTracking().Where(a => a.Id != viewer.Id && (a.Kind != AccountKind.User || a.OnboardedAt != null)).ToListAsync(ct))
+            .Where(a => !blocked.Contains(a.Id)).ToList();
         var mine = await db.Reactions.AsNoTracking().Where(r => r.FromId == viewer.Id).ToDictionaryAsync(r => r.ToId, r => r.Kind, ct);
         var likedMe = await db.Reactions.AsNoTracking().Where(r => r.ToId == viewer.Id && r.Kind == ReactionKind.Like).Select(r => r.FromId).ToListAsync(ct);
         return new Community
@@ -40,6 +43,21 @@ public sealed class Community
         Others.TryGetValue(id, out var o) && (o.Account.IsDemo ? Matching.Accepts(o.Profile, Me) : LikedMe.Contains(id));
 
     public bool Mutual(string id) => ILike(id) && TheyLikeMe(id);
+
+    /// <summary>
+    /// Has this person liked the viewer before the viewer answered them (B-036, "liked you")? Real people: their own
+    /// like. Made-up people: a fixed sixth of those whose simulated rule would say yes, so the list isn't empty in
+    /// the demo and stays consistent with their reply when the viewer likes them back.
+    /// </summary>
+    public bool LikedMeFirst(string id) =>
+        Others.TryGetValue(id, out var o) && (o.Account.IsDemo ? Admires(o.Profile.Id) && Matching.Accepts(o.Profile, Me) : LikedMe.Contains(id));
+
+    bool Admires(string id)
+    {
+        uint h = 2166136261;
+        foreach (var ch in Viewer.Id + "|" + id) { h ^= ch; h *= 16777619; }
+        return h % 6 == 0;
+    }
 
     public Profile? Get(string id) => id == Viewer.Id ? Me : Others.TryGetValue(id, out var o) ? o.Profile : null;
     public bool IsDemo(string id) => id != Viewer.Id && Others.TryGetValue(id, out var o) && o.Account.IsDemo;

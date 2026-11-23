@@ -4,6 +4,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-021 · Deploy notifications, messages and the group lifecycle (B-036, B-037, B-038) · by 2026-11-30
+**Why:** built and tested locally (47 .NET tests, 46 browser checks, 14 two-person checks). The deploy also adds a database migration (`Social`: five new tables and four columns, nothing dropped) and fixes a live bug: opening or reloading the app at a People address (e.g. `#people-review`) stays on "Loading".
+**Note:** likes now tell the other person (D-039). On the live site only you are real, so you'll see the made-up side: "♥ Liked you", scripted replies, the bell.
+**Options:** A) deploy with `deploy.ps1 -App` and run the live checks · B) not yet
+**Recommendation:** A, this week.
+**If no answer:** stays local; the live site keeps Session 18's version.
+
 ### F-016 · Create the sign-in tenant for the new sign-up (D-033) · CLOSED 2026-11-22: done, see LOG Session 13
 **Why:** the new email sign-up is built and tested locally (B-034), but goes live only once Microsoft Entra External ID exists. Creating it makes a new directory linked to your subscription, and Claude Code's safety check stopped me doing it, so it's yours to run or approve. Cost: free up to 50,000 monthly users.
 **Ready:** `app/infra/external-id.ps1` (please read it first). It asks you to sign in to the new tenant once.

@@ -42,6 +42,7 @@ public static class Views
                     talks = x.Ex.Talks,
                     together = new { beds = hb.Beds, baths = hb.Baths, cars = hb.Cars, types = hb.Types },
                     state = State(c, x.P.Id),
+                    likedMe = State(c, x.P.Id) == "none" && c.LikedMeFirst(x.P.Id),
                 };
             }),
             hidden = hidden.Select(x => new { person = PersonOf(c, x.P), reasons = x.H.Reasons }),
@@ -59,18 +60,32 @@ public static class Views
     }
 
     public static IReadOnlyList<string> OthersInOrder(Group g, string viewerId) =>
-        g.Members.Where(m => m.AccountId != viewerId && m.Status != MemberStatus.Left).OrderBy(m => m.Position).Select(m => m.AccountId).ToList();
+        g.Members.Where(m => m.AccountId != viewerId && MemberStatus.IsActive(m.Status)).OrderBy(m => m.Position).Select(m => m.AccountId).ToList();
 
-    static string GroupState(Group g)
+    static string GroupState(Group g) => Lifecycle.State(g);
+
+    /// <summary>Lifecycle facts for the front end (B-038): free places, who may be withdrawn, when invitations expire.</summary>
+    static object LifecycleOf(Community c, Group g)
     {
-        var active = g.Members.Where(m => m.Status != MemberStatus.Left).ToList();
-        if (active.Count < 2 || active.Any(m => m.Status == MemberStatus.Declined) || g.Members.Any(m => m.Status == MemberStatus.Left)) return "broken";
-        return active.All(m => m.Status == MemberStatus.Accepted) ? "formed" : "pending";
+        var me = g.Members.FirstOrDefault(m => m.AccountId == c.Viewer.Id);
+        return new
+        {
+            free = Lifecycle.FreePlaces(g),
+            canInvite = me?.Status == MemberStatus.Accepted && Lifecycle.FreePlaces(g) > 0,
+            expiresAt = me?.Status == MemberStatus.Pending ? Lifecycle.ExpiresAt(g, me) : (DateTimeOffset?)null,
+            invitedBy = me is null ? null : me.InvitedById ?? g.CreatedById,
+            // Invitations the viewer may take back: ones they sent, or any, if they proposed the group.
+            canWithdraw = g.Members.Where(m => m.Status == MemberStatus.Pending && me?.Status == MemberStatus.Accepted
+                && ((m.InvitedById ?? g.CreatedById) == c.Viewer.Id || g.CreatedById == c.Viewer.Id)).Select(m => m.AccountId),
+            pendingUntil = g.Members.Where(m => m.Status == MemberStatus.Pending).ToDictionary(m => m.AccountId, m => Lifecycle.ExpiresAt(g, m)),
+            gone = g.Members.Where(m => !MemberStatus.IsActive(m.Status) && c.Get(m.AccountId) is not null).OrderBy(m => m.Position)
+                .Select(m => new { id = m.AccountId, status = m.Status }),
+        };
     }
 
     public static object GroupSummary(Community c, Group g)
     {
-        var members = g.Members.OrderBy(m => m.Position).Where(m => c.Get(m.AccountId) is not null).ToList();
+        var members = g.Members.OrderBy(m => m.Position).Where(m => MemberStatus.IsActive(m.Status) && c.Get(m.AccountId) is not null).ToList();
         return new
         {
             id = g.Id,
@@ -79,6 +94,7 @@ public static class Views
             myStatus = g.Members.First(m => m.AccountId == c.Viewer.Id).Status,
             members = members.Select(m => new { id = m.AccountId, status = m.Status }),
             people = People(c, members.Select(m => c.Get(m.AccountId)!)),
+            life = LifecycleOf(c, g),
         };
     }
 
@@ -99,8 +115,9 @@ public static class Views
             createdBy = g?.CreatedById,
             members = g is null
                 ? all.Select(p => new { id = p.Id, status = "preview" }).ToList()
-                : g.Members.OrderBy(m => m.Position).Where(m => c.Get(m.AccountId) is not null).Select(m => new { id = m.AccountId, status = m.Status }).ToList(),
+                : g.Members.OrderBy(m => m.Position).Where(m => MemberStatus.IsActive(m.Status) && c.Get(m.AccountId) is not null).Select(m => new { id = m.AccountId, status = m.Status }).ToList(),
             people = People(c, all.Concat(g?.Members.Select(m => c.Get(m.AccountId)).OfType<Profile>() ?? [])),
+            life = g is null ? null : LifecycleOf(c, g),
             check,
             score = new { gs.Min, gs.Avg, gs.Pairs, gs.Weakest, weakestParts = weakest },
             brief = hb,

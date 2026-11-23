@@ -199,6 +199,27 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
     await until(`/^#group-[0-9a-f-]{36}$/.test(location.hash) && !document.querySelector('.headline')`, 'Back returns to the group overview');
     await shot(tag + '-5-group-es');
     await homesCheck(tag);
+    // Session 19 (B-036, B-037): the group's chat, Messages, the code of conduct, a scripted reply, the bell
+    await click('.subtabs [data-gsub="chat"]');
+    await until(`!!document.getElementById('chat-form') && /-chat$/.test(location.hash)`, 'the group chat is its own view');
+    await click('[data-tab="messages"]');
+    await until(`document.querySelectorAll('ul.convs li').length>0`, 'Messages lists conversations');
+    ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===4`), 'four destinations, with Messages');
+    await click('ul.convs a[href^="#chat-"]');
+    await until(`!!document.getElementById('chat-form') && /^#chat-/.test(location.hash)`, 'a conversation with a match opens');
+    await fill('chat-input', 'Hola, ¿qué tal?');
+    await click('#chat-form button[type=submit]');
+    await until(`!!document.querySelector('#conduct-dlg[open]')`, 'the code of conduct comes before the first message');
+    await shot(tag + '-5b-conduct-es');
+    await click('#conduct-dlg [data-action="conduct-ok"]');
+    await until(`document.querySelectorAll('#chat-msgs .msg').length>=2`, 'the message is sent and a made-up person replies');
+    ok(await js(`!!document.querySelector('#chat-msgs .msg.mine')?.innerText.includes('Hola')`), 'your message shows as yours');
+    ok(!EN_ONLY.test(await text()), 'no English in the Spanish conversation');
+    ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), 'no sideways scrolling in a conversation');
+    await shot(tag + '-5c-chat-es');
+    await click('#alerts-link');
+    await until(`location.hash==='#alerts' && /Avisos/.test(document.querySelector('#app h2')?.innerText||'')`, 'the bell opens the notifications');
+    await shot(tag + '-5d-alerts-es');
   } else {
     await click('[data-tab="groups"]');
     await until(`document.querySelectorAll('[data-action="open-group"]').length>0`, 'desktop sees the group from the phone');

@@ -34,6 +34,8 @@ public sealed class Account
     public DateTimeOffset? TermsAcceptedAt { get; set; }
     /// <summary>When they finished the onboarding wizard. Until then nobody else sees them, and they see no one.</summary>
     public DateTimeOffset? OnboardedAt { get; set; }
+    /// <summary>When they agreed to the code of conduct, asked before their first message (B-036).</summary>
+    public DateTimeOffset? ConductAcceptedAt { get; set; }
     public string ProfileJson { get; set; } = "{}";
 
     public bool IsDemo => Kind != AccountKind.User;
@@ -71,6 +73,9 @@ public sealed class Group
     public DateTimeOffset CreatedAt { get; set; }
     public int? M2Min { get; set; }
     public int? M2Max { get; set; }
+    /// <summary>How many households the group was proposed with, the proposer included. Freed places can be filled up to this (B-038).
+    /// Null for groups made before Session 19, which never had replacements, so their member count is the size.</summary>
+    public int? PlannedSize { get; set; }
     public List<GroupMember> Members { get; set; } = [];
 }
 
@@ -80,6 +85,13 @@ public static class MemberStatus
     public const string Accepted = "accepted";
     public const string Declined = "declined";
     public const string Left = "left";
+    /// <summary>Didn't answer within <see cref="Lifecycle.InviteDays"/> days (B-038).</summary>
+    public const string Expired = "expired";
+    /// <summary>The person who invited them took the invitation back before they answered.</summary>
+    public const string Withdrawn = "withdrawn";
+
+    /// <summary>Still part of the group: invited and not answered yet, or said yes.</summary>
+    public static bool IsActive(string s) => s is Pending or Accepted;
 }
 
 public sealed class GroupMember
@@ -90,6 +102,10 @@ public sealed class GroupMember
     public int Position { get; set; }
     public string Status { get; set; } = MemberStatus.Pending;
     public DateTimeOffset? RespondedAt { get; set; }
+    /// <summary>When the invitation was sent; null for rows made before Session 19 (use the group's CreatedAt).</summary>
+    public DateTimeOffset? InvitedAt { get; set; }
+    /// <summary>Who sent the invitation; null for the proposer and for rows made before Session 19 (the proposer).</summary>
+    public string? InvitedById { get; set; }
 }
 
 /// <summary>One row: which day's made-up batch is loaded (D-029).</summary>
@@ -149,6 +165,11 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
     public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
     public DbSet<DemoState> DemoStates => Set<DemoState>();
     public DbSet<Home> Homes => Set<Home>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Message> Messages => Set<Message>();
+    public DbSet<ThreadRead> ThreadReads => Set<ThreadRead>();
+    public DbSet<Block> Blocks => Set<Block>();
+    public DbSet<Report> Reports => Set<Report>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -188,7 +209,49 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
             e.HasKey(x => new { x.GroupId, x.AccountId });
             e.Property(x => x.AccountId).HasMaxLength(40);
             e.Property(x => x.Status).HasMaxLength(10);
+            e.Property(x => x.InvitedById).HasMaxLength(40);
             e.HasIndex(x => x.AccountId);
+        });
+        b.Entity<Notification>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.AccountId).HasMaxLength(40);
+            e.Property(x => x.Kind).HasMaxLength(12);
+            e.Property(x => x.ActorId).HasMaxLength(40);
+            e.HasIndex(x => new { x.AccountId, x.At });
+        });
+        b.Entity<Message>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Thread).HasMaxLength(90);
+            e.Property(x => x.FromId).HasMaxLength(40);
+            e.Property(x => x.Body).HasMaxLength(Message.MaxLength);
+            e.Property(x => x.Script).HasMaxLength(24);
+            e.HasIndex(x => new { x.Thread, x.At });
+            e.HasIndex(x => x.FromId);
+        });
+        b.Entity<ThreadRead>(e =>
+        {
+            e.HasKey(x => new { x.AccountId, x.Thread });
+            e.Property(x => x.AccountId).HasMaxLength(40);
+            e.Property(x => x.Thread).HasMaxLength(90);
+        });
+        b.Entity<Block>(e =>
+        {
+            e.HasKey(x => new { x.FromId, x.ToId });
+            e.Property(x => x.FromId).HasMaxLength(40);
+            e.Property(x => x.ToId).HasMaxLength(40);
+            e.HasIndex(x => x.ToId);
+        });
+        b.Entity<Report>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.FromId).HasMaxLength(40);
+            e.Property(x => x.AboutId).HasMaxLength(40);
+            e.Property(x => x.Thread).HasMaxLength(90);
+            e.Property(x => x.Reason).HasMaxLength(16);
+            e.Property(x => x.Note).HasMaxLength(1000);
+            e.HasIndex(x => x.AboutId);
         });
         b.Entity<DemoState>(e =>
         {

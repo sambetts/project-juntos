@@ -70,7 +70,7 @@ public class ApiTests : IClassFixture<AppFactory>
         new { email, password, name = "X", inviteCode = invite, adult, terms = terms ?? Legal.TermsVersion };
 
     /// <summary>The prototype's "room" example: one room, open to anyone, transport a must.</summary>
-    static object RoomProfile(string name) => new
+    internal static object RoomProfile(string name) => new
     {
         name, household = "single", bedrooms = 1, privateBath = false, cars = 0, pets = Array.Empty<string>(), acceptsPets = true,
         smoking = "no", acceptsSmoking = "outside", sleep = 3, tidy = 3, social = 3, guests = 3, meals = 3, wfh = false, horizon = "5-9",

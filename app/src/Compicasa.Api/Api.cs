@@ -50,6 +50,7 @@ public static partial class Api
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
             await db.Reactions.Where(x => x.FromId == a.Id || x.ToId == a.Id).ExecuteDeleteAsync();
             var created = await db.Groups.Where(g => g.CreatedById == a.Id).Select(g => g.Id).ToListAsync();
+            await Threads.ForgetAsync(db, [a.Id], created);
             await db.GroupMembers.Where(m => created.Contains(m.GroupId) || m.AccountId == a.Id).ExecuteDeleteAsync();
             await db.Groups.Where(g => created.Contains(g.Id)).ExecuteDeleteAsync();
             await db.Accounts.Where(x => x.Id == a.Id).ExecuteDeleteAsync();
@@ -115,6 +116,7 @@ public static partial class Api
                 await db.SaveChangesAsync();
             }
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            if (!c.IsDemo(id)) await NotifyReactionAsync(db, c, id, r.Kind!, clock.GetUtcNow(), http.RequestAborted);
             return Results.Ok(new { mutual = c.Mutual(id), isDemo = c.IsDemo(id) });
         });
 
@@ -136,13 +138,13 @@ public static partial class Api
             var st = c.GroupStatus(ids);
             if (!st.Ok) return Error("groupInvalid", 422, st.Issues);
             var now = clock.GetUtcNow();
-            var g = new Group { Id = Guid.NewGuid(), CreatedById = a.Id, CreatedAt = now };
-            g.Members.Add(new GroupMember { AccountId = a.Id, Position = 0, Status = MemberStatus.Accepted, RespondedAt = now });
+            var g = new Group { Id = Guid.NewGuid(), CreatedById = a.Id, CreatedAt = now, PlannedSize = ids.Count + 1 };
+            g.Members.Add(new GroupMember { AccountId = a.Id, Position = 0, Status = MemberStatus.Accepted, RespondedAt = now, InvitedAt = now });
             var everyone = new List<Profile> { c.Me };
             everyone.AddRange(ids.Select(id => c.Get(id)!));
             for (var i = 0; i < ids.Count; i++)
             {
-                var m = new GroupMember { AccountId = ids[i], Position = i + 1, Status = MemberStatus.Pending };
+                var m = new GroupMember { AccountId = ids[i], Position = i + 1, Status = MemberStatus.Pending, InvitedAt = now, InvitedById = a.Id };
                 if (c.IsDemo(ids[i]))
                 {
                     // Made-up people answer at once, by their own rule, about everyone else in the group.
@@ -153,24 +155,28 @@ public static partial class Api
                 g.Members.Add(m);
             }
             db.Groups.Add(g);
+            foreach (var m in g.Members.Where(m => m.Status == MemberStatus.Pending))
+                await Notes.AddAsync(db, m.AccountId, NoteKind.Invite, a.Id, g.Id, now);
             await db.SaveChangesAsync();
-            return Results.Ok(Views.Home(c, ids, g));
+            return Results.Ok(Views.Home(c, Views.OthersInOrder(g, a.Id), g));
         });
 
-        me.MapGet("/groups", async (HttpContext http, AppDb db) =>
+        me.MapGet("/groups", async (HttpContext http, AppDb db, TimeProvider clock) =>
         {
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            await Lifecycle.ExpireAsync(db, a.Id, clock.GetUtcNow(), http.RequestAborted);
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             var groups = await db.Groups.AsNoTracking().Include(g => g.Members)
-                .Where(g => g.Members.Any(m => m.AccountId == a.Id && m.Status != MemberStatus.Left)).ToListAsync();
+                .Where(g => g.Members.Any(m => m.AccountId == a.Id && (m.Status == MemberStatus.Pending || m.Status == MemberStatus.Accepted))).ToListAsync();
             return Results.Ok(groups.OrderByDescending(g => g.CreatedAt.UtcTicks).Select(g => Views.GroupSummary(c, g)));
         });
 
-        me.MapGet("/groups/{id:guid}", async (Guid id, HttpContext http, AppDb db) =>
+        me.MapGet("/groups/{id:guid}", async (Guid id, HttpContext http, AppDb db, TimeProvider clock) =>
         {
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            await Lifecycle.ExpireAsync(db, a.Id, clock.GetUtcNow(), http.RequestAborted);
             var g = await db.Groups.AsNoTracking().Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
-            if (g is null || !g.Members.Any(m => m.AccountId == a.Id && m.Status != MemberStatus.Left)) return Error("notFound", 404);
+            if (g is null || !InGroup(g, a.Id)) return Error("notFound", 404);
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             return Results.Ok(Views.Home(c, Views.OthersInOrder(g, a.Id), g));
         });
@@ -180,7 +186,7 @@ public static partial class Api
         {
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
             var g = await db.Groups.AsNoTracking().Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
-            if (g is null || !g.Members.Any(m => m.AccountId == a.Id && m.Status != MemberStatus.Left)) return Error("notFound", 404);
+            if (g is null || !InGroup(g, a.Id)) return Error("notFound", 404);
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             var all = new List<Profile> { c.Me };
             all.AddRange(Views.OthersInOrder(g, a.Id).Select(c.Get).OfType<Profile>());
@@ -211,10 +217,16 @@ public static partial class Api
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
             var g = await db.Groups.Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
             var m = g?.Members.FirstOrDefault(x => x.AccountId == a.Id);
-            if (g is null || m is null || m.Status == MemberStatus.Left) return Error("notFound", 404);
+            if (g is null || m is null || !MemberStatus.IsActive(m.Status))
+                return m?.Status is MemberStatus.Expired or MemberStatus.Withdrawn ? Error(m.Status, 409) : Error("notFound", 404);
             if (m.Status != MemberStatus.Pending) return Error("alreadyAnswered", 409);
+            var now = clock.GetUtcNow();
+            if (Lifecycle.ExpiresAt(g, m) <= now) { await Lifecycle.ExpireAsync(db, a.Id, now); return Error(MemberStatus.Expired, 409); }
+            var wasFormed = Lifecycle.State(g) == "formed";
             m.Status = r.Accept ? MemberStatus.Accepted : MemberStatus.Declined;
-            m.RespondedAt = clock.GetUtcNow();
+            m.RespondedAt = now;
+            await Lifecycle.NotifyMembersAsync(db, g, r.Accept ? NoteKind.Accepted : NoteKind.Declined, a.Id, now, a.Id);
+            await Lifecycle.AfterChangeAsync(db, g, wasFormed, now, a.Id);
             await db.SaveChangesAsync();
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             return Results.Ok(Views.Home(c, Views.OthersInOrder(g, a.Id), g));
@@ -225,11 +237,64 @@ public static partial class Api
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
             var g = await db.Groups.Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
             var m = g?.Members.FirstOrDefault(x => x.AccountId == a.Id);
-            if (g is null || m is null) return Error("notFound", 404);
-            m.Status = MemberStatus.Left;
-            m.RespondedAt = clock.GetUtcNow();
+            if (g is null || m is null || !MemberStatus.IsActive(m.Status)) return Error("notFound", 404);
+            var now = clock.GetUtcNow();
+            m.Status = m.Status == MemberStatus.Pending ? MemberStatus.Declined : MemberStatus.Left;
+            m.RespondedAt = now;
+            await Lifecycle.NotifyMembersAsync(db, g, m.Status == MemberStatus.Left ? NoteKind.Left : NoteKind.Declined, a.Id, now, a.Id);
             await db.SaveChangesAsync();
             return Results.NoContent();
+        });
+
+        // Fill a free place with one of your own mutual matches (B-038).
+        me.MapPost("/groups/{id:guid}/invite", async (Guid id, InviteRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
+        {
+            var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
+            var now = clock.GetUtcNow();
+            await Lifecycle.ExpireAsync(db, a.Id, now, http.RequestAborted);
+            var g = await db.Groups.Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
+            if (g is null || !InGroup(g, a.Id)) return Error("notFound", 404);
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            var newId = r.Id ?? "";
+            if (Lifecycle.CheckInvite(c, g, newId) is { } problem) return Error("cantInvite", 422, [problem]);
+            var wasFormed = Lifecycle.State(g) == "formed";
+            var row = g.Members.FirstOrDefault(m => m.AccountId == newId);
+            if (row is null) g.Members.Add(row = new GroupMember { GroupId = g.Id, AccountId = newId, Position = g.Members.Max(m => m.Position) + 1 });
+            row.Status = MemberStatus.Pending; row.InvitedAt = now; row.InvitedById = a.Id; row.RespondedAt = null;
+            if (c.IsDemo(newId))
+            {
+                // A made-up person answers at once, by their own rule, about everyone still in the group.
+                var p = c.Get(newId)!;
+                var everyone = Lifecycle.Active(g).Where(m => m.AccountId != newId).Select(m => c.Get(m.AccountId)).OfType<Profile>();
+                row.Status = everyone.All(o => Matching.Accepts(p, o)) ? MemberStatus.Accepted : MemberStatus.Declined;
+                row.RespondedAt = now;
+            }
+            else await Notes.AddAsync(db, newId, NoteKind.Invite, a.Id, g.Id, now);
+            await Lifecycle.NotifyMembersAsync(db, g, NoteKind.Invited, newId, now, a.Id);
+            await Lifecycle.AfterChangeAsync(db, g, wasFormed, now, a.Id);
+            await db.SaveChangesAsync();
+            return Results.Ok(Views.Home(c, Views.OthersInOrder(g, a.Id), g));
+        });
+
+        // Take back an invitation that hasn't been answered: your own, or any, if you proposed the group (B-038).
+        me.MapPost("/groups/{id:guid}/withdraw", async (Guid id, InviteRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
+        {
+            var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
+            var g = await db.Groups.Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
+            if (g is null || !g.Members.Any(m => m.AccountId == a.Id && m.Status == MemberStatus.Accepted)) return Error("notFound", 404);
+            var row = g.Members.FirstOrDefault(m => m.AccountId == r.Id && m.Status == MemberStatus.Pending);
+            if (row is null) return Error("notPending", 409);
+            if ((row.InvitedById ?? g.CreatedById) != a.Id && g.CreatedById != a.Id) return Error("notYours", 403);
+            var now = clock.GetUtcNow();
+            var wasFormed = Lifecycle.State(g) == "formed";
+            row.Status = MemberStatus.Withdrawn;
+            row.RespondedAt = now;
+            await db.Notifications.Where(n => n.AccountId == row.AccountId && n.GroupId == g.Id && n.Kind == NoteKind.Invite && n.ReadAt == null).ExecuteDeleteAsync();
+            await Notes.AddAsync(db, row.AccountId, NoteKind.Withdrawn, a.Id, g.Id, now);
+            await Lifecycle.AfterChangeAsync(db, g, wasFormed, now, null);
+            await db.SaveChangesAsync();
+            var c = await Community.LoadAsync(db, a, http.RequestAborted);
+            return Results.Ok(Views.Home(c, Views.OthersInOrder(g, a.Id), g));
         });
 
         me.MapPut("/groups/{id:guid}/size", async (Guid id, SizeRequest r, HttpContext http, AppDb db) =>
@@ -243,5 +308,22 @@ public static partial class Api
             await db.SaveChangesAsync();
             return Results.Ok(new { min = lo, max = hi });
         });
+    }
+
+    /// <summary>Still in the group: invited and not answered, or said yes. People who declined, left, expired or were
+    /// withdrawn no longer see it.</summary>
+    static bool InGroup(Group g, string id) => g.Members.Any(m => m.AccountId == id && MemberStatus.IsActive(m.Status));
+
+    /// <summary>Tells a real person about a like (B-037): "liked you" if they haven't answered, "match" if they had
+    /// already liked the viewer. Taking a like back removes the unread notice.</summary>
+    static async Task NotifyReactionAsync(AppDb db, Community c, string to, string kind, DateTimeOffset now, CancellationToken ct)
+    {
+        await db.Notifications.Where(n => n.AccountId == to && n.ActorId == c.Viewer.Id && n.ReadAt == null
+            && (n.Kind == NoteKind.Like || n.Kind == NoteKind.Match)).ExecuteDeleteAsync(ct);
+        if (kind != ReactionKind.Like) return;
+        var theirs = await db.Reactions.AsNoTracking().FirstOrDefaultAsync(x => x.FromId == to && x.ToId == c.Viewer.Id, ct);
+        if (theirs?.Kind == ReactionKind.Pass) return;
+        await Notes.AddAsync(db, to, theirs?.Kind == ReactionKind.Like ? NoteKind.Match : NoteKind.Like, c.Viewer.Id, null, now, ct);
+        await db.SaveChangesAsync(ct);
     }
 }

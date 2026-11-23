@@ -2,6 +2,23 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-23 · Session 19: notifications, messages and the group lifecycle
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Product, the Builder and Tester (B-036, B-037, B-038) and the CEO (D-039)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 18 (B-050 and B-051 deployed). Sam: "Let's implement this", pasting the guide's "Not here yet" list (notifications; seeing who has liked you, and messages; invitations that don't expire and places that can't be filled). No new answers in the founder queue.
+**Goals:** 1. B-037 in-app notifications. 2. B-036 messages and "liked you". 3. B-038 expiry, withdrawing, filling a free place.
+**Needs Sam:** F-021 (new): the go to deploy, which also applies a database migration.
+**Did**
+- Back end: migration `Social` (tables Notifications, Messages, ThreadReads, Blocks, Reports; columns Account.ConductAcceptedAt, Group.PlannedSize, GroupMember.InvitedAt and InvitedById). `Lifecycle.cs`: group states, 14-day expiry when someone looks, free places, who may invite and withdraw, notices to members. `Social.cs`: inbox and counts, conversations (pairs and groups), scripted replies, code of conduct, block (leaves shared groups) and report; deleting an account or replacing the daily batch removes their messages, notices and blocks. `Api.cs`: notices on likes, matches, invitations, answers and leaving; invite and withdraw endpoints; only people still in a group can see it.
+- Front end: a bell and `#alerts`; *Messages* as a fourth destination (`#messages`, `#chat-<id>`) and a *Chat* view on each group; conduct and report dialogs; "♥ Liked you" chip and first place in *To review*; on a group, who has gone, a free-places card with your own matches to invite, "until <date>" and *Withdraw* on pending members, "answer by <date>" on invitations; blocked people under Profile. 101 new strings in each language (658 keys each, none missing); the guide's sections rewritten for D-039; service-worker version bumped.
+- Fixed an existing bug found while testing: opening or reloading the app at a People address (e.g. `#people-review`) never loaded anyone, because `applyRoute` saw "the same page" and skipped loading. Live since Session 18.
+- Tests: 7 new .NET tests (`SocialTests.cs`); 4 new browser checks in `tests/e2e/e2e.mjs`; a two-person Playwright script in the session's scratch folder (not in the repository) for decline, free place, filling, withdrawing, group chat, report and block.
+**Decided:** D-039 (CEO): likes tell the other person; groups carry on when someone drops out and freed places can be filled by members who said yes; blocking leaves shared groups; conduct before the first message. **Approvals used:** none needed (Build mode, local only); nothing deployed or pushed.
+**Learned:** "seeing who liked you" can't sit with silent likes, so D-038's silent-like rule changed. With only Sam real on the live site, "liked you" would always be empty, so a fixed sixth of willing made-up people like you first (a quarter showed 10 of 32 people, too many). SQLite can't compare DateTimeOffset values in queries, so expiry and rate limits compare in memory over small sets.
+**Open or blocked:** deploy waits for F-021. Left in B-037: emails (ACS). Left in B-038: next-steps checklist, editing the whole brief. New B-052: privacy notice and data map for the new data. The *Chat* view tab sits past the edge of the group's sub-tabs on phones (they scroll sideways, as before).
+**Saved and checked:** `dotnet test` 47 of 47; browser test 46 of 46 against a local run, twice; two-person script 14 of 14; screenshots (phone and desktop, light and dark) of chat, conduct dialog, notifications, free place and a filled place looked at; `git status` and `git diff` reviewed for STATE, BACKLOG, DECISIONS, FOUNDER-QUEUE, `app/README.md` and `app/`. LOG saved last; its check and the commit are confirmed in the closing report.
+**Next session should start with:** 1. F-021 deploy, if Sam says go, and the live checks. 2. B-042 and B-052 before anyone but Sam signs up. 3. B-047 crawl check.
+
 ## 2026-11-23 · Session 18: calmer navigation and pages
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff, with Product, the Builder and Tester (B-051) and the CEO (D-038); the plan reviewed by a second model (Fable 5.2)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

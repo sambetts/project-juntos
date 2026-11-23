@@ -29,6 +29,7 @@ function hhLabel(p){
 /* ---------- people and messages from the API ---------- */
 const PEOPLE={};
 function remember(map){if(map)Object.keys(map).forEach(k=>{PEOPLE[k]=map[k];});}
+function rememberLite(map){if(map)Object.keys(map).forEach(k=>{PEOPLE[k]=Object.assign({},map[k],PEOPLE[k]||{});});}
 function isMe(id){return S.me&&id===S.me.id;}
 function personName(id){return PEOPLE[id]?PEOPLE[id].name:'?';}
 function nm(id){return isMe(id)?t('you'):personName(id);}
@@ -64,7 +65,9 @@ function M(m){
 }
 
 /* ---------- state ---------- */
-const S={me:null,config:null,view:null,wiz:0,authError:'',tab:'you',authMode:'signin',profile:null,matches:null,groups:null,home:null,draft:[],save:'',busy:false};
+const S={me:null,config:null,view:null,wiz:0,authError:'',tab:'you',authMode:'signin',profile:null,matches:null,groups:null,home:null,draft:[],save:'',busy:false,
+  /* Session 19: unread counts, the inbox, conversations, the open conversation and blocked people */
+  counts:{alerts:0,messages:0,invites:0},inbox:null,chats:null,chat:null,chatKey:null,blocks:null};
 const app=document.getElementById('app');
 const tabsEl=document.getElementById('tabs');
 const barEl=document.querySelector('#actionbar .wrap');
@@ -250,6 +253,8 @@ ${sec(t('needsH'),'needs')}
 <section class="account mt"><h3>${esc(t('account'))}</h3>
 <p class="hint">${esc(t('signedInAs',S.me.email||''))}</p>
 <div class="presets"><button type="button" class="btn small" data-action="logout">${esc(t('signOut'))}</button><button type="button" class="btn small ghost danger" data-action="delete-account">${esc(t('deleteAccount'))}</button></div>
+<h4 class="mt">${esc(t('blockedH'))}</h4>
+${!S.blocks?`<p class="hint">${esc(t('loading'))}</p>`:(S.blocks.length?`<ul class="clean">${S.blocks.map(b=>`<li>${avatar(b.id,28,b.color,b.name)}<div><b>${esc(b.name)}</b></div><button type="button" class="btn small ghost" data-action="unblock" data-id="${esc(b.id)}">${esc(t('unblock'))}</button></li>`).join('')}</ul>`:`<p class="hint">${esc(t('blockedNone'))}</p>`)}
 </section>`;
 }
 
@@ -288,7 +293,7 @@ function cardActions(x){
   if(inDraft)return `<span class="status ok">${t('inDraft')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="remove" data-id="${esc(p.id)}">${t('remove')}</button>`;
   if(st==='passed')return `<span class="status wait">${t('passedS')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
   if(st==='none')return `<button type="button" class="btn small" data-action="pass" data-id="${esc(p.id)}">${t('pass')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="like" data-id="${esc(p.id)}">${t('like')}</button>`;
-  if(st==='mutual')return `<span class="status ok">${t('mutualS')}${sim}</span><span class="spacer"></span><button type="button" class="btn small primary" data-action="add" data-id="${esc(p.id)}">${t('addGroup')}</button>`;
+  if(st==='mutual')return `<span class="status ok">${t('mutualS')}${sim}</span><span class="spacer"></span><a class="btn small" href="#chat-${esc(p.id)}">${esc(t('msgBtn'))}</a><button type="button" class="btn small primary" data-action="add" data-id="${esc(p.id)}">${t('addGroup')}</button>`;
   if(st==='waiting')return `<span class="status wait">${t('waitingS')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
   return `<span class="status wait">${t('likedNo')}${sim}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
 }
@@ -298,7 +303,7 @@ function personCard(x){
   const p=x.person,s=x.score.total,cls=s>=80?'hi':(s>=65?'mid':'lo'),st=x.state;
   const bio=p.bio?tx(p.bio):'';
   const chip=(c,good)=>`<span class="chip ${good?'good':'warn'}">${good?'✓':'⚑'} ${esc(M(c))}</span>`;
-  const top=x.clicks.slice(0,2).map(c=>chip(c,true)).join('')+x.talks.slice(0,1).map(c=>chip(c,false)).join('');
+  const top=(x.likedMe?`<span class="chip liked">${esc(t('likedYou'))}</span>`:'')+x.clicks.slice(0,2).map(c=>chip(c,true)).join('')+x.talks.slice(0,1).map(c=>chip(c,false)).join('');
   return `<article class="card pcard${st==='passed'?' passed':''}">
 <div class="phead">${avatar(p.id,46,p.color,p.name)}<div class="pwho"><div class="pname">${esc(p.name)}${p.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''}</div><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls}" data-p="${s}" role="img" aria-label="${esc(t('ringAria',s))}"><b>${s}%</b></div></div>
 ${bio?`<p class="bio clamp">${esc(bio)}</p>`:''}
@@ -331,7 +336,8 @@ function subTabs(items,cur,attr,label){
 function viewMatches(){
   const m=S.matches;if(!m)return `<p class="lead">${esc(t('loading'))}</p>`;
   const all=m.compatible,c=peopleCounts(),ps=peopleSub(),med=median(all.map(x=>x.score.total));
-  const summary=[t('sumCompat',all.length),med!=null?t('sumMedian',Math.round(med)):''].filter(Boolean).join(' · ');
+  const likedN=all.filter(x=>x.likedMe).length;
+  const summary=[t('sumCompat',all.length),med!=null?t('sumMedian',Math.round(med)):'',ps==='review'&&likedN?t('likedYouN',likedN):''].filter(Boolean).join(' · ');
   const head=`<header class="phead2"><div><h2>${t('peopleH')}</h2><p class="hint">${esc(summary)} · <a href="#help" class="quiet">${esc(t('howScore'))}</a></p></div></header>
 ${subTabs([['review',t('ps_review'),c.review],['liked',t('ps_liked'),c.liked],['matches',t('ps_matches'),c.matches]].map(x=>x.concat(['','#people-'+x[0]])),ps,'data-ps',t('peopleH'))}`;
   /* the one next step on this page: a group, once you have a mutual match */
@@ -354,7 +360,8 @@ function viewGroups(){
   const card=g=>{
     const ids=g.members.map(x=>x.id),invite=g.myStatus==='pending';
     const waiting=g.members.filter(x=>!isMe(x.id)&&x.status==='pending').map(x=>x.id);
-    const line=invite?t('invitedBy',dn(g.createdBy)):(g.state==='formed'?t('gFormedLine'):(waiting.length?t('gWaitingFor',names(waiting)):t('st_'+g.state)));
+    const by=g.life&&g.life.invitedBy||g.createdBy;
+    const line=invite?t('invitedBy',dn(by))+(g.life&&g.life.expiresAt?' · '+t('answerBy',day(g.life.expiresAt)):''):(g.state==='formed'?t('gFormedLine'):(waiting.length?t('gWaitingFor',names(waiting)):(g.state==='broken'?t('gBrokenLine'):t('st_'+g.state))));
     return `<article class="card gcard${invite?' invite':''}"><div class="grow-row"><div class="stack">${ids.map(id=>avatar(id,38)).join('')}</div><span class="pill ${g.state==='formed'?'ok':(invite?'act':'wait')}">${esc(invite?t('pillInvite'):t('pill_'+g.state))}</span></div>
 <div><b>${esc(ids.map(dn).join(' + '))}</b></div>
 <div class="who">${esc(line)}</div>
@@ -385,6 +392,8 @@ ${x.clicks.length?`<h4>${esc(t('clickH'))}</h4><div class="chips">${x.clicks.map
 ${x.talks.length?`<h4>${esc(t('talkH'))}</h4><div class="chips">${x.talks.map(c=>`<span class="chip warn">⚑ ${esc(M(c))}</span>`).join('')}</div>`:''}
 <div class="together mt">${t('together',esc(line),esc(rest))}</div>
 <h4>${esc(t('why',s))}</h4><div class="bars">${Object.keys(WEIGHTS).map(k=>bar(tx(PART_LABELS[k]),x.score.parts[k])).join('')}</div><p class="hint">${esc(t('demoScoreHint'))}</p>
+${x.likedMe?`<p><span class="chip liked">${esc(t('likedYou'))}</span></p>`:''}
+<p class="safety"><button type="button" class="linkbtn" data-action="report" data-id="${esc(p.id)}">${esc(t('report'))}</button> · <button type="button" class="linkbtn" data-action="block" data-id="${esc(p.id)}">${esc(t('block'))}</button></p>
 <div class="pactions sheet-act">${cardActions(x)}</div>
 </div></dialog>`;
 }
@@ -400,10 +409,14 @@ function viewHome(h){
   const isPreview=h.preview,ids=[S.me.id].concat(h.members.map(m=>m.id).filter(id=>!isMe(id)));
   const mine=h.members.find(m=>isMe(m.id)),myStatus=mine?mine.status:'preview';
   const statusOf=id=>{const m=h.members.find(x=>x.id===id);return m?m.status:'';};
-  const chips=`<div class="card members">${ids.map(id=>`<span class="member">${avatar(id,32)}<span><b>${esc(dn(id))}</b><br><span class="hint">${esc(hhLabel(PEOPLE[id]))}${!isPreview&&!isMe(id)?' · '+esc(memberStatus(statusOf(id))):''}</span></span></span>`).join('')}</div>`;
+  const life=h.life||{free:0,canInvite:false,canWithdraw:[],pendingUntil:{},gone:[]};
+  const until=id=>statusOf(id)==='pending'&&life.pendingUntil[id]?' · '+t('untilDate',day(life.pendingUntil[id])):'';
+  const wd=id=>life.canWithdraw.indexOf(id)>=0?`<button type="button" class="linkbtn" data-action="withdraw" data-gid="${h.id}" data-id="${esc(id)}">${esc(t('withdraw'))}</button>`:'';
+  const goneLine=!isPreview&&life.gone.length?`<p class="hint gone">${esc(life.gone.map(x=>t('gone_'+x.status,dn(x.id))).join(' · '))}</p>`:'';
+  const chips=`<div class="card members">${ids.map(id=>`<span class="member">${avatar(id,32)}<span><b>${esc(dn(id))}</b><br><span class="hint">${esc(hhLabel(PEOPLE[id]))}${!isPreview&&!isMe(id)?' · '+esc(memberStatus(statusOf(id)))+esc(until(id)):''}</span>${wd(id)}</span></span>`).join('')}${goneLine}</div>`;
   const back=`<p class="crumb"><a class="linkbtn" href="#groups">← ${t('allGroups')}</a></p>`;
   const stateLine=isPreview?`<span class="pill wait">${esc(t('pillPreview'))}</span>`:`<span class="pill ${h.state==='formed'?'ok':(myStatus==='pending'?'act':'wait')}">${esc(myStatus==='pending'?t('pillInvite'):t('pill_'+h.state))}</span>`;
-  const respond=!isPreview&&myStatus==='pending'?`<div class="card notice mt">${esc(t('invitedBy',dn(h.createdBy)))}<div class="row"><button type="button" class="btn small" data-action="respond" data-id="${h.id}" data-accept="0">${t('decline')}</button><button type="button" class="btn small primary" data-action="respond" data-id="${h.id}" data-accept="1">${t('accept')}</button></div></div>`:'';
+  const respond=!isPreview&&myStatus==='pending'?`<div class="card notice mt">${esc(t('invitedBy',dn(life.invitedBy||h.createdBy)))}${life.expiresAt?' · '+esc(t('answerBy',day(life.expiresAt))):''}<div class="row"><button type="button" class="btn small" data-action="respond" data-id="${h.id}" data-accept="0">${t('decline')}</button><button type="button" class="btn small primary" data-action="respond" data-id="${h.id}" data-accept="1">${t('accept')}</button></div></div>`:'';
   if(!h.check.ok)return `${back}<h2>${t('homeH')}</h2>${stateLine}
 <p class="lead">${esc(t('attentionLead'))}</p>
 ${chips}${respond}
@@ -422,9 +435,10 @@ ${chips}${respond}
   const leave=!isPreview&&myStatus!=='pending'?`<p class="mt"><button type="button" class="btn small ghost danger" data-action="leave" data-id="${h.id}">${t('leave')}</button></p>`:'';
   /* Three views (B-051): Overview (where things stand, and how you fit), Home brief (the home, the rooms, what to agree), Homes */
   const hr=S.homes&&S.homes.gid===h.id&&S.homes.data?S.homes.data:null;
-  const sub=GSUBS.indexOf(S.gsub)>=0&&!(isPreview&&S.gsub==='homes')?S.gsub:'overview';
+  const sub=GSUBS.indexOf(S.gsub)>=0&&!(isPreview&&(S.gsub==='homes'||S.gsub==='chat'))?S.gsub:'overview';
   const subs=[['overview',t('gs_overview'),null,'',groupHash(h,'overview')],['brief',t('gs_brief'),null,'',groupHash(h,'brief')],
-    ['homes',t('gs_homes'),hr?hr.homes.length:null,isPreview?t('gs_homesLater'):'',isPreview?'':groupHash(h,'homes')]];
+    ['homes',t('gs_homes'),hr?hr.homes.length:null,isPreview?t('gs_homesLater'):'',isPreview?'':groupHash(h,'homes')],
+    ['chat',t('gs_chat'),null,isPreview?t('gs_homesLater'):'',isPreview?'':groupHash(h,'chat')]];
   const fitCard=`<section class="card"><h3>${t('fitH')}</h3>
 <div class="kpis">${kp(gs.min+'%',(ids.length>2?t('weakestK'):t('compatK'))+esc(dn(w.a))+' + '+esc(dn(w.b)))}${ids.length>2?kp(gs.avg+'%',esc(t('avgOf',gs.pairs.length))):''}</div>
 ${ids.length>2?matrix(ids,gs.pairs):''}
@@ -462,19 +476,195 @@ ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>
   else if(myStatus==='pending')next='';
   else if(h.state==='formed')next=`<div class="nextstep"><span>${esc(hr&&hr.homes.length?t('nextHomes',hr.homes.length):t('nextFormed'))}</span>${hr&&hr.homes.length?`<a class="btn small primary" href="${groupHash(h,'homes')}">${esc(t('nextHomesBtn'))}</a>`:`<a class="btn small" href="${groupHash(h,'brief')}">${esc(t('nextBriefBtn'))}</a>`}</div>`;
   else if(waiting.length)next=`<div class="nextstep"><span>${esc(t('gWaitingFor',names(waiting)))}</span><a class="btn small" href="${groupHash(h,'brief')}">${esc(t('nextBriefBtn'))}</a></div>`;
+  else if(h.state==='broken')next=`<div class="nextstep"><span>${esc(life.canInvite?t('nextBroken'):t('gBrokenLine'))}</span></div>`;
   const medP=hr?median(hr.homes.map(x=>x.price)):null;
   const otile=(k,v,label,sub2)=>`<a class="otile" href="${groupHash(h,k)}"><span class="tk">${esc(label)}</span><span class="tv">${v}</span><span class="ts">${esc(sub2)}</span><span class="go" aria-hidden="true">→</span></a>`;
-  const overview=`${next}<div class="grid cols-2">${fitCard}<div class="stackcol">${chips}
+  const overview=`${next}<div class="grid cols-2">${fitCard}<div class="stackcol">${chips}${isPreview?'':freePlaces(h,life,ids)}
 ${otile('brief',esc(cap(line)),t('oBrief'),[t('bathsN',hb.baths),h.size.min+'–'+h.size.max+' m²',where].join(' · '))}
 ${isPreview?'':otile('homes',hr?num(hr.homes.length):'…',t('oHomes'),hr?(hr.homes.length?t('oHomesSub',kEur(medP)):t('oHomesNone')):t('loading'))}
 </div></div>${leave}`;
-  const body={overview:overview,brief:briefView,homes:isPreview?'':homesSection(h.id)}[sub];
+  const body={overview:overview,brief:briefView,homes:isPreview?'':homesSection(h.id),chat:isPreview?'':chatPanel({kind:'group',id:h.id})}[sub];
   return `${back}<header class="ghead"><div class="stack">${ids.map(id=>avatar(id,36)).join('')}</div><div class="gwho"><h2>${esc(ids.map(dn).join(' + '))}</h2><p class="hint">${stateLine} ${esc(lead)}</p></div></header>
 ${respond}
 ${subTabs(subs,sub,'data-gsub',t('gsAria'))}
 <div class="gbody">${body}</div>
 <p class="hint mt">${esc(t('leadScope'))}</p>`;
 }
+/* Free places (B-038): someone declined, left, didn't answer in time or was withdrawn. A member who has said yes
+   can invite one of their own mutual matches; the server checks they fit the group. */
+function freePlaces(h,life,ids){
+  if(!life.free)return '';
+  let body;
+  if(!life.canInvite)body=`<p class="hint">${esc(t('freeAfterYes'))}</p>`;
+  else if(!S.matches)body=`<p class="hint">${esc(t('loading'))}</p>`;
+  else{
+    const final=life.gone.filter(x=>x.status==='declined'||x.status==='left').map(x=>x.id);
+    const can=S.matches.compatible.filter(x=>x.state==='mutual'&&ids.indexOf(x.person.id)<0&&final.indexOf(x.person.id)<0);
+    body=can.length?`<ul class="clean pick">${can.slice(0,8).map(x=>`<li>${avatar(x.person.id,28,x.person.color,x.person.name)}<div><b>${esc(x.person.name)}</b>${x.person.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''} <span class="hint">· ${x.score.total}%</span></div><button type="button" class="btn small" data-action="invite-member" data-gid="${h.id}" data-id="${esc(x.person.id)}">${esc(t('invite'))}</button></li>`).join('')}</ul>`:`<p class="hint">${esc(t('freeNone'))}</p>`;
+  }
+  return `<section class="card freeplace"><h3>${esc(t('freeH',life.free))}</h3><p class="hint">${esc(t('freeLead'))}</p>${body}</section>`;
+}
+
+/* ---------- Session 19: notifications, messages, block and report (B-036, B-037) ---------- */
+function day(iso){try{return new Date(iso).toLocaleDateString(locale(),{day:'numeric',month:'long'});}catch(e){return '';}}
+function when(iso){
+  const d=new Date(iso),s=(Date.now()-d.getTime())/1000;
+  if(s<60)return t('justNow');if(s<3600)return t('minAgo',Math.floor(s/60));if(s<86400)return t('hAgo',Math.floor(s/3600));
+  return d.toLocaleDateString(locale(),{day:'numeric',month:'short'});
+}
+function noteLink(n){
+  if(n.kind==='like')return '#person-'+n.actor;
+  if(n.kind==='match')return '#chat-'+n.actor;
+  return n.group&&n.groupOpen?'#group-'+n.group:'';
+}
+function viewAlerts(){
+  const head=`<header class="phead2"><div><h2>${esc(t('alertsH'))}</h2><p class="hint">${esc(t('alertsLead'))}</p></div></header>`;
+  const ib=S.inbox;if(!ib)return head+`<p class="lead">${esc(t('loading'))}</p>`;
+  if(!ib.items.length)return head+`<div class="card empty"><p class="lead">${esc(t('alertsNone'))}</p></div>`;
+  return head+`<ul class="alerts">${ib.items.map(n=>{
+    const who=n.actor?personName(n.actor):'',txt=t('n_'+n.kind,who),href=noteLink(n);
+    const inner=`${n.actor?avatar(n.actor,36):`<span class="avatar bellav" aria-hidden="true">${ICONS.bell}</span>`}<span class="atext">${esc(txt)}<time datetime="${esc(n.at)}">${esc(when(n.at))}</time></span>`;
+    return `<li class="${n.read?'':'unread'}">${href?`<a href="${href}">${inner}</a>`:`<div>${inner}</div>`}</li>`;}).join('')}</ul>`;
+}
+function convTitle(x){return x.kind==='person'?personName(x.id):names(x.members);}
+function msgText(m){return m.script?t('scr_'+m.script):m.body;}
+function viewMessages(){
+  if(S.chatKey)return viewChat();
+  const head=`<header class="phead2"><div><h2>${esc(t('chatsH'))}</h2><p class="hint">${esc(t('chatsLead'))}</p></div></header>`;
+  const cs=S.chats;if(!cs)return head+`<p class="lead">${esc(t('loading'))}</p>`;
+  if(!cs.items.length)return head+`<div class="card empty"><p class="lead">${esc(t('chatsNone'))}</p><a class="btn primary" href="#people-review">${t('goMatches')}</a></div>`;
+  return head+`<ul class="convs">${cs.items.map(x=>{
+    const href=x.kind==='person'?'#chat-'+x.id:'#group-'+x.id+'-chat',others=x.kind==='person'?[x.id]:x.members.filter(id=>!isMe(id));
+    const last=x.last?(isMe(x.last.from)?t('youPrefix'):(x.kind==='group'?personName(x.last.from)+': ':''))+msgText(x.last):t('sayHello');
+    return `<li${x.unread?' class="unread"':''}><a href="${href}"><span class="stack">${others.slice(0,3).map(id=>avatar(id,36)).join('')}</span><span class="ctext"><b>${esc(convTitle(x))}</b>${x.kind==='group'?` <span class="pill">${esc(t('pill_'+x.state))}</span>`:''}<span class="clast">${esc(last)}</span></span>${x.last?`<time datetime="${esc(x.last.at)}">${esc(when(x.last.at))}</time>`:''}${x.unread?`<span class="count" aria-label="${x.unread}">${x.unread}</span>`:''}</a></li>`;}).join('')}</ul>`;
+}
+function viewChat(){
+  const k=S.chatKey,back=`<p class="crumb"><a class="linkbtn" href="#messages">← ${esc(t('allChats'))}</a></p>`;
+  const ch=S.chat&&S.chat.kind===k.kind&&S.chat.id===k.id?S.chat:null;
+  const head=ch&&!ch.error?`<header class="ghead">${avatar(k.id,40)}<div class="gwho"><h2>${esc(personName(k.id))}</h2></div><div class="gacts"><a class="btn small ghost" href="#person-${esc(k.id)}">${esc(t('seeProfile'))}</a><button type="button" class="btn small ghost" data-action="report" data-id="${esc(k.id)}">${esc(t('report'))}</button><button type="button" class="btn small ghost danger" data-action="block" data-id="${esc(k.id)}">${esc(t('block'))}</button></div></header>`:'';
+  return back+head+chatPanel(k);
+}
+function chatPanel(k){
+  const ch=S.chat&&S.chat.kind===k.kind&&S.chat.id===k.id?S.chat:null;
+  if(!ch)return `<p class="lead">${esc(t('loading'))}</p>`;
+  if(ch.error)return `<div class="card empty"><p class="lead">${esc(t('chatGone'))}</p><a class="btn" href="#messages">${esc(t('allChats'))}</a></div>`;
+  return `<section class="chat card"><div class="msgs" id="chat-msgs">${chatMsgs(ch)}</div>
+<form id="chat-form" class="composer"><label class="sr" for="chat-input">${esc(t('chatLabel'))}</label><textarea id="chat-input" rows="2" maxlength="1000" placeholder="${esc(t('chatPh'))}"></textarea><button type="submit" class="btn primary">${esc(t('send'))}</button></form>
+<p class="hint">${esc(t('chatSafety'))} <a class="quiet" href="#help">${esc(t('conductLink'))}</a></p></section>`;
+}
+function chatMsgs(ch){
+  if(!ch.messages.length)return `<p class="hint center">${esc(ch.kind==='person'?t('chatEmptyP',personName(ch.id)):t('chatEmptyG'))}</p>`;
+  return ch.messages.map(m=>{const mine=isMe(m.from);return `<div class="msg${mine?' mine':''}">${mine?'':avatar(m.from,28)}<div class="bubble">${ch.kind==='group'&&!mine?`<b class="from">${esc(personName(m.from))}</b>`:''}<p>${esc(msgText(m))}</p><time datetime="${esc(m.at)}">${esc(when(m.at))}</time></div></div>`;}).join('');
+}
+function scrollChat(){const el=document.getElementById('chat-msgs');if(el)el.scrollTop=el.scrollHeight;}
+/* Which conversation the current view shows, if any */
+function wantedChat(){
+  if(!inApp())return null;
+  if(S.tab==='messages'&&S.chatKey)return S.chatKey;
+  if(S.tab==='groups'&&S.home&&!S.home.preview&&S.gsub==='chat')return {kind:'group',id:S.home.id};
+  return null;
+}
+async function loadChat(k,quiet){
+  const key=k.kind+':'+k.id;if(!quiet){if(S.chatLoading===key)return;S.chatLoading=key;}
+  let d;
+  try{d=await api('GET','/api/chats/'+k.kind+'/'+encodeURIComponent(k.id));rememberLite(d.people);}
+  catch(e){d={kind:k.kind,id:k.id,error:true,messages:[]};}
+  if(!quiet)S.chatLoading=null;
+  const w=wantedChat();if(!w||w.kind!==k.kind||w.id!==k.id)return;
+  const before=S.chat&&S.chat.kind===k.kind&&S.chat.id===k.id?S.chat.messages.length:-1;
+  S.chat=d;
+  if(quiet&&before===d.messages.length)return;
+  const el=document.getElementById('chat-msgs');
+  if(el&&!d.error){el.innerHTML=chatMsgs(d);applyStyles(el);scrollChat();}else rerender();
+  loadCounts();
+}
+async function sendChat(){
+  const inp=document.getElementById('chat-input'),k=wantedChat();if(!inp||!k)return;
+  const body=inp.value.trim();if(!body)return;
+  if(!S.me.conduct){openConduct();return;}
+  const btn=document.querySelector('#chat-form button[type=submit]');if(btn)btn.disabled=true;
+  try{const d=await api('POST','/api/chats/'+k.kind+'/'+encodeURIComponent(k.id),{body:body});rememberLite(d.people);S.chat=d;inp.value='';
+    const el=document.getElementById('chat-msgs');if(el){el.innerHTML=chatMsgs(d);applyStyles(el);scrollChat();}}
+  catch(e){if(e.code==='conductNeeded'){S.me.conduct=false;openConduct();}else toast(errText(e));}
+  finally{if(btn)btn.disabled=false;inp.focus();}
+}
+/* Dialogs live outside #app, so a re-render doesn't remove them */
+function showDialog(id,html){
+  const old=document.getElementById(id);if(old)old.remove();
+  const d=document.createElement('dialog');d.className='sheet';d.id=id;d.innerHTML=`<div class="sheet-in">${html}</div>`;
+  document.body.appendChild(d);applyStyles(d);
+  d.addEventListener('close',()=>d.remove());
+  try{d.showModal();}catch(e){d.setAttribute('open','');}
+  const f=d.querySelector('button,input,textarea');if(f)f.focus();
+  return d;
+}
+function closeDialog(el){const d=el.closest('dialog');if(d){if(d.open)d.close();else d.remove();}}
+function openConduct(){
+  showDialog('conduct-dlg',`<h2>${esc(t('conductH'))}</h2><p>${esc(t('conductLead'))}</p><ul>${t('conductItems').map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+<div class="row end"><button type="button" class="btn ghost" data-action="dlg-close">${esc(t('cancel'))}</button><button type="button" class="btn primary" data-action="conduct-ok">${esc(t('conductOk'))}</button></div>`);
+}
+function openReport(id){
+  const reasons=['fake','harassment','scam','unsafe','other'];
+  showDialog('report-dlg',`<form id="report-form" data-id="${esc(id)}"><h2>${esc(t('reportH',personName(id)))}</h2><p class="hint">${esc(t('reportLead'))}</p>
+<fieldset class="field"><legend class="label">${esc(t('reportReason'))}</legend>${reasons.map(r=>`<label class="check"><input type="radio" name="reason" value="${r}" required><span>${esc(t('rr_'+r))}</span></label>`).join('')}</fieldset>
+<div class="field"><label for="report-note">${esc(t('reportNote'))}</label><textarea id="report-note" name="note" rows="3" maxlength="1000"></textarea></div>
+<label class="check"><input type="checkbox" name="block" checked><span>${esc(t('reportBlock'))}</span></label>
+<p class="hint">${esc(t('reportPoC'))}</p>
+<div class="row end"><button type="button" class="btn ghost" data-action="dlg-close">${esc(t('cancel'))}</button><button type="submit" class="btn primary">${esc(t('reportSend'))}</button></div></form>`);
+}
+/* After blocking, the person is gone from every list: reload, and leave their conversation */
+async function afterBlock(){
+  S.chats=null;S.chat=null;S.blocks=null;S.person=null;
+  if(S.tab==='messages'&&S.chatKey){S.chatKey=null;location.hash='#messages';}
+  if(S.home&&!S.home.preview){S.home=null;if(S.tab==='groups')location.hash='#groups';}
+  await refresh();
+}
+async function blockPerson(id){
+  const n=personName(id);if(!window.confirm(t('blockConfirm',n)))return;
+  try{await api('PUT','/api/blocks/'+encodeURIComponent(id));toast(t('tBlocked',n));await afterBlock();}catch(e){toast(errText(e));}
+}
+async function loadCounts(){
+  if(!inApp())return;
+  try{const c=await api('GET','/api/inbox/count');const changed=JSON.stringify(c)!==JSON.stringify(S.counts);S.counts=c;if(changed){renderTabs();renderChrome();}}catch(e){}
+}
+async function loadInbox(){
+  if(S.inboxLoading)return;S.inboxLoading=true;
+  try{const d=await api('GET','/api/inbox');rememberLite(d.people);S.inbox=d;
+    if(d.items.some(n=>!n.read)){await api('POST','/api/inbox/read');S.counts.alerts=0;}}
+  catch(e){S.inbox={items:[]};toast(errText(e));}
+  finally{S.inboxLoading=false;}
+  if(S.tab==='alerts')rerender();
+}
+async function loadChats(){
+  if(S.chatsLoading)return;S.chatsLoading=true;
+  try{const d=await api('GET','/api/chats');rememberLite(d.people);S.chats=d;}catch(e){S.chats={items:[]};toast(errText(e));}
+  finally{S.chatsLoading=false;}
+  if(S.tab==='messages')rerender();
+}
+async function loadBlocks(){
+  if(S.blocksLoading)return;S.blocksLoading=true;
+  try{S.blocks=await api('GET','/api/blocks');}catch(e){S.blocks=[];}
+  finally{S.blocksLoading=false;}
+  if(S.tab==='you')rerender();
+}
+/* Load what the current view needs and hasn't got yet */
+function ensureData(){
+  if(!inApp())return;
+  if(S.tab==='alerts'&&!S.inbox)loadInbox();
+  if(S.tab==='messages'&&!S.chatKey&&!S.chats)loadChats();
+  if(S.tab==='you'&&!S.blocks)loadBlocks();
+  const w=wantedChat();if(w&&!(S.chat&&S.chat.kind===w.kind&&S.chat.id===w.id))loadChat(w);
+  if(S.tab==='groups'&&S.home&&!S.home.preview&&!S.matches)loadMatches().then(rerender).catch(()=>{});
+}
+/* Every 10 s while the page is visible: the open conversation; every 30 s: the unread counts */
+let pollTick=0;
+setInterval(()=>{
+  if(document.visibilityState!=='visible'||!inApp())return;
+  pollTick++;
+  const w=wantedChat();if(w&&S.chat&&!S.chat.error)loadChat(w,true);
+  if(pollTick%3===0)loadCounts();
+},10000);
+
 /* ---------- numbers, stat tiles and charts (Session 16 design review) ----------
    Charts are plain SVG drawn at the container's real width, so text stays readable on phones.
    Colours come from CSS classes (the page's security policy blocks inline styles). */
@@ -678,6 +868,8 @@ function mfApply(list,f){const q=f.q.trim().toLowerCase();const r=list.filter(x=
   if(f.sort==='name')r.sort((a,b)=>a.person.name.localeCompare(b.person.name,locale()));return r;}
 function matchesResults(){
   const m=S.matches,f=mfState(),ps=peopleSub(),all=m.compatible.filter(x=>psOf(x)===ps),sel=mfApply(all,f),filtered=f.min||f.q.trim();
+  /* people who liked you come first in To review (stable, so the order by affinity holds within each part) */
+  if(ps==='review'&&f.sort==='score')sel.sort((a,b)=>(b.likedMe?1:0)-(a.likedMe?1:0));
   let chart='';
   if(f.chart&&all.length){
     const lo=Math.min(95,Math.floor(Math.min(...all.map(x=>x.score.total),100)/5)*5),bins=[];
@@ -728,6 +920,8 @@ function renderChrome(){
   const foot=document.getElementById('footnote');
   if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
   const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('navAria'));nav.hidden=!inApp();}
+  const bell=document.getElementById('alerts-link');
+  if(bell){const n=S.counts.alerts||0;bell.hidden=!inApp();bell.innerHTML=ICONS.bell+(n?`<span class="count" aria-hidden="true">${n}</span>`:'');bell.setAttribute('aria-label',t('alertsAria',n));if(S.tab==='alerts')bell.setAttribute('aria-current','page');else bell.removeAttribute('aria-current');}
   /* Short forms for phones ("?" and "EN"), long ones for wider screens; CSS picks */
   const hl=document.getElementById('help-link');
   if(hl){hl.innerHTML=`<span class="long">${esc(t('helpLink'))}</span><span class="short" aria-hidden="true">?</span>`;hl.setAttribute('aria-label',t('helpLink'));}
@@ -742,15 +936,18 @@ function renderTabs(){
   if(!inApp()){tabsEl.innerHTML='';return;}
   /* Badges count what is waiting for you: people not answered yet, invitations not answered yet */
   /* Only invitations get a badge: they wait for your answer (B-051 review) */
-  const invites=S.groups?S.groups.filter(g=>g.myStatus==='pending').length:0;
-  const tabs=[['matches','#people-'+peopleSub(),t('navPeople'),'','',ICONS.people],['groups','#groups',t('navGroups'),invites?String(invites):'',t('srInvites'),ICONS.groups],['you','#profile',t('navProfile'),'','',ICONS.profile]];
+  const invites=S.groups?S.groups.filter(g=>g.myStatus==='pending').length:(S.counts.invites||0),unread=S.counts.messages||0;
+  const tabs=[['matches','#people-'+peopleSub(),t('navPeople'),'','',ICONS.people],['groups','#groups',t('navGroups'),invites?String(invites):'',t('srInvites'),ICONS.groups],
+    ['messages','#messages',t('navMessages'),unread?String(unread):'',t('srUnread'),ICONS.chat],['you','#profile',t('navProfile'),'','',ICONS.profile]];
   tabsEl.innerHTML=tabs.map(x=>`<a class="tab" href="${x[1]}" id="tab-${x[0]}" data-tab="${x[0]}"${S.tab===x[0]?' aria-current="page"':''}>${x[5]}<span>${esc(x[2])}</span>${x[3]?`<span class="count"><span aria-hidden="true">${x[3]}</span><span class="sr">: ${x[3]} ${esc(x[4])}</span></span>`:''}</a>`).join('');
 }
 /* Line icons for the tabs (stroke only, coloured by CSS) */
 const ICONS={
   people:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c2.4.2 4 1.8 4.5 4.3"/></svg>',
   groups:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h2v5M12.5 20v-5h2v5"/></svg>',
-  profile:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>'
+  profile:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>',
+  chat:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6.5A2.5 2.5 0 0 1 7 4h10a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 17 16h-6l-4.5 4v-4H7a2.5 2.5 0 0 1-2.5-2.5z"/></svg>',
+  bell:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>'
 };
 /* The bottom bar only appears when it carries a real action: the wizard's Back and Next, or a group you're building */
 function renderBar(){
@@ -768,24 +965,29 @@ function renderBar(){
 function render(){
   renderChrome();
   renderTabs();
-  app.innerHTML=S.view?(S.view==='help'?viewHelp():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(S.tab==='you'?viewYou():(S.tab==='matches'?viewMatches():viewGroups()))));
+  const views={you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
+  app.innerHTML=S.view?(S.view==='help'?viewHelp():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
   applyStyles(app);
   if(document.getElementById('hx-results'))updateHomes();
   drawCharts(app);
   renderBar();
   syncHash();
   if(S.person)openSheet();
+  scrollChat();
+  ensureData();
 }
 
 /* ---------- addresses (Session 18, B-051): every view has one, so Back and shared links work ----------
    #people-review|-liked|-matches|-passed · #person-<id> (a sheet over People) · #groups ·
    #group-<id>[-brief|-homes] · #preview[-brief] · #profile.
    #help, #terms, #privacy, #lang= and #authError= are read by readHash as before. */
-const GSUBS=['overview','brief','homes'];
+const GSUBS=['overview','brief','homes','chat'];
 function groupHash(h,sub){return (h.preview?'#preview':'#group-'+h.id)+(sub&&sub!=='overview'?'-'+sub:'');}
 function routeHash(){
   if(!inApp())return '';
   if(S.tab==='you')return '#profile';
+  if(S.tab==='alerts')return '#alerts';
+  if(S.tab==='messages')return S.chatKey?'#chat-'+S.chatKey.id:'#messages';
   if(S.tab==='matches')return S.person?'#person-'+S.person:'#people-'+peopleSub();
   if(S.home)return groupHash(S.home,S.gsub);
   return '#groups';
@@ -797,8 +999,11 @@ function parseRoute(h){
   if((m=/^people(?:-(review|liked|matches|passed))?$/.exec(h)))return {tab:'matches',ps:m[1]||null};
   if((m=/^person-([A-Za-z0-9_.-]{1,64})$/.exec(h)))return {tab:'matches',person:m[1]};
   if(h==='groups')return {tab:'groups'};
+  if(h==='alerts')return {tab:'alerts'};
+  if(h==='messages')return {tab:'messages'};
+  if((m=/^chat-([A-Za-z0-9_.-]{1,64})$/.exec(h)))return {tab:'messages',chat:m[1]};
   if((m=/^preview(?:-(brief))?$/.exec(h)))return {tab:'groups',preview:true,gsub:m[1]||'overview'};
-  if((m=/^group-([0-9a-f-]{36})(?:-(brief|homes))?$/.exec(h)))return {tab:'groups',gid:m[1],gsub:m[2]||'overview'};
+  if((m=/^group-([0-9a-f-]{36})(?:-(brief|homes|chat))?$/.exec(h)))return {tab:'groups',gid:m[1],gsub:m[2]||'overview'};
   return null;
 }
 function syncHash(){
@@ -813,6 +1018,8 @@ function applyRoute(h){
   const before={tab:S.tab,gid:S.home&&S.home.id,preview:S.home&&S.home.preview,person:S.person};
   S.tab=r.tab;
   S.person=r.person||null;
+  if(r.tab==='messages'){const k=r.chat?{kind:'person',id:r.chat}:null;if(!k||!S.chatKey||S.chatKey.id!==k.id)S.chat=null;S.chatKey=k;if(!k)S.chats=null;}
+  if(r.tab==='alerts')S.inbox=null;
   if(r.tab==='matches'&&r.ps){if(r.ps!==S.ps&&S.mf)S.mf.show=12;S.ps=r.ps;}
   if(r.tab!=='groups'||(!r.gid&&!r.preview))S.home=null;
   if(r.gid){S.gsub=r.gsub;if(!S.home||S.home.id!==r.gid){openGroup(r.gid);return true;}}
@@ -823,7 +1030,7 @@ function applyRoute(h){
   if(S.person){S.sheetFromApp=before.tab==='matches';openSheet();}
   else if(samePage&&!before.person){const cur=app.querySelector('.subtabs [aria-current="page"]');if(cur){cur.focus({preventScroll:true});const nav=cur.closest('.subtabs');if(nav.getBoundingClientRect().top<0)nav.scrollIntoView({block:'start'});}}
   else if(!before.person){window.scrollTo(0,0);focusHeading();}
-  if(!samePage&&r.tab!=='you'&&!r.gid)refresh();
+  if(!samePage&&(r.tab==='matches'||r.tab==='groups')&&!r.gid)refresh();
   return true;
 }
 function rerender(){const y=window.scrollY||0;render();window.scrollTo(0,y);}
@@ -838,6 +1045,7 @@ async function loadGroups(){const gs=await api('GET','/api/groups');gs.forEach(g
 async function refresh(){
   try{await Promise.all([loadMatches(),loadGroups()]);}catch(e){toast(errText(e));}
   rerender();
+  loadCounts();
 }
 async function go(tab,sub){
   S.tab=tab;S.home=null;if(tab==='matches'&&sub)S.ps=sub;
@@ -849,7 +1057,9 @@ async function enter(me){
   S.me=me;S.authError='';
   PEOPLE[S.me.id]={name:S.me.name,color:'#52607a'};
   try{S.profile=await api('GET','/api/profile');}catch(e){toast(errText(e));}
-  if(S.me.onboarded){S.tab=S.tab||'matches';if(S.startRoute&&applyRoute(S.startRoute)){S.startRoute=null;if(S.home)refresh();return;}render();focusHeading();refresh();}
+  if(S.me.onboarded){S.tab=S.tab||'matches';
+    /* Opening the app at an address: applyRoute sees the same tab as before and skips loading, so always load here (found in Session 19) */
+    if(S.startRoute&&applyRoute(S.startRoute)){S.startRoute=null;refresh();return;}render();focusHeading();refresh();}
   else{S.wiz=0;render();focusHeading();}
 }
 async function start(){
@@ -939,7 +1149,14 @@ async function openGroup(id,sub){
   catch(e){toast(errText(e));}
 }
 async function respond(id,accept){
-  try{const h=await api('POST','/api/groups/'+id+'/respond',{accept:accept});remember(h.people);S.home=h;await loadGroups();render();toast(accept?t('tAccepted'):t('tDeclined'));if(h.check&&h.check.ok)loadHomes(id);}
+  try{const h=await api('POST','/api/groups/'+id+'/respond',{accept:accept});remember(h.people);await loadGroups();
+    /* After declining, the group is no longer yours to see */
+    if(accept){S.home=h;render();if(h.check&&h.check.ok)loadHomes(id);}else{S.home=null;if(location.hash!=='#groups')location.hash='#groups';else render();}
+    toast(accept?t('tAccepted'):t('tDeclined'));loadCounts();}
+  catch(e){toast(errText(e));if(e.code==='expired'||e.code==='withdrawn'){S.home=null;await loadGroups();if(location.hash!=='#groups')location.hash='#groups';else render();}}
+}
+async function groupAction(gid,path,id,msg){
+  try{const h=await api('POST','/api/groups/'+gid+'/'+path,{id:id});remember(h.people);S.home=h;await loadGroups();rerender();toast(t(msg,personName(id)));}
   catch(e){toast(errText(e));}
 }
 async function leave(id){
@@ -957,6 +1174,7 @@ function switchLang(l){setLang(l);try{localStorage.setItem(LANG_KEY,LANG);}catch
 
 /* ---------- events ---------- */
 app.addEventListener('submit',async e=>{
+  if(e.target.id==='chat-form'){e.preventDefault();sendChat();return;}
   if(e.target.id!=='auth-form')return;
   e.preventDefault();
   const f=e.target,data={},errEl=document.getElementById('auth-error'),btn=f.querySelector('button[type=submit]');
@@ -1040,6 +1258,13 @@ document.addEventListener('click',async e=>{
     case 'all-groups':S.home=null;go('groups');break;
     case 'respond':respond(id,el.getAttribute('data-accept')==='1');break;
     case 'leave':leave(id);break;
+    case 'invite-member':el.disabled=true;groupAction(el.getAttribute('data-gid'),'invite',id,'tInvited');break;
+    case 'withdraw':el.disabled=true;groupAction(el.getAttribute('data-gid'),'withdraw',id,'tWithdrawn');break;
+    case 'report':openReport(id);break;
+    case 'block':blockPerson(id);break;
+    case 'unblock':{const b=(S.blocks||[]).find(x=>x.id===id);try{await api('DELETE','/api/blocks/'+encodeURIComponent(id));toast(t('tUnblocked',b?b.name:''));S.blocks=null;S.matches=null;rerender();}catch(err){toast(errText(err));}break;}
+    case 'dlg-close':closeDialog(el);break;
+    case 'conduct-ok':try{S.me=await api('POST','/api/me/conduct');closeDialog(el);sendChat();}catch(err){toast(errText(err));}break;
     case 'hf':{const f=S.hf;if(!f)break;const k=el.getAttribute('data-k'),v=el.getAttribute('data-v');
       if(k==='types'||k==='areas'){const i=f[k].indexOf(v);if(i>=0)f[k].splice(i,1);else f[k].push(v);}
       else if(k==='beds')f.beds=parseInt(v,10)||0;else if(k==='energy')f.energy=v;else f[k]=!f[k];
@@ -1053,7 +1278,7 @@ document.addEventListener('click',async e=>{
     case 'more-people':{mfState().show+=12;updateMatches();break;}
     case 'mf-chart':{const f=mfState();f.chart=!f.chart;el.setAttribute('aria-pressed',String(f.chart));updateMatches();break;}
     case 'score-bin':{const f=mfState();f.min=+el.getAttribute('data-lo');const r=document.getElementById('mf-min');if(r)r.value=f.min;const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');updateMatches();break;}
-    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.authMode='signin';render();break;}
+    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.inbox=null;S.chats=null;S.chat=null;S.chatKey=null;S.blocks=null;S.counts={alerts:0,messages:0,invites:0};S.authMode='signin';render();break;}
     case 'delete-account':if(window.confirm(t('deleteConfirm'))){try{await api('DELETE','/api/me');S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];render();}catch(err){toast(errText(err));}}break;
   }
 });
@@ -1067,6 +1292,19 @@ document.addEventListener('close',e=>{
   if(S.sheetFromApp){S.sheetFromApp=false;history.back();}else{try{history.replaceState(null,'','#people-'+peopleSub());}catch(err){}render();}
 },true);
 app.addEventListener('click',e=>{if(e.target.id==='person-sheet')e.target.close();});
+/* The report dialog sits outside #app */
+document.addEventListener('submit',async e=>{
+  if(e.target.id!=='report-form')return;
+  e.preventDefault();
+  const f=e.target,id=f.getAttribute('data-id'),reason=(f.querySelector('input[name=reason]:checked')||{}).value;
+  if(!reason){toast(t('err_badReason'));return;}
+  const block=f.querySelector('input[name=block]').checked;
+  try{await api('POST','/api/reports',{about:id,reason:reason,note:f.querySelector('textarea').value,block:block,thread:S.chatKey&&S.chatKey.id===id?'p:'+[S.me.id,id].sort().join('|'):null});
+    closeDialog(f);toast(t('tReported'));if(block)await afterBlock();}
+  catch(err){toast(errText(err));}
+});
+/* Enter sends; Shift+Enter starts a new line */
+app.addEventListener('keydown',e=>{if(e.target.id==='chat-input'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendChat();}});
 window.addEventListener('hashchange',()=>{
   if(readHash()){render();window.scrollTo(0,0);focusHeading();return;}
   if(location.hash!==routeHash())applyRoute(location.hash);

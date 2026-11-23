@@ -45,6 +45,7 @@ public static class Accounts
         email = a.Email,
         name = a.ReadProfile().Name,
         onboarded = a.OnboardedAt is not null,
+        conduct = a.ConductAcceptedAt is not null,
     };
 
     public static string? NormaliseEmail(string? raw)
