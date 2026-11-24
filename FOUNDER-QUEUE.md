@@ -4,6 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-036 · Push Session 28's release-checklist work to `main` (deploys B-042 and B-074) · by 2026-11-28
+**Why:** a push to `main` deploys the app (D-041). It brings: household type no longer filters real people (B-042, a rule in AGENTS.md section 4), and the release funnel page `#funnel` (B-074). No database change. B-073 (the subscription move kept ready) changes only infrastructure files, which the push doesn't run.
+**Also:** after the deploy, may I set `Admin__AccountIds` on the live web app to your account id, so you alone can open `#funnel`?
+**Recommendation:** yes to both. 90 .NET tests and the browser test (85 of 85) pass locally.
+**If no answer:** committed, not deployed.
+
 ### F-032 · Move hosting off the Visual Studio credit before anyone else signs up (R-024) · CLOSED 2026-11-24: stay for now (D-049)
 **Why:** your subscription is the Visual Studio subscriber offer. Microsoft's terms: "This benefit is for development and testing only. Production workloads must be run on regular subscriptions." The credit also stops if that Visual Studio subscription ends. Fine for the closed preview; not for a public tool.
 **Options:** A) a pay-as-you-go subscription in your name for the live app (about €16 a month before VAT estimated in D-028, to re-price; the credit stays for testing) · B) apply for startup credits meant for production (eligibility not checked) · C) stay as now.

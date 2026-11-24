@@ -2,6 +2,25 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-24 · Session 28: release checklist, first three items
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Legal & Compliance (B-042), the Builder (B-073), the Builder with Validation (B-074)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** Session 27 (strategy, D-048, D-049), pushed on Sam's go (`30d1e87`). Sam: "push and start on the release checklist".
+**Goals:** 1. B-042 no household-type filter on real people. 2. B-073 keep a subscription move ready. 3. B-074 funnel counts.
+**Needs Sam:** F-036 (new): push to deploy B-042 and B-074, then set his account id for `#funnel`; recommend yes.
+**Did**
+- B-042: `Matching.Hard` applies the household rule only between two made-up people (a `Real` flag set in `Account.ReadProfile`, `[JsonIgnore]`, kept by `Clone`); `ProfileRules` stores every household and accepts a profile without `open`; the profile's "who you'd share with" section now explains instead of asking; guide and hint wording cleaned in both languages; `HouseholdTests.cs` (4 tests). The prototype parity tests pass unchanged.
+- B-073: an empty `planId` creates a plan of its own (`planSku`, B1); `deploy.ps1 -OwnPlan`; move steps in `app/README.md`. Found while doing it: resource names carry a suffix from the resource group's ID, which includes the subscription, so a move changes the app's address.
+- B-074: `Funnel.cs` (`GET /api/admin/funnel`), the `#funnel` page in both languages, `Admin__AccountIds` through Bicep and `deploy.ps1`; `FunnelTests.cs` (3 tests); a browser check that someone not listed is refused. Changed during the session: a refusal is `{allowed:false}`, not 404, because the 404 showed as a console error; Madrid counts only finished profiles, since unfinished ones carry Madrid's default areas.
+- Checked by hand against a local run: the funnel's JSON as a listed admin.
+
+**Decided:** nothing new (B-042 applies AGENTS.md section 4; D-049 covers B-073).
+**Approvals used:** Sam's "push and start on the release checklist" (2026-11-24): pushed Session 27's commits only.
+**Learned:** a subscription move changes the public address unless there is a custom domain (F-014). Two `node` processes on this machine belong to the GitHub Copilot CLI, not to these sessions; left alone. The funnel page was checked as JSON, not visually as an admin.
+**Open or blocked:** F-036; F-033 to F-035; B-072's operator notice waits for F-034.
+**Saved and checked:** `dotnet test` 90 of 90; browser test 85 of 85 on a fresh local database (twice, after the last changes); `az bicep build` clean; three code commits (`3672b10`, `f2497ea`, `0170aed`). Project files checked in `git diff` against this entry before the last commit; LOG.md saved last.
+**Next session should start with:** 1. F-036: if pushed, the CI/CD run, the live profile and `#funnel`. 2. B-052 with B-027, B-039, B-041, B-072. 3. B-075 or B-076 if Sam agrees; B-070.
+
 ## 2026-11-24 · Session 27: a free tool first (strategy)
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the CEO (D-048, strategy, roadmap); Research and Legal & Compliance through five helpers run by the deep-research skill (affordability, demand for co-buying, Spanish competitors, international platforms, launch rules)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
