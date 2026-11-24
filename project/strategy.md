@@ -6,7 +6,7 @@ _(CEO, Session 27, after Sam's decision D-048. Evidence: `research/2026-11-24-pr
 - **Evidence:** the affordability problem is strong and Verified in official data. Demand for the remedy is not: nobody has measured willingness to buy with strangers, sign-ups convert badly (habitacion.com under 1%), and abroad every platform that matched strangers for a main home has closed, stalled or turned to friends.
 - **Competitors:** nobody in Spain lets strangers form a group, agree a brief and choose a whole home together. Casicasa stops before forming groups; habitacion.com sells rooms in homes it picks. Our gaps: no exit or agreement tool, no lending route, no completed purchase.
 - **Strategy:** release Compicasa free, for people buying with strangers *or* with people they already know; make it useful to one person or one group before matches exist; put the little promotion we can do into one place (Madrid, to live in); and judge it by groups that agree on a home, not by sign-ups. Matching stays free for good; any later charge goes on the agreement-and-exit layer, delivered with lawyers.
-- **Before anyone else signs up:** decide who operates the service in law, and finish the privacy and safety basics (section 4). Hosting stays on the Visual Studio subscription for now (D-049), though its terms say development and testing only; a move stays ready.
+- **Before anyone else signs up:** finish the privacy and safety basics and the operator notice (section 4). Costs stay near zero until interest is proven: no company and no lawyer until we charge (D-050). Hosting stays on the Visual Studio subscription for now (D-049), though its terms say development and testing only; a move stays ready.
 
 ## 1. Problem statement
 > People in Spain who can't afford a home on their own, because the deposit and taxes alone are years of saving on one income, have no safe and simple way to pool with others: to find co-buyers they can trust, agree what home they need, choose it together and know what each pays and how anyone can leave.
@@ -50,29 +50,37 @@ So the free release must produce the evidence nobody has: how many people, once 
 | # | Item | Backlog / ask |
 |---|---|---|
 | 1 | Hosting: stays on the Visual Studio subscription for now, Sam's choice (D-049), with a move to a regular subscription kept ready | D-049, B-073 |
-| 2 | Who runs it in law (Sam as an individual or an S.L.), and the LSSI notice that follows | F-034, lawyer A1/A6 |
-| 3 | The lawyer's Part A answers, at least A1 to A3 (status, data, equal treatment), plus the five new questions | F-006, `research/2026-11-24-free-launch-rules.md` |
-| 4 | No household-type filter on real people; the budget only as the lawyer allows | B-042, A3 |
+| 2 | Sam runs it as an individual (D-050); the operator notice that follows | F-037, B-072 |
+| 3 | No paid lawyer before interest is proven (D-050). Instead, conservative defaults from our own research (`research/2026-11-24-free-launch-rules.md`): free, no fees, no advice, no filtering people by protected characteristics, household or money. The lawyer comes back before charging, or if a question blocks the release | D-050 |
+| 4 | No household-type filter on real people (done, B-042); the budget filters homes only, never people (D-044) | B-042 |
 | 5 | Privacy notice and data map for everything we now hold; a short DPIA; record of processing | B-052, B-027 |
 | 6 | DSA basics: reports reviewed by a person, reasons given, a contact point, final terms | B-041, B-072 |
 | 7 | Delete an account fully (including the sign-in record); download your data | B-039 |
 | 8 | Safety: named responder (Sam), code of conduct (built), safety guidance | F-033 |
 | 9 | Measurement of the funnel, counts only, no tracking cookies | B-074 |
 | 10 | A native speaker's review of the Spanish | B-031 |
-| 11 | Remove the invite code and `noindex`; a domain | Sam (F-014), at release |
+| 11 | Remove the invite code and `noindex`; a domain is optional (about €33 a year; the free `azurewebsites.net` address works) | Sam (F-014), at release |
 
 **Stage 2: open, free, one place first.** The app already covers all of Spain; keep it open everywhere, but put promotion into Madrid, buying to live in (D-008's first group), so matches have enough people nearby. Show newcomers honestly how many compatible people are near them. Every public step (posts, press, groups, ads) is Sam's to approve. Low-cost channels, roughly in order: press (buying with strangers is already a news story, and a free tool is a hook); a public, indexable cost calculator per region (a search magnet no rival has); Spanish and expat community groups; and people inviting the co-buyers they already know (B-075).
 
 **Stage 3: measure.** One main measure: **groups that agree on a home** (all members vote yes in the final round) per month. Around it: completed profiles; share with a mutual match within 14 days; groups formed; groups with an agreed brief; and later, purchases by groups formed in the app (asked, never assumed). Sign-ups are not traction.
 
-**Proposed critical mass** (Assumptions for Sam to set, F-035), in the focus area over one quarter: 1,000 completed profiles; 60% of them with a mutual match within 14 days; 30 groups formed; 10 groups agreeing on a home; and at least one group-made purchase, at any time. **Pivot rule:** after 90 days of real promotion, if under 10% of completed profiles get a mutual match, or no group agrees a brief, change course to a friends-first co-buying toolkit, or stop.
+**Suggested milestones** (all Assumptions; Sam decides later, F-035). Counted on finished profiles in the focus area, never sign-ups, which convert badly (habitacion.com: under 1% of its waiting list bought). The ratios are a first guess, to be replaced by our own numbers after the first month (`#funnel`, B-074):
 
-**Stage 4: charge, only after critical mass (D-010 stays open).** Matching stays free for good. Options to test then, each after the lawyer:
+| Milestone | When | Numbers (focus area) | What it would show |
+|---|---|---|---|
+| **Signal** | first 90 days of real promotion | 300 finished profiles; 20% with a real mutual match within 14 days; 5 groups formed; 1 group agrees on a home | People will match with strangers at all. Below this, the pivot rule |
+| **Traction** | within about 6 months | 1,000 finished profiles; 40% matched within 14 days; 30 groups formed and 10 agreeing on a home in a quarter | A newcomer usually finds someone; groups get as far as a home |
+| **Critical mass** (time to look at charging) | when it happens | 3,000 finished profiles; 60% matched within 14 days; 25 groups forming a month; 3 purchases by groups formed in the app; a second city growing without promotion | It grows without Sam pushing it, and groups actually buy, so a paid agreement-and-exit pack would have buyers |
+
+**Pivot rule:** after 90 days of real promotion, if under 10% of completed profiles get a mutual match, or no group agrees a brief, change course to a friends-first co-buying toolkit, or stop.
+
+**Stage 4: charge, only after critical mass (D-010 stays open).** Matching stays free for good. A company and a lawyer come first (D-050). Options to test then:
 1. An agreement-and-exit pack: a worksheet of the group's own rules, drafted into a contract by partner lawyers for a published fixed fee (CoBuy's model; we never give the advice ourselves).
 2. Referral from free mortgage brokers who will take groups (credit intermediary rules apply).
 3. Lead fees from agencies (likely makes us an intermediary: anti-money-laundering duties, regional registers: R-003).
 
-**Costs.** Hosting at a pay-as-you-go price was estimated at about €16 a month before VAT for B1 and SQL Basic (D-028, Reported, 2026-11-22; to re-price, F-032), plus a domain (€32.98 listed, 2026-11-20). The lawyer's Part A is about €60–150 before VAT (Reported, `project/budget.md`). The real cost is Sam's time: moderation, safety replies within 24 hours, support.
+**Costs: as close to zero as possible until interest is proven (D-050).** Hosting on the Visual Studio credit (D-049); no company and no lawyer; a domain optional (€32.98 listed, 2026-11-20). The real cost is Sam's time: moderation, safety replies within 24 hours, support.
 
 ## 5. Risks (full register: `RISKS.md`)
 | Risk | Score | Response |
@@ -81,7 +89,7 @@ So the free release must produce the evidence nobody has: how many people, once 
 | R-002 banks won't lend to unrelated groups | 9 | Broker check (B-009) before groups reach an offer; say so in the app |
 | R-025 interest doesn't convert: sign-ups without groups or purchases | 6 | Judge by groups agreeing on a home, never sign-ups |
 | R-024 hosting breaks the Azure credit's terms, or the credit ends | 6 | Accepted for now (D-049); keep the move ready (B-073) and do it if the credit or the terms bite |
-| R-026 running a public platform as an individual: published address, fines, DSA duties with one moderator | 6 | Lawyer first; consider an S.L. (F-034); minimal back office (B-041) |
+| R-026 running a public platform as an individual: published address, fines, DSA duties with one moderator | 6 | Accepted for now (D-050); conservative defaults; minimal back office (B-041); a lawyer and a company before charging |
 | R-027 no path to revenue; charging later makes us an intermediary | 6 | Plan the paid layer around the agreement; lawyer maps each option |
 | R-013 too few people in one place | 6 | One focus area; useful before matches; honest counts |
 | R-006, R-015, R-007 discrimination, safety between strangers, data | 9, 6, 6 | Release checklist items 4 to 8 |

@@ -4,6 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-037 · What the site shows about you as its operator (LSSI art. 10.1) · before release
+**Why:** you'll run Compicasa as an individual (D-050). If a free site counts as an information society service (a question we can't settle without a lawyer), the law asks for the operator's name, address, email and NIF on the site (Verified, BOE). That would be your own.
+**Options:** A) name, email, a postal address and NIF, as the law lists · B) name and a contact email only, accepting the risk if the law applies (a serious breach is fined from €30,001) · C) a paid PO box or virtual address (a cost, against D-050).
+**Recommendation:** A, on the legal notice page, unless you'd rather not publish your address; then B, knowingly.
+**If no answer:** the release waits for this item.
+
 ### F-036 · Push Session 28's release-checklist work to `main` (deploys B-042 and B-074) · CLOSED 2026-11-24: pushed
 **Why:** a push to `main` deploys the app (D-041). It brings: household type no longer filters real people (B-042, a rule in AGENTS.md section 4), and the release funnel page `#funnel` (B-074). No database change. B-073 (the subscription move kept ready) changes only infrastructure files, which the push doesn't run.
 **Also:** after the deploy, may I set `Admin__AccountIds` on the live web app to your account id, so you alone can open `#funnel`?
@@ -21,16 +27,17 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 ### F-033 · Approve the release checklist as the gate to real users (changes AGENTS.md section 3) · by 2026-12-05
 **Why:** the free-release strategy (D-048) needs a gate. Today Pilot mode needs every gate in section 2 of the pilot plan, which assumes a hand-run pilot. Changing the modes is yours.
 **Ask:** approve section 4 of `project/strategy.md` (11 items: hosting, who operates it, lawyer Part A, privacy and DPIA, DSA basics, deletion, safety, measurement, Spanish review, domain) as Pilot mode's gate; you remain the named responder.
-**Recommendation:** approve. Item 3 makes the lawyer (F-006) the critical path: book it now.
+**Recommendation:** approve. Updated 2026-11-24 for D-050: item 2 is now the operator notice (F-037) and item 3 conservative defaults instead of the lawyer.
 **If no answer:** the old gate stands and nothing opens.
 
-### F-034 · Who runs Compicasa in law: you as an individual, or a company (S.L.)? · by 2026-12-19
+### F-034 · Who runs Compicasa in law: you as an individual, or a company (S.L.)? · CLOSED 2026-11-24: as an individual (D-050)
 **Why:** once public, the site may have to show the operator's name, address and NIF (LSSI art. 10.1, Verified), and fines or claims fall on the operator. With an individual, that is you, personally (R-026).
 **Options:** A) ask the lawyer first (question 1 in `research/2026-11-24-free-launch-rules.md`), then decide · B) individual now · C) form an S.L. now (costs not checked).
 **Recommendation:** A, within the F-006 consultation.
 **If no answer:** checklist item 2 stays open and nothing opens.
+**ANSWER (Sam, 2026-11-24, in Claude Code):** "Creating an actual company I'm not going to do until it's absolutely necesary. Unless we're charging money I don't see the need yet and that has it's own costs. The aim is to have as close to 0 costs until the interest is proven. Lawyer too." Recorded as D-050: an individual until charging; no lawyer until interest is proven.
 
-### F-035 · What counts as critical mass, and where we focus (replaces F-004, F-005, F-010) · by 2026-12-19
+### F-035 · What counts as critical mass, and where we focus (replaces F-004, F-005, F-010) · Sam 2026-11-24: decide later; suggested milestones in `project/strategy.md` section 4
 **Why:** D-048 says charge only at critical mass; we need the number now so we measure the right things from day one.
 **Proposal** (`project/strategy.md` section 4, all Assumptions): in Madrid, buying to live in, over a quarter: 1,000 completed profiles, 60% with a mutual match in 14 days, 30 groups formed, 10 agreeing on a home, and one group-made purchase at any time. Pivot rule: after 90 days of real promotion, under 10% matched or no agreed brief means change course or stop.
 **Recommendation:** approve or edit the numbers; retire F-004, F-005 and F-010, keeping the pilot plan as a fallback.
@@ -139,7 +146,7 @@ Then, after his sign-up still failed: "Fix production" (Sam, 2026-11-22, in GitH
 **Recommendation:** approve, with the decision rules as corrected on 2026-11-20: "continue" now needs M3 at two or more pairs, and a "weak signal" rule covers one to five mutual acceptances.
 **If no answer:** the pilot doesn't run.
 
-### F-006 · Send the lawyer brief and book Part A · by 2026-12-04, after F-001
+### F-006 · Send the lawyer brief and book Part A · DEFERRED 2026-11-24 by Sam until interest is proven or before charging (D-050)
 **Why:** the pilot's data, matching rules and safety terms depend on the answers, and later the legal structure and revenue model too (D-009 to D-011).
 **Ready:** `research/2026-11-20-lawyer-brief.md`. Its first part is for you only (a checklist); section 8 is the Spanish cover email.
 **Ask:** from a personal email address, send it to two or three lawyers or firms (Partnerships can shortlist them: B-021) and compare fixed-fee quotes. Then book Part A: one hour plus a short written note. Part B is a quote only for now.
