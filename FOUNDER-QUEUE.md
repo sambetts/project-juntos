@@ -4,11 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-041 · Push the home photos to `main` (deploys B-080, D-051) · by 2026-11-26
+### F-041 · Push the home photos to `main` (deploys B-080, D-051) · CLOSED 2026-11-24: pushed
 **Why:** a push deploys (D-041). Each real home's card then shows the advert's main photo, loaded from the agency's server (never copied), credited "Foto: Tecnocasa", with the sketch as fallback; the bot page and "Where homes come from" say so. Migration `HomePhotoUrl` adds one column. Homes already in the index get their photo when the crawl re-reads them, within the daily cap of 3,000, so all of them within about two days.
 **Options:** push now; or wait for the lawyer's view on A7 first.
 **Recommendation:** push now. 98 .NET tests and the browser test (93 of 93) pass locally; R-029 is low and one setting turns photos off.
 **If no answer:** committed, not deployed.
+**ANSWER (Sam, 2026-11-24, in Claude Code):** "push". In reply to the closing report asking him to say "push" for F-041: approval to push the home photos commits to `main` only.
 
 ### F-039 · Push the house browser to `main` (deploys B-064) · CLOSED 2026-11-24: pushed
 **Why:** a push deploys (D-041). It adds the *Viviendas* tab (`#houses`): every home in the index with filters, a fit score against your own profile, saved homes, and "add to a group's shortlist"; plus one new table (`SavedHomes`, applied at start-up). It also fixes a clash in the contact inbox's page state with the Alerts tab (nobody could reach it yet).
