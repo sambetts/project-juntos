@@ -17,6 +17,7 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Learned:** the browser test's `until` steps don't add to its pass count, so "85 passed" hides new steps; confirmed the contact steps ran by reading the stored messages in the local database.
 **Open or blocked:** email notification waits for F-014; F-037, F-033, F-035.
 **Saved and checked:** `dotnet test` 94 of 94; browser test 85 of 85 with no failures; project files checked with `git status` and `git diff` before the commit; LOG.md saved last.
+**After the closing report:** Sam: "that's fine. Make it happen." Pushed `638e752` (deploy run 45383975227). Looking up his account ID in the live database was blocked by the tool's safety check (it holds real data), so Sam is asked to read his own ID from `/api/me` while signed in; then `Admin__AccountIds` is set.
 **Next session should start with:** 1. F-038: if pushed, the CI/CD run (with the migration) and `#contact` live. 2. B-052 with B-027 (privacy notice: add contact messages and the funnel), B-039, B-041, B-072. 3. When F-014 is done, email a notification of new contact messages.
 
 ## 2026-11-24 · Session 28: release checklist, first three items
