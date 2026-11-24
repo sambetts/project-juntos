@@ -21,6 +21,7 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Open or blocked:** F-032 to F-035; B-073 waits on F-032; B-072's operator notice on F-034.
 **Saved and checked:** every changed file re-read in `git diff` against the records above (DECISIONS, RISKS, BACKLOG, FOUNDER-QUEUE, STATE, project/strategy, roadmap, charter, three research notes); IDs checked unique (R-024 to R-028, B-071 to B-077, F-032 to F-035, D-048). LOG.md saved last; its own check and the commit are confirmed in the closing report.
 **After the closing report:** Sam on F-032: "I'm happy to run in the VS sub for now, assuming we can migrate to another one later". Recorded as D-049; F-032 closed; B-073 re-scoped to keeping the move ready; strategy item 1, R-024 and STATE updated.
+Then Sam: "push and start on the release checklist" (2026-11-24, in Claude Code). Read as approval to push `main` with Session 27's commits (documents only, so no deploy) and to start the checklist in Session 28.
 **Next session should start with:** 1. Sam's answers to F-033 to F-035. 2. Release checklist items that don't wait on Sam: B-042, B-052 with B-027, B-074, B-039, B-041. 3. B-075 or B-076 if Sam agrees; B-070.
 
 ## 2026-11-23 · Session 26: live in or rent out, full ITP scales, the sheet race, the crawl's wake-up
