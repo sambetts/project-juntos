@@ -6,7 +6,7 @@ _(CEO, Session 27, after Sam's decision D-048. Evidence: `research/2026-11-24-pr
 - **Evidence:** the affordability problem is strong and Verified in official data. Demand for the remedy is not: nobody has measured willingness to buy with strangers, sign-ups convert badly (habitacion.com under 1%), and abroad every platform that matched strangers for a main home has closed, stalled or turned to friends.
 - **Competitors:** nobody in Spain lets strangers form a group, agree a brief and choose a whole home together. Casicasa stops before forming groups; habitacion.com sells rooms in homes it picks. Our gaps: no exit or agreement tool, no lending route, no completed purchase.
 - **Strategy:** release Compicasa free, for people buying with strangers *or* with people they already know; make it useful to one person or one group before matches exist; put the little promotion we can do into one place (Madrid, to live in); and judge it by groups that agree on a home, not by sign-ups. Matching stays free for good; any later charge goes on the agreement-and-exit layer, delivered with lawyers.
-- **Before anyone else signs up:** move hosting off the Visual Studio credit, whose terms rule out production use. Also decide who operates the service in law, and finish the privacy and safety basics (section 4).
+- **Before anyone else signs up:** decide who operates the service in law, and finish the privacy and safety basics (section 4). Hosting stays on the Visual Studio subscription for now (D-049), though its terms say development and testing only; a move stays ready.
 
 ## 1. Problem statement
 > People in Spain who can't afford a home on their own, because the deposit and taxes alone are years of saving on one income, have no safe and simple way to pool with others: to find co-buyers they can trust, agree what home they need, choose it together and know what each pays and how anyone can leave.
@@ -49,7 +49,7 @@ So the free release must produce the evidence nobody has: how many people, once 
 
 | # | Item | Backlog / ask |
 |---|---|---|
-| 1 | Hosting on a regular subscription, not the Visual Studio credit | F-032, B-073 |
+| 1 | Hosting: stays on the Visual Studio subscription for now, Sam's choice (D-049), with a move to a regular subscription kept ready | D-049, B-073 |
 | 2 | Who runs it in law (Sam as an individual or an S.L.), and the LSSI notice that follows | F-034, lawyer A1/A6 |
 | 3 | The lawyer's Part A answers, at least A1 to A3 (status, data, equal treatment), plus the five new questions | F-006, `research/2026-11-24-free-launch-rules.md` |
 | 4 | No household-type filter on real people; the budget only as the lawyer allows | B-042, A3 |
@@ -80,7 +80,7 @@ So the free release must produce the evidence nobody has: how many people, once 
 | R-001 strangers won't co-buy (international evidence now weighs against) | 9 | Free release measures it cheaply; friends-first fallback (B-075); pivot rule |
 | R-002 banks won't lend to unrelated groups | 9 | Broker check (B-009) before groups reach an offer; say so in the app |
 | R-025 interest doesn't convert: sign-ups without groups or purchases | 6 | Judge by groups agreeing on a home, never sign-ups |
-| R-024 hosting breaks the Azure credit's terms, or the credit ends | 6 | Regular subscription before release (F-032) |
+| R-024 hosting breaks the Azure credit's terms, or the credit ends | 6 | Accepted for now (D-049); keep the move ready (B-073) and do it if the credit or the terms bite |
 | R-026 running a public platform as an individual: published address, fines, DSA duties with one moderator | 6 | Lawyer first; consider an S.L. (F-034); minimal back office (B-041) |
 | R-027 no path to revenue; charging later makes us an intermediary | 6 | Plan the paid layer around the agreement; lawyer maps each option |
 | R-013 too few people in one place | 6 | One focus area; useful before matches; honest counts |

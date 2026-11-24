@@ -4,11 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-032 · Move hosting off the Visual Studio credit before anyone else signs up (R-024) · by 2026-12-05
+### F-032 · Move hosting off the Visual Studio credit before anyone else signs up (R-024) · CLOSED 2026-11-24: stay for now (D-049)
 **Why:** your subscription is the Visual Studio subscriber offer. Microsoft's terms: "This benefit is for development and testing only. Production workloads must be run on regular subscriptions." The credit also stops if that Visual Studio subscription ends. Fine for the closed preview; not for a public tool.
 **Options:** A) a pay-as-you-go subscription in your name for the live app (about €16 a month before VAT estimated in D-028, to re-price; the credit stays for testing) · B) apply for startup credits meant for production (eligibility not checked) · C) stay as now.
 **Recommendation:** A, set up before release; B in parallel if you're eligible. Opening the subscription is yours; I then redeploy from Bicep.
 **If no answer:** nothing opens to the public.
+**ANSWER (Sam, 2026-11-24, in Claude Code):** "I'm happy to run in the VS sub for now, assuming we can migrate to another one later". Read as option C for now: the release may run on subscription 81209232-… (Visual Studio), knowing Microsoft's terms say development and testing only, provided a move to another subscription stays possible. Recorded as D-049. Not an approval to open to the public (F-033).
 
 ### F-033 · Approve the release checklist as the gate to real users (changes AGENTS.md section 3) · by 2026-12-05
 **Why:** the free-release strategy (D-048) needs a gate. Today Pilot mode needs every gate in section 2 of the pilot plan, which assumes a hand-run pilot. Changing the modes is yours.
