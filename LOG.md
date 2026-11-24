@@ -19,7 +19,8 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Learned:** locally the SQLite database is made by EnsureCreated, so after a model change it must be deleted (Azure SQL runs migrations); the first browser run failed on contact messages until it was. The app exposes `window.__compicasa.S` for tests.
 **Open or blocked:** F-042; F-040, F-033, F-037, F-014 as before; email alerts for new feedback wait for F-014.
 **Saved and checked:** `dotnet test` 113 of 113; browser test 99 of 99 against a fresh local database; stored rows read back (kind `like`, rating 4, screen `houses`, no email); phone screenshots of the form (Spanish and English) and the admin inbox looked at; project files checked with `git status` and `git diff` before the commit; LOG.md saved last.
-**Next session should start with:** 1. If pushed (F-042), check the CI/CD run and feedback live. 2. Check `/api/browse?real=true` returns photos (Session 30). 3. B-052 with B-027, B-039, B-041, B-072.
+**After the closing report:** Sam: "push" (recorded in F-042). Pushed `67832c8` (it also carried Session 30's two unpushed project-file commits); run 45435072408 passed (test, deploy); live: ready 200 (so migration `Feedback` applied), service worker session31, app.js has the feedback form, i18n.js the Spanish strings, `/api/feedback` 401 signed out. This follow-up commit is not pushed.
+**Next session should start with:** 1. Sam to try feedback live; read it on `#inbox` once his id is set. 2. Check `/api/browse?real=true` returns photos (Session 30). 3. B-052 with B-027, B-039, B-041, B-072.
 
 ## 2026-11-24 · Session 30: home thumbnails
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Legal & Compliance; the CEO for D-051
