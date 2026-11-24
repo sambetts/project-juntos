@@ -18,7 +18,8 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Learned:** Tecnocasa's advert JSON lists photos under `media.images[].url` in six sizes, and floor plans under `media.floor_plans`; the sitemaps list 5,421 homes for sale we can use (Verified, local crawl 2026-11-24). The case law in D-051 is Reported (not re-checked this session).
 **Open or blocked:** F-041; F-040, F-033, F-037, F-014 as before.
 **Saved and checked:** `dotnet test` 98 of 98; browser test 93 of 93; a local crawl of five real adverts stored five photo addresses and all five loaded in headless Edge with no script errors; project files checked with `git status` and `git diff` before the commit; LOG.md saved last.
-**Next session should start with:** 1. F-041: if pushed, the CI/CD run and photos live after the next crawl. 2. B-052 with B-027, B-039, B-041, B-072. 3. B-079 once F-040 is answered.
+**After the closing report:** Sam: "push" (recorded in F-041). Pushed `924ffb7`; run 45427321392 passed (test, deploy); live: ready 200, service worker session30, CSP `img-src` includes `https://cdn-media.medialabtc.it`, app.js has the photo cards, `/bot` has the new wording, `/api/browse` 401 signed out. Photos appear once the 05:00 crawl re-reads homes. This follow-up commit is not pushed.
+**Next session should start with:** 1. Check `/api/browse?real=true` returns `photo` addresses after the next crawl and the cards show them live. 2. B-052 with B-027, B-039, B-041, B-072. 3. B-079 once F-040 is answered.
 
 ## 2026-11-24 · Session 29: contact form
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Legal & Compliance
