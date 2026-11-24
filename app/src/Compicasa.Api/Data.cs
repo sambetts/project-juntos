@@ -173,6 +173,7 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<Candidate> Candidates => Set<Candidate>();
     public DbSet<CandidateVote> CandidateVotes => Set<CandidateVote>();
+    public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -255,6 +256,16 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
             e.Property(x => x.Reason).HasMaxLength(16);
             e.Property(x => x.Note).HasMaxLength(1000);
             e.HasIndex(x => x.AboutId);
+        });
+        b.Entity<ContactMessage>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.AccountId).HasMaxLength(40);
+            e.Property(x => x.Name).HasMaxLength(ContactMessage.NameMax);
+            e.Property(x => x.Email).HasMaxLength(254);
+            e.Property(x => x.Topic).HasMaxLength(16);
+            e.Property(x => x.Body).HasMaxLength(ContactMessage.BodyMax);
+            e.Property(x => x.Lang).HasMaxLength(2);
         });
         b.Entity<Candidate>(e =>
         {

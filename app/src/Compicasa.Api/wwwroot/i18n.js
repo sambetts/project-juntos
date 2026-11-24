@@ -1168,3 +1168,23 @@ Object.assign(STR.es,{
   fnRows:{signedUp:'Se registraron',onboarded:'Completaron su perfil',livingIn:'… para vivir',letting:'… para alquilar',liked:'Dieron un «me gusta»',matched:'Emparejados con una persona real',
     cohort14:'Con 14 días o más dentro',matched14:'… de ellos, emparejados en 14 días',groupsFormed:'Grupos formados (2+ hogares reales)',groupsShortlisting:'Grupos con preselección',groupsAgreedHome:'Grupos que acordaron una vivienda'},
   fnWeeksH:'Por semana (desde el lunes)',fnWeek:'Semana',fnAt:at=>'Contado el '+at});
+
+/* The contact form (#contact) and the admins' inbox (#inbox), B-078 */
+Object.assign(STR.en,{
+  ctLink:'Contact us',ctH:'Contact us',
+  ctLead:'Questions, problems, ideas or a privacy request: write to us here. To report a person or a message, the Report button on their profile or in the chat is quicker.',
+  ctTopic:'What is it about?',ctTopics:{question:'A question',problem:'Something isn’t working',report:'Reporting illegal or harmful content',privacy:'My data (privacy request)',other:'Something else'},
+  ctName:'Your name (optional)',ctEmail:'Your email, so we can reply',ctBody:'Your message',ctSend:'Send',
+  ctPrivacy:'A person from the '+BRAND+' team reads every message. We keep it, with your email, only to answer you, and delete it within a year of dealing with it.',
+  ctThanks:'Thank you. Your message has arrived and a person will read it.',ctAgain:'Send another message',
+  err_badTopic:'Choose what it is about.',err_badContactBody:'Write a message of 10 to 3,000 characters.',
+  ibH:'Contact messages',ibLead:n=>n===1?'1 message waiting.':n+' messages waiting.',ibEmpty:'No messages yet.',ibNoName:'(no name)',ibDone:'Mark as dealt with',ibDoneAt:at=>'Dealt with '+at});
+Object.assign(STR.es,{
+  ctLink:'Contacto',ctH:'Contacta con nosotros',
+  ctLead:'Dudas, problemas, ideas o una solicitud sobre tus datos: escríbenos aquí. Para denunciar a una persona o un mensaje, es más rápido el botón Denunciar de su perfil o del chat.',
+  ctTopic:'¿Sobre qué es?',ctTopics:{question:'Una duda',problem:'Algo no funciona',report:'Denunciar contenido ilegal o dañino',privacy:'Mis datos (solicitud de privacidad)',other:'Otra cosa'},
+  ctName:'Tu nombre (opcional)',ctEmail:'Tu correo, para poder responderte',ctBody:'Tu mensaje',ctSend:'Enviar',
+  ctPrivacy:'Cada mensaje lo lee una persona del equipo de '+BRAND+'. Lo guardamos, con tu correo, solo para responderte, y lo borramos como máximo un año después de resolverlo.',
+  ctThanks:'Gracias. Tu mensaje ha llegado y lo leerá una persona.',ctAgain:'Enviar otro mensaje',
+  err_badTopic:'Elige sobre qué es.',err_badContactBody:'Escribe un mensaje de 10 a 3000 caracteres.',
+  ibH:'Mensajes de contacto',ibLead:n=>n===1?'1 mensaje pendiente.':n+' mensajes pendientes.',ibEmpty:'Todavía no hay mensajes.',ibNoName:'(sin nombre)',ibDone:'Marcar como resuelto',ibDoneAt:at=>'Resuelto el '+at});

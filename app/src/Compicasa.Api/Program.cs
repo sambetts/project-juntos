@@ -57,6 +57,10 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = cfg.GetValue("Auth:AttemptsPerMinute", 10), Window = TimeSpan.FromMinutes(1) }));
+    // The contact form is open to anyone, so it gets a tighter limit per address (B-078).
+    o.AddPolicy("contact", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = cfg.GetValue("Contact:PerHour", 5), Window = TimeSpan.FromHours(1) }));
 });
 
 // App Service sits behind a proxy: take the client address and scheme from it.
@@ -117,6 +121,7 @@ Api.Map(app);
 Social.Map(app);
 Shortlist.Map(app);
 Funnel.Map(app);
+Contact.Map(app);
 // What our crawler does and how to block it (D-035); named in its user agent.
 app.MapGet("/bot", (IWebHostEnvironment env) => Results.File(Path.Combine(env.WebRootPath, "bot.html"), "text/html; charset=utf-8"));
 app.MapFallbackToFile("index.html");

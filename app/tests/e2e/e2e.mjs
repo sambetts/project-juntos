@@ -225,6 +225,12 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   await shot(tag + '-3-home-es');
   await send('Page.navigate', { url: base + '/#funnel' });
   await until(`/solo para quienes gestionan/.test(document.querySelector('#app')?.innerText||'')`, tag + ': the release funnel is refused to someone not listed (B-074)');
+  await send('Page.navigate', { url: base + '/#inbox' });
+  await until(`/solo para quienes gestionan/.test(document.querySelector('#app')?.innerText||'')`, tag + ': the contact inbox is refused to someone not listed (B-078)');
+  await send('Page.navigate', { url: base + '/#contact' });
+  await until(`!!document.querySelector('#contact-form') && !!document.querySelector('#ct-email').value`, tag + ': the contact form opens with your email filled in (B-078)');
+  await js(`(()=>{const b=document.querySelector('#ct-body');b.value='Una prueba del formulario de contacto';document.querySelector('#contact-form button[type=submit]').click();return true;})()`);
+  await until(`/Tu mensaje ha llegado/.test(document.querySelector('#app')?.innerText||'')`, tag + ': a contact message is sent and thanked (B-078)');
   await send('Page.navigate', { url: base + '/#help' });
   await until(`!!document.querySelector('.help')`, tag + ': guide opens signed in');
   await click('#brandlink');

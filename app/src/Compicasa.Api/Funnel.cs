@@ -29,12 +29,18 @@ public static class Funnel
     public static bool IsAdmin(IConfiguration cfg, string? accountId) =>
         accountId is not null && (cfg["Admin:AccountIds"] ?? "").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Contains(accountId);
 
+    /// <summary>The signed-in person is listed in <c>Admin:AccountIds</c> and is still a real account. Used by every admin page.</summary>
+    public static async Task<bool> AllowedAsync(HttpContext http, AppDb db, IConfiguration cfg, CancellationToken ct)
+    {
+        var id = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return IsAdmin(cfg, id) && await db.Accounts.AnyAsync(a => a.Id == id && a.Kind == AccountKind.User, ct);
+    }
+
     public static void Map(WebApplication app)
     {
         app.MapGet("/api/admin/funnel", async (HttpContext http, AppDb db, IConfiguration cfg, TimeProvider clock, CancellationToken ct) =>
         {
-            var id = http.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!IsAdmin(cfg, id) || !await db.Accounts.AnyAsync(a => a.Id == id && a.Kind == AccountKind.User, ct)) return Results.Ok(new { allowed = false });
+            if (!await AllowedAsync(http, db, cfg, ct)) return Results.Ok(new { allowed = false });
             return Results.Ok(new { allowed = true, funnel = await ComputeAsync(db, clock.GetUtcNow(), ct) });
         }).RequireAuthorization();
     }

@@ -2,6 +2,23 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-24 · Session 29: contact form
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Legal & Compliance
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** Session 28 (pushed and deployed). Sam: "Add a contact us form. We'll need to setup an email address & domain (pending me). How will security for the funnel page work?"
+**Goals:** 1. B-078 contact form (new; also the contact point in B-072).
+**Needs Sam:** F-038 (new): push to deploy; F-014 now includes the email address.
+**Did**
+- B-078: `Contact.cs` (`POST /api/contact` open to anyone, rate-limited per address, a hidden bot field; `GET /api/admin/contact` and `POST /api/admin/contact/{id}/done` for listed admins), the `ContactMessages` table and migration `Contact`, `#contact` (menu and footer) and `#inbox` in both languages; dealt-with messages deleted after 365 days (Assumption until B-052). The admin check moved to `Funnel.AllowedAsync`, shared by both pages. `ContactTests.cs` (4 tests); three browser steps.
+- Answered Sam's question on the funnel's security in chat (session cookie from sign-in, server-side allow-list in an app setting, counts only).
+
+**Decided:** nothing new.
+**Approvals used:** none (nothing pushed).
+**Learned:** the browser test's `until` steps don't add to its pass count, so "85 passed" hides new steps; confirmed the contact steps ran by reading the stored messages in the local database.
+**Open or blocked:** email notification waits for F-014; F-037, F-033, F-035.
+**Saved and checked:** `dotnet test` 94 of 94; browser test 85 of 85 with no failures; project files checked with `git status` and `git diff` before the commit; LOG.md saved last.
+**Next session should start with:** 1. F-038: if pushed, the CI/CD run (with the migration) and `#contact` live. 2. B-052 with B-027 (privacy notice: add contact messages and the funnel), B-039, B-041, B-072. 3. When F-014 is done, email a notification of new contact messages.
+
 ## 2026-11-24 · Session 28: release checklist, first three items
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Legal & Compliance (B-042), the Builder (B-073), the Builder with Validation (B-074)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

@@ -246,7 +246,42 @@ function viewFunnel(){
   return back+`<section class="card legal"><h2>${esc(t('fnH'))}</h2><p class="lead">${esc(t('fnLead'))}</p>
 <table class="mt"><thead><tr><th></th><th scope="col">${esc(t('fnAll'))}</th><th scope="col">${esc(t('fnMadrid'))}</th></tr></thead><tbody>${table}</tbody></table>
 <h3>${esc(t('fnWeeksH'))}</h3><table><thead><tr><th scope="col">${esc(t('fnWeek'))}</th><th scope="col">${esc(rows.signedUp)}</th><th scope="col">${esc(rows.onboarded)}</th><th scope="col">${esc(rows.matched)}</th></tr></thead><tbody>${weeks}</tbody></table>
-<p class="hint">${esc(t('fnAt',new Date(d.at).toLocaleString(locale(),{timeZone:'Europe/Madrid'})))}</p></section>`;
+<p class="hint">${esc(t('fnAt',new Date(d.at).toLocaleString(locale(),{timeZone:'Europe/Madrid'})))}</p><p class="links"><a href="#inbox">${esc(t('ibH'))}</a></p></section>`;
+}
+/* The contact form (B-078): open to anyone, signed in or not. Stored for the admins' #inbox; nothing is emailed yet */
+function viewContact(){
+  const back=`<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>`;
+  if(S.contactSent)return back+`<section class="card legal"><h2>${esc(t('ctH'))}</h2><p class="lead" role="status">${esc(t('ctThanks'))}</p><p><button type="button" class="btn small" data-action="contact-again">${esc(t('ctAgain'))}</button></p></section>`;
+  const me=S.me||{},topics=t('ctTopics');
+  return back+`<section class="card legal"><h2>${esc(t('ctH'))}</h2><p class="lead">${esc(t('ctLead'))}</p>
+<form id="contact-form" class="mt" novalidate>
+<div class="field"><label for="ct-topic">${esc(t('ctTopic'))}</label><select id="ct-topic" name="topic">${Object.keys(topics).map(k=>`<option value="${k}">${esc(topics[k])}</option>`).join('')}</select></div>
+<div class="field"><label for="ct-name">${esc(t('ctName'))}</label><input id="ct-name" name="name" maxlength="80" autocomplete="name" value="${esc((S.profile&&S.profile.name)||me.name||'')}"></div>
+<div class="field"><label for="ct-email">${esc(t('ctEmail'))}</label><input id="ct-email" name="email" type="email" maxlength="254" autocomplete="email" value="${esc(me.email||'')}"></div>
+<div class="field"><label for="ct-body">${esc(t('ctBody'))}</label><textarea id="ct-body" name="body" rows="6" maxlength="3000"></textarea></div>
+<div class="hp" aria-hidden="true"><label for="ct-website">Website</label><input id="ct-website" name="website" tabindex="-1" autocomplete="off"></div>
+<p class="hint">${esc(t('ctPrivacy'))}</p>
+<p class="error" id="contact-error" role="alert"></p>
+<button type="submit" class="btn primary">${esc(t('ctSend'))}</button></form></section>`;
+}
+async function sendContact(f){
+  const v=n=>(f.querySelector(`[name=${n}]`)||{}).value||'',errEl=document.getElementById('contact-error'),btn=f.querySelector('button[type=submit]');
+  btn.disabled=true;errEl.textContent='';
+  try{await api('POST','/api/contact',{topic:v('topic'),name:v('name'),email:v('email'),body:v('body'),website:v('website'),lang:LANG});
+    S.contactSent=true;render();focusHeading();}
+  catch(err){btn.disabled=false;errEl.textContent=errText(err);}
+}
+/* The admins' inbox of contact messages (#inbox, B-078): same allow-list as #funnel. Not linked from menus */
+function viewInbox(){
+  if(!S.inbox){S.inbox={loading:true};api('GET','/api/admin/contact').then(d=>{S.inbox=d.allowed?{data:d.messages}:{denied:true};if(S.view==='inbox')rerender();},()=>{S.inbox={denied:true};if(S.view==='inbox')rerender();});}
+  const r=S.inbox,back=`<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>`;
+  if(r.loading||r.denied)return back+`<section class="card legal"><h2>${esc(t('ibH'))}</h2><p class="hint">${esc(t(r.loading?'fnLoading':'fnDenied'))}</p></section>`;
+  const topics=t('ctTopics'),when=x=>new Date(x).toLocaleString(locale(),{timeZone:'Europe/Madrid'});
+  const open=r.data.filter(m=>!m.doneAt).length;
+  const items=r.data.map(m=>`<article class="card ct-msg${m.doneAt?' done':''}"><p class="hint">${esc(topics[m.topic]||m.topic)} · ${esc(when(m.at))} · ${esc(m.lang)}${m.accountId?` · ${esc(m.accountId)}`:''}</p>
+<p><strong>${esc(m.name||t('ibNoName'))}</strong> · ${esc(m.email)}</p><p class="ct-body">${esc(m.body)}</p>
+${m.doneAt?`<p class="hint">${esc(t('ibDoneAt',when(m.doneAt)))}</p>`:`<p><button type="button" class="btn small" data-action="inbox-done" data-id="${m.id}">${esc(t('ibDone'))}</button></p>`}</article>`).join('');
+  return back+`<section class="card legal"><h2>${esc(t('ibH'))}</h2><p class="lead">${esc(t('ibLead',open))}</p><p class="links"><a href="#funnel">${esc(t('fnH'))}</a></p></section>${items||`<p class="hint">${esc(t('ibEmpty'))}</p>`}`;
 }
 function viewLegal(kind){
   const body=t(kind+'Body');
@@ -1216,7 +1251,7 @@ function renderChrome(){
   set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));
   const bl=document.getElementById('brandlink');if(bl)bl.setAttribute('aria-label',BRAND+' · '+t('homeLink'));
   const foot=document.getElementById('footnote');
-  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#sources">${esc(t('srcLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a></p>`;
+  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#sources">${esc(t('srcLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a> · <a href="#contact">${esc(t('ctLink'))}</a></p>`;
   const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('navAria'));nav.hidden=!inApp();}
   const bell=document.getElementById('alerts-link');
   if(bell){const n=S.counts.alerts||0;bell.hidden=!inApp();bell.innerHTML=ICONS.bell+(n?`<span class="count" aria-hidden="true">${n}</span>`:'');bell.setAttribute('aria-label',t('alertsAria',n));if(S.tab==='alerts')bell.setAttribute('aria-current','page');else bell.removeAttribute('aria-current');}
@@ -1270,7 +1305,7 @@ function menuSections(){
   }
   secs.push({id:'lang',label:t('menuLang'),items:[{choice:[{action:'lang',id:'es',label:'Español',lang:'es',on:LANG==='es'},{action:'lang',id:'en',label:'English',lang:'en',on:LANG==='en'}],label:t('menuLang')}]});
   secs.push({id:'theme',label:t('menuTheme'),items:[{choice:[['auto',ICONS.auto,t('themeAuto')],['light',ICONS.sun,t('themeLight')],['dark',ICONS.moon,t('themeDark')]].map(x=>({action:'theme',id:x[0],icon:x[1],label:x[2],on:THEME===x[0]})),label:t('menuTheme')}]});
-  secs.push({id:'more',label:t('menuMore'),items:[{href:'#help',label:t('helpLink'),icon:ICONS.help,current:S.view==='help'},{href:'#sources',label:t('srcLink'),icon:ICONS.groups,current:S.view==='sources'},{href:'#terms',label:t('footTerms'),icon:ICONS.doc,current:S.view==='terms'},{href:'#privacy',label:t('footPrivacy'),icon:ICONS.doc,current:S.view==='privacy'}]});
+  secs.push({id:'more',label:t('menuMore'),items:[{href:'#help',label:t('helpLink'),icon:ICONS.help,current:S.view==='help'},{href:'#sources',label:t('srcLink'),icon:ICONS.groups,current:S.view==='sources'},{href:'#terms',label:t('footTerms'),icon:ICONS.doc,current:S.view==='terms'},{href:'#privacy',label:t('footPrivacy'),icon:ICONS.doc,current:S.view==='privacy'},{href:'#contact',label:t('ctLink'),icon:ICONS.help,current:S.view==='contact'}]});
   return secs;
 }
 function menuItem(it){
@@ -1318,7 +1353,7 @@ function render(){
   renderChrome();
   renderTabs();
   const views={home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
-  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
+  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():S.view==='contact'?viewContact():S.view==='inbox'?viewInbox():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
   applyStyles(app);
   if(document.getElementById('hx-results'))updateHomes();
   drawCharts(app);
@@ -1434,8 +1469,10 @@ async function start(){
 function readHash(){
   const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
   const prev=S.view;
-  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':(h.has('funnel')?'funnel':null))));
+  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':(h.has('funnel')?'funnel':(h.has('contact')?'contact':(h.has('inbox')?'inbox':null))))));
   if(S.view==='funnel'&&prev!=='funnel')S.funnel=null; // fresh counts each visit
+  if(S.view==='inbox'&&prev!=='inbox')S.inbox=null;
+  if(S.view==='contact'&&prev!=='contact')S.contactSent=false;
   const err=h.get('authError');
   if(err){S.authError=t('err_'+err)!==undefined&&STR.es['err_'+err]!==undefined?t('err_'+err):t('err_generic');if(err==='noAccount')S.authMode='signup';
     try{history.replaceState(null,'',location.pathname);}catch(e){}}
@@ -1539,6 +1576,7 @@ function switchLang(l){setLang(l);try{localStorage.setItem(LANG_KEY,LANG);}catch
 /* ---------- events ---------- */
 app.addEventListener('submit',async e=>{
   if(e.target.id==='chat-form'){e.preventDefault();sendChat();return;}
+  if(e.target.id==='contact-form'){e.preventDefault();sendContact(e.target);return;}
   if(e.target.id!=='auth-form')return;
   e.preventDefault();
   const f=e.target,data={},errEl=document.getElementById('auth-error'),btn=f.querySelector('button[type=submit]');
@@ -1609,6 +1647,8 @@ document.addEventListener('click',async e=>{
     case 'wiz-next':wizMove(1);break;
     case 'wiz-back':wizMove(-1);break;
     case 'wiz-finish':wizFinish();break;
+    case 'contact-again':S.contactSent=false;render();focusHeading();break;
+    case 'inbox-done':try{await api('POST','/api/admin/contact/'+encodeURIComponent(id)+'/done');S.inbox=null;rerender();}catch(err){toast(errText(err));}break;
     case 'legal-back':S.view=null;try{history.replaceState(null,'',location.pathname);}catch(err){}render();window.scrollTo(0,0);focusHeading();break;
     case 'goto':go(id,el.getAttribute('data-sub'));break;
     case 'open-sec':S.openSecs=Object.assign({},S.openSecs,{[id]:true});break;
