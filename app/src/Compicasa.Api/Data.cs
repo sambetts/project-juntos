@@ -46,6 +46,7 @@ public sealed class Account
     {
         var p = JsonSerializer.Deserialize<Profile>(ProfileJson, Seeds.Json) ?? new Profile();
         p.Id = Id;
+        p.Real = !IsDemo;
         return p;
     }
 

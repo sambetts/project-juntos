@@ -154,7 +154,7 @@ en:{
   whoBuying:"Who's buying",yourHousehold:'Your household',kidsLabel:'Kids',privateSpace:'Your private space',bedroomsLabel:'Bedrooms just for your household',
   ownBath:'I want my own bathroom',parkingLabel:'Parking spaces you need',petsLabel:'Pets you have',dog:'Dog',cat:'Cat',
   howLive:'How you live',wfhLabel:'I work from home and need a quiet workspace',smokeQ:'Do you smoke?',smokeNo:'No',smokeOutOpt:'Yes, outside only',smokeInOpt:'Yes, indoors too',
-  shareWith:"Who you'd share with",happyShare:'Happy to share a home with',demoHousehold:'Demo only: whether a real service may let people choose by household type is being checked with a lawyer.',
+  shareWith:"Who you'd share with",happyShare:'Happy to share a home with',noHouseholdFilter:'Nobody here chooses people by household type: single people, couples and families all see each other. Your household shapes the home brief only.',
   maxHHLabel:'Households in the home, at most',maxHH2:'2 (for example, half each)',maxHH4:'4 (co-living)',okPets:'Happy to live with pets',
   smokersQ:'Smokers in the house',smokersNone:'No smokers',smokersOut:'Fine if they smoke outside',smokersAny:"Don't mind",
   whereHow:'Where and how long',areasLabel:'Where you would consider buying',areasHint:'Anywhere in Spain: open a region and tick the places you would consider. Madrid is split into five areas.',areasChosen:l=>'Chosen: '+l+'.',typesLabel:'Type of home',horizonLabel:'How long you plan to live there',
@@ -172,8 +172,8 @@ en:{
   matchesH:'People who could buy with you',
   matchesLead:n=>n+' compatible '+(n===1?'person':'people')+", best first. Like the ones you'd consider. In this demo their replies are simulated from their own settings; in a real service, a match needs both sides to say yes.",
   howScore:'How the score works',
-  howScoreText:"Dealbreakers come first: who you'd share with, smoking, pets, areas, type of home and total bedrooms. Anyone who fails one is hidden, and the other side's reasons stay private. Everyone else gets a demo score: 50% how you live (daily rhythm, tidiness, atmosphere, guests, meals), 20% where and what kind of home, 20% how long you plan to stay and 10% shared priorities for the home. Household type and accessibility needs never change the score. The weights are a first guess, not calibrated. A group is only as strong as its weakest pair. Protected traits are never used.",
-  groupsH:'Groups that could work',everyoneH:'Everyone who fits your dealbreakers',nobody:"Nobody passes all your dealbreakers yet. Try more areas, or widen who you'd share with.",
+  howScoreText:"Dealbreakers come first: smoking, pets, areas, type of home and total bedrooms. Anyone who fails one is hidden, and the other side's reasons stay private. Everyone else gets a demo score: 50% how you live (daily rhythm, tidiness, atmosphere, guests, meals), 20% where and what kind of home, 20% how long you plan to stay and 10% shared priorities for the home. Household type and accessibility needs never change the score. The weights are a first guess, not calibrated. A group is only as strong as its weakest pair. Protected traits are never used.",
+  groupsH:'Groups that could work',everyoneH:'Everyone who fits your dealbreakers',nobody:"Nobody passes all your dealbreakers yet. Try more areas or types of home.",
   hiddenN:n=>n+' hidden by dealbreakers',seeWhy:'(see why)',
   homeH:'Your home together',homeEmpty:'Form a group from your mutual matches, or preview a suggested group, to see what a shared home would need.',goMatches:'Go to matches →',
   removeAria:n=>'Remove '+n,attentionLead:'This group needs attention before a home brief can be drawn.',doesntWork:"This group doesn't work as it stands:",
@@ -259,7 +259,7 @@ es:{
   whoBuying:'Quién compra',yourHousehold:'Tu hogar',kidsLabel:'Hijos',privateSpace:'Tu espacio privado',bedroomsLabel:'Dormitorios solo para tu hogar',
   ownBath:'Quiero baño propio',parkingLabel:'Plazas de garaje que necesitas',petsLabel:'Mascotas que tienes',dog:'Perro',cat:'Gato',
   howLive:'Cómo vives',wfhLabel:'Trabajo desde casa y necesito un espacio tranquilo',smokeQ:'¿Fumas?',smokeNo:'No',smokeOutOpt:'Sí, solo fuera',smokeInOpt:'Sí, también dentro',
-  shareWith:'Con quién compartirías',happyShare:'Me parece bien compartir casa con',demoHousehold:'Solo en esta demo: un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
+  shareWith:'Con quién compartirías',happyShare:'Me parece bien compartir casa con',noHouseholdFilter:'Aquí nadie elige a otras personas por tipo de hogar: personas solas, parejas y familias se ven entre sí. Tu hogar solo sirve para el resumen de la casa.',
   maxHHLabel:'Máximo de hogares en la vivienda',maxHH2:'2 (por ejemplo, mitad y mitad)',maxHH4:'4 (coliving)',okPets:'Me parece bien vivir con mascotas',
   smokersQ:'¿Se puede fumar en casa?',smokersNone:'Prefiero que no fume nadie',smokersOut:'Sí, si se fuma fuera',smokersAny:'Me da igual',
   whereHow:'Dónde y cuánto tiempo',areasLabel:'Dónde te plantearías comprar',areasHint:'En cualquier parte de España: abre una comunidad y marca los sitios que te plantearías. Madrid está dividida en cinco zonas.',areasChosen:l=>'Has elegido: '+l+'.',typesLabel:'Tipo de vivienda',horizonLabel:'Cuánto tiempo piensas vivir allí',
@@ -277,8 +277,8 @@ es:{
   matchesH:'Personas con quienes podrías comprar',
   matchesLead:n=>(n===1?'1 persona compatible':n+' personas compatibles')+', de más a menos afín. Marca «Me interesa» en las que te plantearías. En esta demo sus respuestas se simulan a partir de sus propios ajustes; en un servicio real, un match necesita el sí de las dos partes.',
   howScore:'Cómo funciona la puntuación',
-  howScoreText:'Primero van los innegociables: con quién compartirías, tabaco, mascotas, zonas, tipo de vivienda y número total de dormitorios. Quien no cumple alguno queda oculto, y los motivos de la otra parte son privados. El resto recibe una puntuación de demo: un 50 % por cómo vivís (ritmo diario, orden, ambiente, visitas, comidas), un 20 % por dónde y qué tipo de vivienda, un 20 % por cuánto tiempo pensáis quedaros y un 10 % por las prioridades comunes para la casa. El tipo de hogar y las necesidades de accesibilidad nunca cambian la puntuación. Los pesos son una primera estimación, sin calibrar. Un grupo es tan fuerte como su pareja más débil. Nunca se usan rasgos protegidos.',
-  groupsH:'Grupos que podrían funcionar',everyoneH:'Todas las personas que cumplen tus innegociables',nobody:'Todavía nadie cumple todos tus innegociables. Prueba con más zonas o amplía con quién compartirías.',
+  howScoreText:'Primero van los innegociables: tabaco, mascotas, zonas, tipo de vivienda y número total de dormitorios. Quien no cumple alguno queda oculto, y los motivos de la otra parte son privados. El resto recibe una puntuación de demo: un 50 % por cómo vivís (ritmo diario, orden, ambiente, visitas, comidas), un 20 % por dónde y qué tipo de vivienda, un 20 % por cuánto tiempo pensáis quedaros y un 10 % por las prioridades comunes para la casa. El tipo de hogar y las necesidades de accesibilidad nunca cambian la puntuación. Los pesos son una primera estimación, sin calibrar. Un grupo es tan fuerte como su pareja más débil. Nunca se usan rasgos protegidos.',
+  groupsH:'Grupos que podrían funcionar',everyoneH:'Todas las personas que cumplen tus innegociables',nobody:'Todavía nadie cumple todos tus innegociables. Prueba con más zonas o tipos de vivienda.',
   hiddenN:n=>(n===1?'1 persona oculta':n+' personas ocultas')+' por innegociables',seeWhy:'(ver por qué)',
   homeH:'Vuestra casa en común',homeEmpty:'Forma un grupo con tus matches mutuos, o mira un grupo sugerido, para ver qué necesitaría una casa compartida.',goMatches:'Ir a personas afines →',
   removeAria:n=>'Quitar a '+n,attentionLead:'Este grupo necesita atención antes de poder preparar la ficha de la casa.',doesntWork:'Este grupo no funciona tal como está:',
@@ -1148,9 +1148,9 @@ Object.assign(STR.es,{
 /* The guide (#help): a section on the two paths, after "The steps" */
 STR.en.helpSecs.splice(1,0,{h:'To live in, or to rent out',items:[
   'In your profile you say what the home is for: to live in, or to rent out. You only meet people looking for the same, because a group buys one home for one purpose.',
-  "If you're buying to rent out, we skip the questions about living together (your own bedrooms, habits, pets, smoking, who you'd share with), and they play no part in your matches. Your match is about where, what type of home, how long you'd keep it and what the home should have.",
+  "If you're buying to rent out, we skip the questions about living together (your own bedrooms, habits, pets, smoking), and they play no part in your matches. Your match is about where, what type of home, how long you'd keep it and what the home should have.",
   "A group buying to rent out gets a brief for the home itself, with no room split, and starters for agreeing how to let it, manage it and share the rent. The rules for letting differ by region and town: ask your lawyer."]});
 STR.es.helpSecs.splice(1,0,{h:'Para vivir o para alquilar',items:[
   'En tu perfil dices para qué es la vivienda: para vivir o para alquilar. Solo conoces a quien busca lo mismo, porque un grupo compra una vivienda para un único fin.',
-  'Si compras para alquilar, nos saltamos las preguntas sobre la convivencia (dormitorios propios, hábitos, mascotas, tabaco, con quién compartirías) y no cuentan en tus emparejamientos. Encajáis por la zona, el tipo de vivienda, cuánto tiempo la mantendríais y lo que debe tener.',
+  'Si compras para alquilar, nos saltamos las preguntas sobre la convivencia (dormitorios propios, hábitos, mascotas, tabaco) y no cuentan en tus emparejamientos. Encajáis por la zona, el tipo de vivienda, cuánto tiempo la mantendríais y lo que debe tener.',
   'Un grupo que compra para alquilar recibe una ficha de la propia vivienda, sin reparto de habitaciones, y temas para acordar cómo alquilarla, gestionarla y repartir la renta. Las normas de alquiler cambian según la comunidad y el municipio: preguntadlo a vuestro abogado.']});

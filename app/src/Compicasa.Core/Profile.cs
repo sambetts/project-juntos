@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Compicasa.Core;
 
 /// <summary>Text in both product languages (D-024). Real users write one text; it fills both.</summary>
@@ -43,6 +45,11 @@ public sealed class Profile
     /// Not private: people match only with the same purpose. For "let", the living-together answers are kept but unused,
     /// and <see cref="Bedrooms"/> means the bedrooms the home to let should have, at least.</summary>
     public string Purpose { get; set; } = Purposes.Live;
+
+    /// <summary>A real person's profile, not a made-up one (set when an account's profile is read; never stored).
+    /// Household type never filters a real person, either way (B-042, AGENTS.md section 4): <see cref="Matching.Hard"/>
+    /// applies the "who I'd share with" rule only between two made-up people, until D-009 and the lawyer's answer (A3).</summary>
+    [JsonIgnore] public bool Real { get; set; }
 
     /// <summary>Buying to rent it out (a method, so it isn't serialised).</summary>
     public bool IsLet() => Purpose == Purposes.Let;

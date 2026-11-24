@@ -39,7 +39,8 @@ public static class Matching
     public static bool Letting(IEnumerable<Profile> all) => all.All(p => p.IsLet());
 
     /// <summary>Dealbreakers, checked both ways from a's point of view. The other side's reasons stay private.
-    /// People match only with the same purpose (B-063); two people buying to let skip the living-together rules.</summary>
+    /// People match only with the same purpose (B-063); two people buying to let skip the living-together rules.
+    /// The household-type rule applies only between two made-up people: never to or by a real person (B-042).</summary>
     public static HardResult Hard(Profile a, Profile b)
     {
         if (a.Purpose != b.Purpose)
@@ -51,8 +52,11 @@ public static class Matching
         var letting = a.IsLet();
         if (!letting)
         {
-            if (!a.Open.Contains(b.Household)) mine.Add(new Msg("notOpen", b.Household));
-            if (!b.Open.Contains(a.Household)) theirs.Add("household");
+            if (!a.Real && !b.Real)
+            {
+                if (!a.Open.Contains(b.Household)) mine.Add(new Msg("notOpen", b.Household));
+                if (!b.Open.Contains(a.Household)) theirs.Add("household");
+            }
             if (!SmokeAccepts(a.AcceptsSmoking, b.Smoking)) mine.Add(new Msg(b.Smoking == "inside" ? "smokeIn" : "smokeOut"));
             if (!SmokeAccepts(b.AcceptsSmoking, a.Smoking)) theirs.Add("smoking");
             if (!PetsOk(a.AcceptsPets, b.Pets)) mine.Add(new Msg("petsNo", b.Pets.ToArray()));

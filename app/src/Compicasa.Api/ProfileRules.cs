@@ -20,7 +20,7 @@ public static class ProfileRules
         if (!(Slider(input.Sleep) && Slider(input.Tidy) && Slider(input.Social) && Slider(input.Guests) && Slider(input.Meals))) return (null, "badNumber");
         if (!Catalogue.Smoking.Contains(input.Smoking) || !Catalogue.AcceptsSmoking.Contains(input.AcceptsSmoking)) return (null, "badSmoking");
         if (!Catalogue.Horizons.Contains(input.Horizon)) return (null, "badHorizon");
-        if (!Subset(input.Pets, Catalogue.Pets) || !Subset(input.Areas, Catalogue.Areas) || !Subset(input.Types, Catalogue.Types) || !Subset(input.Open, Catalogue.Households))
+        if (!Subset(input.Pets, Catalogue.Pets) || !Subset(input.Areas, Catalogue.Areas) || !Subset(input.Types, Catalogue.Types) || (input.Open is not null && !Subset(input.Open, Catalogue.Households)))
             return (null, "badList");
         if (input.Needs is null || input.Needs.Any(n => !Catalogue.Features.Contains(n.Key) || n.Value is not ("must" or "nice"))) return (null, "badNeeds");
         var bio = input.Bio?.Es?.Trim() ?? "";
@@ -49,7 +49,8 @@ public static class ProfileRules
             Areas = Ordered(input.Areas!, Catalogue.Areas),
             Types = Ordered(input.Types!, Catalogue.Types),
             Needs = Catalogue.Features.Where(input.Needs.ContainsKey).ToDictionary(f => f, f => input.Needs[f]),
-            Open = Ordered(input.Open!, Catalogue.Households),
+            // B-042: real people don't choose by household type; everyone is open to every household.
+            Open = [.. Catalogue.Households],
             MaxHouseholds = input.MaxHouseholds,
             // Pickiness only drives the made-up people's simulated replies; real people answer for themselves.
             Pickiness = current.Pickiness,
@@ -58,6 +59,7 @@ public static class ProfileRules
             MaxBudget = input.MaxBudget,
             // B-063: live in it or rent it out. For "let", the living-together answers are kept, unused, so switching back restores them.
             Purpose = input.Purpose,
+            Real = current.Real,
         };
         return (p, null);
     }

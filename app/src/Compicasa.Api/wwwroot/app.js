@@ -258,8 +258,7 @@ ${checkGroup('pets',t('petsLabel'),[{id:'dog',label:t('dog')},{id:'cat',label:t(
   live:u=>`${SLIDERS.map(x=>slider(x,u[x.id])).join('')}
 ${checkField('wfh',t('wfhLabel'),u.wfh)}
 ${selectField('smoking',t('smokeQ'),[{id:'no',label:t('smokeNo')},{id:'outside',label:t('smokeOutOpt')},{id:'inside',label:t('smokeInOpt')}],u.smoking)}`,
-  share:u=>`${checkGroup('open',t('happyShare'),loc(HOUSEHOLDS),u.open)}
-<p class="hint">${t('demoHousehold')}</p>
+  share:u=>`<p class="hint">${t('noHouseholdFilter')}</p>
 ${selectField('maxHouseholds',t('maxHHLabel'),[{id:2,label:t('maxHH2')},{id:3,label:'3'},{id:4,label:t('maxHH4')}],u.maxHouseholds)}
 ${checkField('acceptsPets',t('okPets'),u.acceptsPets)}
 ${selectField('acceptsSmoking',t('smokersQ'),[{id:'none',label:t('smokersNone')},{id:'outside',label:t('smokersOut')},{id:'any',label:t('smokersAny')}],u.acceptsSmoking)}`,
@@ -280,7 +279,7 @@ const SUMMARY={
   household:u=>cap(hhLabel(u)),
   space:u=>[t('bedroomsN',u.bedrooms),u.privateBath?t('ownBathFact'):t('sharesBath'),u.cars?t('parkingN',u.cars):t('sumNoParking'),u.pets.length?cap(petText(u.pets)):''].filter(Boolean).join(' · '),
   live:u=>[u.wfh?t('wfhFact'):'',t('sumSmoke_'+u.smoking),t('sumSliders')].filter(Boolean).join(' · '),
-  share:u=>[t('sumOpen',u.open.length),t('sumMaxHH',u.maxHouseholds),u.acceptsPets?t('okPets'):''].filter(Boolean).join(' · '),
+  share:u=>[t('sumMaxHH',u.maxHouseholds),u.acceptsPets?t('okPets'):''].filter(Boolean).join(' · '),
   where:u=>[cap(listOr(u.areas.map(areaLabel))),homeType(u.types),t(isLet(u)?'keeping':'staying',horizonLabel(u.horizon))].filter(Boolean).join(' · '),
   budget:u=>u.maxBudget==null?t('sumNoBudget'):t('sumBudget',euros(u.maxBudget)),
   needs:u=>{const k=Object.keys(u.needs),m=k.filter(x=>u.needs[x]==='must'),n=k.filter(x=>u.needs[x]==='nice');return [m.length?t('sumMust',listAnd(m.map(x=>featLabel(x).toLowerCase()))):'',n.length?t('sumNice',n.length):''].filter(Boolean).join(' · ')||t('sumNoNeeds');}
