@@ -5,6 +5,8 @@ param planId string
 param planSku string = 'B1'
 @description('Agencies the homes crawler must leave alone and whose homes are hidden (D-035), comma-separated; kept across deploys.')
 param homesStopped string = ''
+@description('Account ids that may see the release funnel (B-074), comma-separated.')
+param adminAccountIds string = ''
 param location string
 @description('Region for the database. Ideally the same as location (D-031); see main.bicep for why it may differ.')
 param sqlLocation string = location
@@ -133,6 +135,7 @@ resource web 'Microsoft.Web/sites@2023-12-01' = {
         { name: 'Auth__External__ClientId', value: externalIdClientId }
         { name: 'Demo__RefreshDaily', value: 'true' }
         { name: 'Homes__Stopped', value: homesStopped }
+        { name: 'Admin__AccountIds', value: adminAccountIds }
         // No made-up homes on the live site: the crawler fills the index (F-019).
         { name: 'Homes__Demo', value: 'false' }
         // The WebJob's schedule (App_Data/jobs/triggered/homes-sync/settings.job) is in Madrid time.

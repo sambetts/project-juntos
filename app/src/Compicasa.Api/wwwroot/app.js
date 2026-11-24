@@ -233,6 +233,21 @@ function viewSources(){
 ${t('srcSecs').map(x=>`<h3>${esc(x.h)}</h3><ul>${x.items.map(y=>`<li>${esc(y)}</li>`).join('')}</ul>${x.portals?portals:''}${x.bot?`<pre>User-agent: CompicasaBot
 Disallow: /</pre><p class="hint"><a href="/bot" target="_blank" rel="noopener">${esc(t('srcBotLink'))}</a></p>`:''}`).join('')}</section>`;
 }
+/* The release funnel (#funnel, B-074): only for the admins the server lists; anyone else sees a short note. */
+function viewFunnel(){
+  if(!S.funnel){S.funnel={loading:true};api('GET','/api/admin/funnel').then(d=>{S.funnel=d.allowed?{data:d.funnel}:{denied:true};if(S.view==='funnel')rerender();},()=>{S.funnel={denied:true};if(S.view==='funnel')rerender();});}
+  const r=S.funnel,back=`<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>`;
+  if(r.loading||r.denied)return back+`<section class="card legal"><h2>${esc(t('fnH'))}</h2><p class="hint">${esc(t(r.loading?'fnLoading':'fnDenied'))}</p></section>`;
+  const d=r.data,rows=t('fnRows');
+  const pct=(n,of)=>of?` <span class="hint">(${num(Math.round(100*n/of))} %)</span>`:'';
+  const base={livingIn:'onboarded',letting:'onboarded',liked:'onboarded',matched:'onboarded',matched14:'cohort14',groupsShortlisting:'groupsFormed',groupsAgreedHome:'groupsFormed',onboarded:'signedUp'};
+  const table=Object.keys(rows).map(k=>`<tr><th scope="row">${esc(rows[k])}</th>${[d.all,d.madrid].map(c=>`<td>${num(c[k])}${base[k]?pct(c[k],c[base[k]]):''}</td>`).join('')}</tr>`).join('');
+  const weeks=d.weeks.map(w=>`<tr><th scope="row">${esc(w.week)}</th><td>${num(w.signedUp)}</td><td>${num(w.onboarded)}</td><td>${num(w.matches)}</td></tr>`).join('');
+  return back+`<section class="card legal"><h2>${esc(t('fnH'))}</h2><p class="lead">${esc(t('fnLead'))}</p>
+<table class="mt"><thead><tr><th></th><th scope="col">${esc(t('fnAll'))}</th><th scope="col">${esc(t('fnMadrid'))}</th></tr></thead><tbody>${table}</tbody></table>
+<h3>${esc(t('fnWeeksH'))}</h3><table><thead><tr><th scope="col">${esc(t('fnWeek'))}</th><th scope="col">${esc(rows.signedUp)}</th><th scope="col">${esc(rows.onboarded)}</th><th scope="col">${esc(rows.matched)}</th></tr></thead><tbody>${weeks}</tbody></table>
+<p class="hint">${esc(t('fnAt',new Date(d.at).toLocaleString(locale(),{timeZone:'Europe/Madrid'})))}</p></section>`;
+}
 function viewLegal(kind){
   const body=t(kind+'Body');
   return `<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>
@@ -1303,7 +1318,7 @@ function render(){
   renderChrome();
   renderTabs();
   const views={home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
-  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
+  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
   applyStyles(app);
   if(document.getElementById('hx-results'))updateHomes();
   drawCharts(app);
@@ -1419,7 +1434,8 @@ async function start(){
 function readHash(){
   const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
   const prev=S.view;
-  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':null)));
+  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':(h.has('funnel')?'funnel':null))));
+  if(S.view==='funnel'&&prev!=='funnel')S.funnel=null; // fresh counts each visit
   const err=h.get('authError');
   if(err){S.authError=t('err_'+err)!==undefined&&STR.es['err_'+err]!==undefined?t('err_'+err):t('err_generic');if(err==='noAccount')S.authMode='signup';
     try{history.replaceState(null,'',location.pathname);}catch(e){}}

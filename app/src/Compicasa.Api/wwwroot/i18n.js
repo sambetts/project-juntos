@@ -1154,3 +1154,17 @@ STR.es.helpSecs.splice(1,0,{h:'Para vivir o para alquilar',items:[
   'En tu perfil dices para qué es la vivienda: para vivir o para alquilar. Solo conoces a quien busca lo mismo, porque un grupo compra una vivienda para un único fin.',
   'Si compras para alquilar, nos saltamos las preguntas sobre la convivencia (dormitorios propios, hábitos, mascotas, tabaco) y no cuentan en tus emparejamientos. Encajáis por la zona, el tipo de vivienda, cuánto tiempo la mantendríais y lo que debe tener.',
   'Un grupo que compra para alquilar recibe una ficha de la propia vivienda, sin reparto de habitaciones, y temas para acordar cómo alquilarla, gestionarla y repartir la renta. Las normas de alquiler cambian según la comunidad y el municipio: preguntadlo a vuestro abogado.']});
+
+/* The release funnel (#funnel, B-074): counts of real people only, for the admins listed in Admin:AccountIds. Not linked from menus. */
+Object.assign(STR.en,{
+  fnH:'Release funnel',fnLead:'Real people only, worked out from what the app already stores. Matches and groups count only between real people.',
+  fnLoading:'Counting…',fnDenied:'This page is only for the people running Compicasa.',fnAll:'All of Spain',fnMadrid:'Looking in Madrid (finished profiles)',
+  fnRows:{signedUp:'Signed up',onboarded:'Finished their profile',livingIn:'… to live in',letting:'… to rent out',liked:'Liked someone',matched:'Matched with a real person',
+    cohort14:'In for 14 days or more',matched14:'… of whom matched within 14 days',groupsFormed:'Groups formed (2+ real households)',groupsShortlisting:'Groups with a shortlist',groupsAgreedHome:'Groups that agreed on a home'},
+  fnWeeksH:'By week (from Monday)',fnWeek:'Week',fnAt:at=>'Counted '+at});
+Object.assign(STR.es,{
+  fnH:'Embudo del lanzamiento',fnLead:'Solo personas reales, calculado con lo que la app ya guarda. Los emparejamientos y los grupos solo cuentan entre personas reales.',
+  fnLoading:'Contando…',fnDenied:'Esta página es solo para quienes gestionan Compicasa.',fnAll:'Toda España',fnMadrid:'Buscan en Madrid (perfiles completos)',
+  fnRows:{signedUp:'Se registraron',onboarded:'Completaron su perfil',livingIn:'… para vivir',letting:'… para alquilar',liked:'Dieron un «me gusta»',matched:'Emparejados con una persona real',
+    cohort14:'Con 14 días o más dentro',matched14:'… de ellos, emparejados en 14 días',groupsFormed:'Grupos formados (2+ hogares reales)',groupsShortlisting:'Grupos con preselección',groupsAgreedHome:'Grupos que acordaron una vivienda'},
+  fnWeeksH:'Por semana (desde el lunes)',fnWeek:'Semana',fnAt:at=>'Contado el '+at});

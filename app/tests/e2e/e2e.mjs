@@ -223,6 +223,8 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   ok(!EN_ONLY.test(await text()), tag + ': no English on the Spanish Home page');
   ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), tag + ': no sideways scrolling on Home');
   await shot(tag + '-3-home-es');
+  await send('Page.navigate', { url: base + '/#funnel' });
+  await until(`/solo para quienes gestionan/.test(document.querySelector('#app')?.innerText||'')`, tag + ': the release funnel is refused to someone not listed (B-074)');
   await send('Page.navigate', { url: base + '/#help' });
   await until(`!!document.querySelector('.help')`, tag + ': guide opens signed in');
   await click('#brandlink');

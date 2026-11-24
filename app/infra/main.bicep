@@ -23,6 +23,9 @@ param planSku string = 'B1'
 @description('Agencies the homes crawler leaves alone (D-035), kept across deploys by deploy.ps1.')
 param homesStopped string = ''
 
+@description('Account ids that may see the release funnel (B-074), comma-separated; kept across deploys by deploy.ps1. Ids only, no personal data.')
+param adminAccountIds string = ''
+
 @description('Short name used in resource names.')
 param name string = 'compicasa'
 
@@ -68,6 +71,7 @@ module app 'resources.bicep' = {
     planId: planId
     planSku: planSku
     homesStopped: homesStopped
+    adminAccountIds: adminAccountIds
     name: name
     tags: tags
     sqlAdminObjectId: sqlAdminObjectId

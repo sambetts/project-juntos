@@ -40,13 +40,15 @@ if ($Infra) {
   }
   # Keep the External ID settings that external-id.ps1 wrote (D-033).
   # Keep any agencies the crawler was told to leave alone (D-035).
-  $authority = $ExternalIdAuthority; $clientId = $ExternalIdClientId; $stopped = ''
+  # Keep who may see the release funnel (B-074).
+  $authority = $ExternalIdAuthority; $clientId = $ExternalIdClientId; $stopped = ''; $admins = ''
   $existingWeb = az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv 2>$null
   if ($existingWeb) {
     $settings = az webapp config appsettings list -g $rg -n $existingWeb --subscription $Subscription -o json 2>$null | ConvertFrom-Json
     if (-not $authority) { $authority = ($settings | Where-Object name -eq 'Auth__External__Authority').value }
     if (-not $clientId) { $clientId = ($settings | Where-Object name -eq 'Auth__External__ClientId').value }
     $stopped = ($settings | Where-Object name -eq 'Homes__Stopped').value
+    $admins = ($settings | Where-Object name -eq 'Admin__AccountIds').value
   }
   if (-not $invite) {
     $chars = 'abcdefghjkmnpqrstuvwxyz23456789'.ToCharArray()
@@ -56,7 +58,7 @@ if ($Infra) {
 
   $out = Invoke-Az deployment sub create --subscription $Subscription -l $Location -n compicasa-prod-$Location `
     --template-file (Join-Path $PSScriptRoot 'main.bicep') `
-    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "externalIdAuthority=$authority" "externalIdClientId=$clientId" "homesStopped=$stopped" $(if ($OwnPlan) { 'planId=' }) `
+    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "externalIdAuthority=$authority" "externalIdClientId=$clientId" "homesStopped=$stopped" "adminAccountIds=$admins" $(if ($OwnPlan) { 'planId=' }) `
     --query properties.outputs -o json | ConvertFrom-Json
   $web = $out.webAppName.value; $sqlServer = $out.sqlServer.value; $db = $out.database.value
   Write-Host "Web app: $web  SQL: $sqlServer/$db"
