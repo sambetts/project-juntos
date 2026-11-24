@@ -14,8 +14,11 @@ param sqlLocation string = location
 @description('Region of the resource group record (metadata only).')
 param groupLocation string = location
 
-@description('The App Service plan to run on (D-036).')
+@description('The App Service plan to run on (D-036). Empty: create a plan of its own in rg-compicasa-prod (planSku), for a subscription without BuildSyncProd (B-073, D-049).')
 param planId string = '/subscriptions/${subscription().subscriptionId}/resourceGroups/BuildSyncProd/providers/Microsoft.Web/serverfarms/BuildSyncProd'
+
+@description('Size of the plan created when planId is empty. B1 is the smallest with Always On, which the daily WebJob needs.')
+param planSku string = 'B1'
 
 @description('Agencies the homes crawler leaves alone (D-035), kept across deploys by deploy.ps1.')
 param homesStopped string = ''
@@ -63,6 +66,7 @@ module app 'resources.bicep' = {
     location: location
     sqlLocation: sqlLocation
     planId: planId
+    planSku: planSku
     homesStopped: homesStopped
     name: name
     tags: tags

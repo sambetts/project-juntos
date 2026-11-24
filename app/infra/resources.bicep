@@ -1,6 +1,8 @@
 // Resources inside rg-compicasa-prod. See main.bicep.
 @description('The App Service plan the web app runs on: the existing BuildSyncProd (Windows, P1v2, UK South; D-036), in its own resource group.')
 param planId string
+@description('Size of the plan created here when planId is empty (B-073).')
+param planSku string = 'B1'
 @description('Agencies the homes crawler must leave alone and whose homes are hidden (D-035), comma-separated; kept across deploys.')
 param homesStopped string = ''
 param location string
@@ -91,6 +93,17 @@ resource db 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
   }
 }
 
+// ---------- plan: the shared BuildSyncProd (D-036), or one of its own when planId is empty (B-073, a move to another subscription) ----------
+resource ownPlan 'Microsoft.Web/serverfarms@2023-12-01' = if (empty(planId)) {
+  name: 'asp-${name}-prod-${suffix}'
+  location: location
+  tags: tags
+  kind: 'app'
+  sku: { name: planSku }
+  properties: { reserved: false } // Windows, like BuildSyncProd
+}
+var farmId = empty(planId) ? ownPlan.id : planId
+
 // ---------- web app: ASP.NET Core API + PWA, Windows, on the shared BuildSyncProd plan (D-036) ----------
 resource web 'Microsoft.Web/sites@2023-12-01' = {
   name: 'app-${name}-prod-${suffix}'
@@ -99,7 +112,7 @@ resource web 'Microsoft.Web/sites@2023-12-01' = {
   kind: 'app'
   identity: { type: 'SystemAssigned' }
   properties: {
-    serverFarmId: planId
+    serverFarmId: farmId
     httpsOnly: true
     clientAffinityEnabled: false
     siteConfig: {

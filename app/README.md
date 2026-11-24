@@ -74,6 +74,16 @@ Then open the URL it prints and sign up with any email address and invite code `
 - **If it needs more room:** it shares BuildSyncProd with Sam's other apps. Give it its own plan by adding one in `infra/resources.bicep` and pointing `planId` at it; if the database pauses too often, drop `useFreeLimit` (it then bills).
 - **Logs:** Application Insights `appi-compicasa-prod`.
 
+## Moving to another subscription (B-073, D-049)
+The live app runs on Sam's Visual Studio subscription (`81209232-…`), whose credit Microsoft limits to development and testing (R-024). Sam chose to stay for now; these are the steps to move. **Not yet tried end to end:** the Bicep builds, but no move has been run, so expect to fix small things on the first one. Opening the new subscription and approving the move are Sam's.
+
+1. **New subscription, same directory.** Ideally in the same Entra directory as now, so the database admin, the GitHub deploy identity and the External ID link work unchanged. `az account set --subscription <new id>`.
+2. **Infrastructure:** `pwsh app/infra/deploy.ps1 -Subscription <new id> -OwnPlan -Infra -InviteCode <the current code> -ExternalIdAuthority <current> -ExternalIdClientId <current>` (copy the last three from the old web app's settings, never into this repository). `-OwnPlan` creates a Windows B1 plan in `rg-compicasa-prod`, since BuildSyncProd lives in the old subscription. Check the B1 price first (about €12 a month, the estimate in B-044, Reported).
+3. **The address changes.** Resource names end in a suffix taken from the resource group's ID, which includes the subscription, so the web app gets a new `…azurewebsites.net` address. Add `<new address>/signin-oidc` to the External ID app registration's redirect URIs, and update the address in `STATE.md`, the `/bot` page text if it names it, and anywhere it was shared. A custom domain (F-014) would hide this from users.
+4. **Data.** Made-up people rebuild themselves each morning. Real accounts, messages, groups and the homes index need copying: export a `.bacpac` from the old database and import it into the new one (or `CREATE DATABASE … AS COPY OF` across servers in the same directory), with the app stopped so nothing is lost. Then re-run `deploy.ps1 -Infra` so the new web app's identity gets its database user. The SQL free offer is one database per subscription.
+5. **GitHub Actions:** set the repository variable `AZURE_SUBSCRIPTION_ID` to the new id; change `WEB_APP` in `.github/workflows/app.yml` to the new name; give `compicasa-github-deploy` *Website Contributor* on the new web app (and remove it from the old).
+6. **Check, then remove the old one.** Run the browser test against the new address and wait for the 05:00 crawl, then delete `rg-compicasa-prod` in the old subscription. Keep `rg-compicasa-identity` (External ID) where it is unless Sam wants its billing link moved too.
+
 ## Not done yet (in the backlog)
 - Deploying from GitHub Actions instead of a laptop (B-030).
 - Phones and screen readers checked by a person, and a native speaker's review of the new Spanish (B-025).

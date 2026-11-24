@@ -17,7 +17,8 @@ param(
   [switch]$NewInviteCode,
   [string]$InviteCode,  # sets the code, for example to keep the old one when the web app is rebuilt
   [string]$ExternalIdAuthority,  # with -ExternalIdClientId: the External ID settings, when the web app is rebuilt
-  [string]$ExternalIdClientId
+  [string]$ExternalIdClientId,
+  [switch]$OwnPlan  # create an App Service plan in rg-compicasa-prod instead of using BuildSyncProd: for another subscription (B-073)
 )
 $ErrorActionPreference = 'Stop'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
@@ -55,7 +56,7 @@ if ($Infra) {
 
   $out = Invoke-Az deployment sub create --subscription $Subscription -l $Location -n compicasa-prod-$Location `
     --template-file (Join-Path $PSScriptRoot 'main.bicep') `
-    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "externalIdAuthority=$authority" "externalIdClientId=$clientId" "homesStopped=$stopped" `
+    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "externalIdAuthority=$authority" "externalIdClientId=$clientId" "homesStopped=$stopped" $(if ($OwnPlan) { 'planId=' }) `
     --query properties.outputs -o json | ConvertFrom-Json
   $web = $out.webAppName.value; $sqlServer = $out.sqlServer.value; $db = $out.database.value
   Write-Host "Web app: $web  SQL: $sqlServer/$db"
