@@ -4,6 +4,16 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-039 · Push the house browser to `main` (deploys B-064) · by 2026-11-28
+**Why:** a push deploys (D-041). It adds the *Viviendas* tab (`#houses`): every home in the index with filters, a fit score against your own profile, saved homes, and "add to a group's shortlist"; plus one new table (`SavedHomes`, applied at start-up). It also fixes a clash in the contact inbox's page state with the Alerts tab (nobody could reach it yet).
+**Recommendation:** yes. 97 .NET tests and the browser test (93 of 93) pass locally.
+**If no answer:** committed, not deployed.
+
+### F-040 · Which map tiles for the house browser's map (B-079) · by 2026-12-05
+**Why:** a map needs tile images from somewhere, and that server sees each visitor's IP address. **Options:** A) OpenStreetMap's free tiles (light use only under its policy; attribution) · B) a commercial free tier (an account in your name) · C) no map for now.
+**Recommendation:** A while traffic is small, named in the privacy notice.
+**If no answer:** the map waits.
+
 ### F-038 · Push the contact form to `main` (deploys B-078) · CLOSED 2026-11-24: pushed
 **Why:** a push deploys (D-041). It adds `#contact`, open to anyone, storing messages in the database for you to read at `#inbox`, and a database migration (one new table, applied at start-up). Nothing is emailed until Compicasa has an address and domain (F-014).
 **Recommendation:** yes. 94 .NET tests and the browser test pass locally. Before real users the privacy notice must mention it (B-052).

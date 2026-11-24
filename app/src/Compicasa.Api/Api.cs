@@ -53,6 +53,7 @@ public static partial class Api
         {
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
             await db.Reactions.Where(x => x.FromId == a.Id || x.ToId == a.Id).ExecuteDeleteAsync();
+            await db.SavedHomes.Where(x => x.AccountId == a.Id).ExecuteDeleteAsync();
             var created = await db.Groups.Where(g => g.CreatedById == a.Id).Select(g => g.Id).ToListAsync();
             await Threads.ForgetAsync(db, [a.Id], created);
             await db.GroupMembers.Where(m => created.Contains(m.GroupId) || m.AccountId == a.Id).ExecuteDeleteAsync();

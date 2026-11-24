@@ -273,8 +273,8 @@ async function sendContact(f){
 }
 /* The admins' inbox of contact messages (#inbox, B-078): same allow-list as #funnel. Not linked from menus */
 function viewInbox(){
-  if(!S.inbox){S.inbox={loading:true};api('GET','/api/admin/contact').then(d=>{S.inbox=d.allowed?{data:d.messages}:{denied:true};if(S.view==='inbox')rerender();},()=>{S.inbox={denied:true};if(S.view==='inbox')rerender();});}
-  const r=S.inbox,back=`<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>`;
+  if(!S.ctInbox){S.ctInbox={loading:true};api('GET','/api/admin/contact').then(d=>{S.ctInbox=d.allowed?{data:d.messages}:{denied:true};if(S.view==='inbox')rerender();},()=>{S.ctInbox={denied:true};if(S.view==='inbox')rerender();});}
+  const r=S.ctInbox,back=`<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>`;
   if(r.loading||r.denied)return back+`<section class="card legal"><h2>${esc(t('ibH'))}</h2><p class="hint">${esc(t(r.loading?'fnLoading':'fnDenied'))}</p></section>`;
   const topics=t('ctTopics'),when=x=>new Date(x).toLocaleString(locale(),{timeZone:'Europe/Madrid'});
   const open=r.data.filter(m=>!m.doneAt).length;
@@ -415,7 +415,7 @@ ${missing.length?'':`<p class="hint">${esc(t('scoreAll'))}</p>`}</section>`;
     const d=r.data,list=d.homes.slice(0,3).map(x=>Object.assign({},x,{pm2:x.price&&x.m2?x.price/x.m2:null})),med=median(list.map(x=>x.pm2));
     const who=d.with?t('dashHomesWith',d.with.name,d.with.mutual):t('dashHomesAlone');
     homes=`<p class="hint">${esc(who)}</p>${d.budgetSet===false?`<p class="budgetline">${esc(t('dashBudget'))} <a class="quiet" href="#profile" data-action="open-sec" data-id="budget">${esc(t('hbSetMine'))}</a></p>`:''}${list.length?`<ul class="homes">${list.map(x=>homeItem(x,med)).join('')}</ul><p class="hint mt">${esc(t('dashHomesNote'))}</p>`:`<p>${esc(t('dashHomesNone'))}</p>`}
-${g.formed?`<p class="mt"><a class="btn small" href="${groupHash(g.formed,'homes')}">${esc(t('dashHomesGroup'))}</a></p>`:''}`;
+<p class="mt"><a class="btn small ghost" href="#houses">${esc(t('brAll'))}</a></p>${g.formed?`<p class="mt"><a class="btn small" href="${groupHash(g.formed,'homes')}">${esc(t('dashHomesGroup'))}</a></p>`:''}`;
   }
   return `<header class="phead2"><div><h2>${esc(t('dashH',u.name||''))}</h2><p class="hint">${esc(t('dashLead'))}</p></div></header>
 ${nextBox}
@@ -845,6 +845,7 @@ async function loadBlocks(){
 function ensureData(){
   if(!inApp())return;
   if(S.tab==='home'&&!S.dashHomes)loadDashHomes();
+  if(S.tab==='browse'){const b=brState();if(!b.data&&!b.loading&&!b.error)loadBrowse();if(!S.groups)loadGroups().then(()=>{if(S.tab==='browse')brRefresh();}).catch(()=>{});}
   if(S.tab==='alerts'&&!S.inbox)loadInbox();
   if(S.tab==='messages'&&!S.chatKey&&!S.chats)loadChats();
   if(S.tab==='you'&&!S.blocks)loadBlocks();
@@ -1024,7 +1025,64 @@ function planSvg(x){
   }
   return `<svg class="plan" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t('planAria',beds,baths))}">${s}</svg>`;
 }
-function homeItem(x,medPm2,onGroup){
+/* ---------- the house browser (B-064): every home in the index, filtered and paged on the server ----------
+   Scored against your own profile; save homes, or add one to a group's shortlist. Signed-in people only (Sam, 2026-11-24) */
+function brState(){if(!S.br)S.br={f:{where:'mine',pmin:'',pmax:'',beds:0,m2:0,type:'',energy:'',fits:false,saved:false,real:false,sort:'fit'},items:[],seq:0,added:{}};return S.br;}
+async function loadBrowse(more){
+  const b=brState(),f=b.f,seq=++b.seq,p=new URLSearchParams();
+  if(more)b.loadingMore=true;else{b.loading=true;b.error=null;}
+  if(f.where==='mine')p.set('mine','true');else if(f.where!=='all')p.set('areas',f.where);
+  ['pmin','pmax','type','energy'].forEach(k=>{if(f[k]!==''&&f[k]!=null)p.set(k,f[k]);});
+  if(f.beds)p.set('beds',f.beds);if(f.m2)p.set('m2',f.m2);
+  ['fits','saved','real'].forEach(k=>{if(f[k])p.set(k,'true');});
+  p.set('sort',f.sort);p.set('skip',more?b.items.length:0);p.set('take',24);
+  try{const d=await api('GET','/api/browse?'+p.toString());if(seq!==b.seq)return;
+    d.homes.forEach(x=>{x.pm2=x.price&&x.m2?x.price/x.m2:null;});
+    b.data=d;b.items=more?b.items.concat(d.homes):d.homes;b.loading=false;b.loadingMore=false;}
+  catch(e){if(seq!==b.seq)return;b.loading=false;b.loadingMore=false;b.error=errText(e);}
+  if(S.tab==='browse'&&inApp())brRefresh();
+}
+/* Redraw, keeping focus on the control that changed */
+function brRefresh(){const a=document.activeElement,id=a&&a.id,dt=document.getElementById('br-more-f');if(dt)S.brOpen=dt.open;rerender();if(id){const el=document.getElementById(id);if(el&&el!==document.activeElement)el.focus({preventScroll:true});}}
+function brGroups(){return (S.groups||[]).filter(g=>g.myStatus==='accepted'&&g.state!=='broken');}
+function brGroupName(g){return (g.members||[]).map(m=>m.id).filter(id=>!isMe(id)).map(dn).join(' + ')||t('navGroups');}
+function brExtra(x){
+  const save=`<button type="button" class="btn small" data-action="br-save" data-id="${esc(x.id)}" aria-pressed="${x.saved?'true':'false'}">${x.saved?'★ '+esc(t('brSaved')):'☆ '+esc(t('brSave'))}</button>`;
+  return save+brGroups().map(g=>S.br.added[g.id+'|'+x.id]
+    ?`<a class="btn small ghost" href="#group-${g.id}-shortlist">✓ ${esc(t('brInGroup',brGroupName(g)))}</a>`
+    :`<button type="button" class="btn small" data-action="br-add" data-id="${esc(x.id)}" data-g="${g.id}">+ ${esc(t('brAddTo',brGroupName(g)))}</button>`).join('');
+}
+function brSelect(k,label,opts,v){return `<div class="fcell"><label for="br-${k}">${esc(label)}</label><select id="br-${k}" data-br="${k}">${opts.map(o=>`<option value="${esc(o[0])}"${String(o[0])===String(v)?' selected':''}>${esc(o[1])}</option>`).join('')}</select></div>`;}
+function viewBrowse(){
+  const b=brState(),f=b.f,d=b.data,counts={};
+  if(d)d.areas.forEach(a=>{counts[a.id]=a.n;});
+  const opt=(id,label)=>`<option value="${id}"${f.where===id?' selected':''}>${esc(label)}${counts[id]?' ('+num(counts[id])+')':''}</option>`;
+  const where=`<div class="fcell"><label for="br-where">${esc(t('brWhere'))}</label><select id="br-where" data-br="where"><option value="mine"${f.where==='mine'?' selected':''}>${esc(t('brMine'))}</option><option value="all"${f.where==='all'?' selected':''}>${esc(t('brAllSpain'))}${d?' ('+num(d.considered)+')':''}</option>${REGIONS.map(r=>`<optgroup label="${esc(tx(r.label))}">${r.areas.map(a=>opt(a.id,tx(a.label))).join('')}</optgroup>`).join('')}</select></div>`;
+  const price=`<div class="fcell"><span class="label">${esc(t('brPrice'))}</span><div class="row"><input id="br-pmin" type="number" inputmode="numeric" min="0" step="10000" data-br="pmin" value="${esc(f.pmin)}" placeholder="${esc(t('brMin'))}" aria-label="${esc(t('brPrice')+': '+t('brMin'))}"><input id="br-pmax" type="number" inputmode="numeric" min="0" step="10000" data-br="pmax" value="${esc(f.pmax)}" placeholder="${esc(t('brMax'))}" aria-label="${esc(t('brPrice')+': '+t('brMax'))}"></div></div>`;
+  const any=t('hxAny'),sorts=t('brSorts');
+  const check=(k,label)=>`<label class="opt"><input type="checkbox" id="br-${k}" data-br="${k}"${f[k]?' checked':''}> ${esc(label)}</label>`;
+  const n=(f.pmin!=='')+(f.pmax!=='')+!!f.beds+!!f.m2+!!f.type+!!f.energy+f.fits+f.saved+f.real;
+  const filters=`<section class="card brfilters"><div class="fgrid">${where}${brSelect('sort',t('brSort'),Object.keys(sorts).map(k=>[k,sorts[k]]),f.sort)}</div>
+<details class="filters" id="br-more-f"${S.brOpen||n?' open':''}><summary><b>${esc(t('hxFilters'))}</b>${n?` <span class="count">${n}</span>`:''}</summary><div class="fgrid">${price}
+${brSelect('beds',t('hxBeds'),[[0,any],[1,'1+'],[2,'2+'],[3,'3+'],[4,'4+']],f.beds)}
+${brSelect('m2',t('hxSize'),[[0,any],[50,'50 m²+'],[70,'70 m²+'],[90,'90 m²+'],[120,'120 m²+']],f.m2)}
+${brSelect('type',t('hxType'),[['',any]].concat(TYPES.map(x=>[x.id,tx(x.label)])),f.type)}
+${brSelect('energy',t('hxEnergy'),[['',any],['C','A–C'],['E','A–E']],f.energy)}
+<div class="fcell"><span class="label">${esc(t('hxMore'))}</span>${check('fits',t('brFits'))}${check('saved',t('brSavedOnly',d?d.savedCount:0))}${check('real',t('hxReal'))}</div>
+</div><div class="frow"><span class="spacer"></span><button type="button" class="btn small ghost" data-action="br-reset"${n?'':' disabled'}>${esc(t('hxReset'))}</button></div></details></section>`;
+  let body;
+  if(!d&&b.error)body=`<p class="error">${esc(b.error)}</p>`;
+  else if(!d)body=`<div class="skeleton"></div><div class="skeleton short"></div>`;
+  else if(!b.items.length)body=`<div class="card empty mt"><p>${esc(t(f.saved?'brNoneSaved':'brNone'))}</p><button type="button" class="btn" data-action="br-reset">${esc(t('hxReset'))}</button></div>`;
+  else{
+    const more=d.total-b.items.length;
+    body=`<ul class="homes">${b.items.map(x=>homeItem(x,d.medPm2,false,brExtra(x))).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="br-more"${b.loadingMore?' disabled':''}>${esc(t('moreHomes',Math.min(24,more),more))}</button></p>`:''}`;
+  }
+  const sum=d?`<p class="sumline" aria-live="polite"><b>${esc(t('brSum',d.total,num(d.total),num(d.fitting)))}</b>${d.medPrice?' · '+esc(t('hxSumMed',kEur(d.medPrice))):''}${d.medPm2?' · '+esc(num(Math.round(d.medPm2))+' €/m²'):''}${b.loading?' · '+esc(t('brUpdating')):''}</p>`:'';
+  return `<header class="phead2"><div><h2>${esc(t('brH'))}</h2><p class="hint">${esc(t('brLead'))} <a class="quiet" href="#sources">${esc(t('srcLinkHomes'))}</a></p></div></header>
+${filters}${sum}${b.error&&d?`<p class="error">${esc(b.error)}</p>`:''}<div class="${b.loading&&d?'dim':''}">${body}</div>`;
+}
+function homeItem(x,medPm2,onGroup,extra){
   const where=[x.district,x.municipality].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
   const facts=[typeLabel(x.type),x.beds!=null?t('homeBeds',x.beds):'',x.baths!=null?t('homeBaths',x.baths):'',x.m2?x.m2+' m²':''].filter(Boolean).join(' · ');
   /* misses first (they matter most), then confirmed must-haves, then the general fits; three at most */
@@ -1042,7 +1100,7 @@ function homeItem(x,medPm2,onGroup){
   return `<li class="home" id="home-${esc(x.id)}"><div class="home-vis">${planSvg(x)}${energy}${x.isDemo?`<span class="demo">${esc(t('demoHomeTag'))}</span>`:''}</div>
 <div class="home-top"><b class="price">${esc(euros(x.price))}</b><div class="ring sm ${cls}" data-p="${x.score}" role="img" aria-label="${esc(t('homeFit',x.score))}"><b>${x.score}</b></div></div>
 <div class="pm2">${x.pm2?esc(num(Math.round(x.pm2))+' €/m²'):''} ${delta}</div>
-<div>${esc(facts)}</div><div class="who">${esc(where)} · ${esc(x.isDemo?t('demoAgency'):x.agency)}</div><div class="home-tags">${tags}</div>${check}<div class="row">${link}${onGroup?slButton(x.id):''}</div></li>`;
+<div>${esc(facts)}</div><div class="who">${esc(where)} · ${esc(x.isDemo?t('demoAgency'):x.agency)}</div><div class="home-tags">${tags}</div>${check}<div class="row">${link}${onGroup?slButton(x.id):''}${extra||''}</div></li>`;
 }
 /* ---------- house voting (B-056): a shortlist, three yes rounds, then the "agreed" pack ----------
    Votes on a stage stay hidden until everyone still in has voted; a price change or a newcomer means voting again.
@@ -1266,12 +1324,13 @@ function renderTabs(){
   /* Badges count what is waiting for you: people not answered yet, invitations not answered yet */
   /* Only invitations get a badge: they wait for your answer (B-051 review) */
   const invites=S.groups?S.groups.filter(g=>g.myStatus==='pending').length:(S.counts.invites||0),unread=S.counts.messages||0;
-  const tabs=[['matches','#people-'+peopleSub(),t('navPeople'),'','',ICONS.people],['groups','#groups',t('navGroups'),invites?String(invites):'',t('srInvites'),ICONS.groups],
+  const tabs=[['matches','#people-'+peopleSub(),t('navPeople'),'','',ICONS.people],['browse','#houses',t('navHomes'),'','',ICONS.house],['groups','#groups',t('navGroups'),invites?String(invites):'',t('srInvites'),ICONS.groups],
     ['messages','#messages',t('navMessages'),unread?String(unread):'',t('srUnread'),ICONS.chat]];
   tabsEl.innerHTML=tabs.map(x=>`<a class="tab" href="${x[1]}" id="tab-${x[0]}" data-tab="${x[0]}"${S.tab===x[0]?' aria-current="page"':''}>${x[5]}<span>${esc(x[2])}</span>${x[3]?`<span class="count"><span aria-hidden="true">${x[3]}</span><span class="sr">: ${x[3]} ${esc(x[4])}</span></span>`:''}</a>`).join('');
 }
 /* Line icons for the tabs (stroke only, coloured by CSS) */
 const ICONS={
+  house:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="1"/><path d="M9 7.5h2M13 7.5h2M9 11h2M13 11h2M9 14.5h2M13 14.5h2M11 20.5v-3h2v3"/></svg>',
   people:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c2.4.2 4 1.8 4.5 4.3"/></svg>',
   groups:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h2v5M12.5 20v-5h2v5"/></svg>',
   profile:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.6 7-5.6s6.2 2 7 5.6"/></svg>',
@@ -1352,7 +1411,7 @@ function render(){
   if(sh&&sh.dataset.shown&&!sh.open&&S.person){sheetClosed();if(!S.goingBack)return;}
   renderChrome();
   renderTabs();
-  const views={home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
+  const views={browse:viewBrowse,home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
   app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():S.view==='contact'?viewContact():S.view==='inbox'?viewInbox():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
   applyStyles(app);
   if(document.getElementById('hx-results'))updateHomes();
@@ -1375,6 +1434,7 @@ function routeHash(){
   if(S.tab==='home')return '#home';
   if(S.tab==='you')return '#profile';
   if(S.tab==='alerts')return '#alerts';
+  if(S.tab==='browse')return '#houses';
   if(S.tab==='messages')return S.chatKey?'#chat-'+S.chatKey.id:'#messages';
   if(S.tab==='matches')return S.person?'#person-'+S.person:'#people-'+peopleSub();
   if(S.home)return groupHash(S.home,S.gsub);
@@ -1388,6 +1448,7 @@ function parseRoute(h){
   if((m=/^people(?:-(review|liked|matches|passed))?$/.exec(h)))return {tab:'matches',ps:m[1]||null};
   if((m=/^person-([A-Za-z0-9_.-]{1,64})$/.exec(h)))return {tab:'matches',person:m[1]};
   if(h==='groups')return {tab:'groups'};
+  if(h==='houses')return {tab:'browse'};
   if(h==='alerts')return {tab:'alerts'};
   if(h==='messages')return {tab:'messages'};
   if((m=/^chat-([A-Za-z0-9_.-]{1,64})$/.exec(h)))return {tab:'messages',chat:m[1]};
@@ -1471,7 +1532,7 @@ function readHash(){
   const prev=S.view;
   S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':(h.has('funnel')?'funnel':(h.has('contact')?'contact':(h.has('inbox')?'inbox':null))))));
   if(S.view==='funnel'&&prev!=='funnel')S.funnel=null; // fresh counts each visit
-  if(S.view==='inbox'&&prev!=='inbox')S.inbox=null;
+  if(S.view==='inbox'&&prev!=='inbox')S.ctInbox=null;
   if(S.view==='contact'&&prev!=='contact')S.contactSent=false;
   const err=h.get('authError');
   if(err){S.authError=t('err_'+err)!==undefined&&STR.es['err_'+err]!==undefined?t('err_'+err):t('err_generic');if(err==='noAccount')S.authMode='signup';
@@ -1596,6 +1657,8 @@ app.addEventListener('submit',async e=>{
   }catch(err){S.busy=false;btn.disabled=false;errEl.textContent=errText(err);}
 });
 app.addEventListener('change',e=>{
+  if(e.target.hasAttribute&&e.target.hasAttribute('data-br')){const el=e.target,b=brState(),k=el.getAttribute('data-br');
+    b.f[k]=el.type==='checkbox'?el.checked:(k==='beds'||k==='m2'?Number(el.value)||0:el.value.trim());loadBrowse();brRefresh();return;}
   const el=e.target;
   if(el.getAttribute('data-hf')==='sort'&&S.hf){S.hf.sort=el.value;S.hf.show=12;updateHomes();return;}
   if(el.getAttribute('data-mf')==='sort'){mfState().sort=el.value;updateMatches();return;}
@@ -1647,8 +1710,17 @@ document.addEventListener('click',async e=>{
     case 'wiz-next':wizMove(1);break;
     case 'wiz-back':wizMove(-1);break;
     case 'wiz-finish':wizFinish();break;
+    case 'br-save':{const b=S.br,x=b&&b.items.find(i=>i.id===id);if(!x)break;const on=!x.saved;
+      try{await api(on?'PUT':'DELETE','/api/saved/'+encodeURIComponent(id));x.saved=on;if(b.data)b.data.savedCount+=on?1:-1;
+        if(!on&&b.f.saved){b.items=b.items.filter(i=>i!==x);if(b.data)b.data.total--;}brRefresh();toast(t(on?'tSaved':'tUnsaved'));}
+      catch(err){toast(errText(err));}break;}
+    case 'br-add':{const g=el.getAttribute('data-g'),k=g+'|'+id;el.disabled=true;
+      try{await api('POST','/api/groups/'+g+'/shortlist',{homeId:id});S.br.added[k]=1;S.sl=null;brRefresh();toast(t('tShortlisted'));}
+      catch(err){if(err.code==='alreadyShortlisted'){S.br.added[k]=1;brRefresh();}else el.disabled=false;toast(errText(err));}break;}
+    case 'br-more':loadBrowse(true);brRefresh();break;
+    case 'br-reset':S.br=null;brState();loadBrowse();brRefresh();break;
     case 'contact-again':S.contactSent=false;render();focusHeading();break;
-    case 'inbox-done':try{await api('POST','/api/admin/contact/'+encodeURIComponent(id)+'/done');S.inbox=null;rerender();}catch(err){toast(errText(err));}break;
+    case 'inbox-done':try{await api('POST','/api/admin/contact/'+encodeURIComponent(id)+'/done');S.ctInbox=null;rerender();}catch(err){toast(errText(err));}break;
     case 'legal-back':S.view=null;try{history.replaceState(null,'',location.pathname);}catch(err){}render();window.scrollTo(0,0);focusHeading();break;
     case 'goto':go(id,el.getAttribute('data-sub'));break;
     case 'open-sec':S.openSecs=Object.assign({},S.openSecs,{[id]:true});break;
@@ -1693,7 +1765,7 @@ document.addEventListener('click',async e=>{
     case 'more-people':{mfState().show+=12;updateMatches();break;}
     case 'mf-chart':{const f=mfState();f.chart=!f.chart;el.setAttribute('aria-pressed',String(f.chart));updateMatches();break;}
     case 'score-bin':{const f=mfState();f.min=+el.getAttribute('data-lo');const r=document.getElementById('mf-min');if(r)r.value=f.min;const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');updateMatches();break;}
-    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.inbox=null;S.chats=null;S.chat=null;S.chatKey=null;S.blocks=null;S.dashHomes=null;S.sl=null;S.counts={alerts:0,messages:0,invites:0};S.authMode='signin';render();break;}
+    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.inbox=null;S.chats=null;S.chat=null;S.chatKey=null;S.blocks=null;S.dashHomes=null;S.sl=null;S.br=null;S.counts={alerts:0,messages:0,invites:0};S.authMode='signin';render();break;}
     case 'delete-account':if(window.confirm(t('deleteConfirm'))){try{await api('DELETE','/api/me');S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];render();}catch(err){toast(errText(err));}}break;
   }
 });

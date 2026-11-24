@@ -174,6 +174,7 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
     public DbSet<Candidate> Candidates => Set<Candidate>();
     public DbSet<CandidateVote> CandidateVotes => Set<CandidateVote>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
+    public DbSet<SavedHome> SavedHomes => Set<SavedHome>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -256,6 +257,12 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
             e.Property(x => x.Reason).HasMaxLength(16);
             e.Property(x => x.Note).HasMaxLength(1000);
             e.HasIndex(x => x.AboutId);
+        });
+        b.Entity<SavedHome>(e =>
+        {
+            e.HasKey(x => new { x.AccountId, x.HomeId });
+            e.Property(x => x.AccountId).HasMaxLength(40);
+            e.Property(x => x.HomeId).HasMaxLength(80);
         });
         b.Entity<ContactMessage>(e =>
         {

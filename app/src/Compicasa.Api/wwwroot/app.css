@@ -197,6 +197,12 @@ input[type=email],input[type=text]{inline-size:100%;padding:10px 12px;border-rad
 .ct-msg{max-inline-size:760px;margin:12px auto}
 .ct-msg.done{opacity:.7}
 .ct-body{white-space:pre-wrap;overflow-wrap:anywhere}
+/* The house browser (B-064) */
+.brfilters .row{gap:8px}
+.brfilters .row input{min-inline-size:0;inline-size:100%}
+.brfilters .opt{display:flex;gap:6px;align-items:center;margin-block:4px}
+.dim{opacity:.6;transition:opacity .2s}
+.brfilters details.filters{margin-block-start:12px}
 a.btn{color:var(--text);text-decoration:none;display:inline-block}
 .help h3{margin:18px 0 8px}.help ul{padding-inline-start:20px;display:grid;gap:8px}
 footer.note p{margin:0 0 6px}
@@ -340,7 +346,7 @@ input[type=search]{inline-size:100%;padding:9px 12px;border-radius:10px;border:1
   .hbtn{padding:6px 10px;min-inline-size:36px;text-align:center}
   .hbtn .long{display:none}.hbtn .short{display:inline}
   nav.tabs{position:fixed;inset-inline:0;inset-block-end:0;margin:0;z-index:8;background:var(--surface);border-block-start:1px solid var(--border);box-shadow:0 -4px 16px rgba(16,24,40,.06);padding-block-end:env(safe-area-inset-bottom)}
-  #tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+  #tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
   nav.tabs .tab{flex-direction:column;gap:2px;justify-content:center;border-radius:0;padding:7px 4px 6px;font-size:12px;min-block-size:56px;position:relative}
   nav.tabs .tab[aria-selected="true"]{background:transparent}
   nav.tabs .tab[aria-selected="true"] .ico{stroke-width:2.2}

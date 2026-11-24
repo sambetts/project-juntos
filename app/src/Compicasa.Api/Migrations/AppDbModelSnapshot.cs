@@ -534,6 +534,24 @@ namespace Compicasa.Api.Migrations
                     b.ToTable("Reports");
                 });
 
+            modelBuilder.Entity("Compicasa.Api.SavedHome", b =>
+                {
+                    b.Property<string>("AccountId")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("HomeId")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("AccountId", "HomeId");
+
+                    b.ToTable("SavedHomes");
+                });
+
             modelBuilder.Entity("Compicasa.Api.ThreadRead", b =>
                 {
                     b.Property<string>("AccountId")

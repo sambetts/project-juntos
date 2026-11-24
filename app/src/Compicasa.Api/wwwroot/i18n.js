@@ -1188,3 +1188,25 @@ Object.assign(STR.es,{
   ctThanks:'Gracias. Tu mensaje ha llegado y lo leerá una persona.',ctAgain:'Enviar otro mensaje',
   err_badTopic:'Elige sobre qué es.',err_badContactBody:'Escribe un mensaje de 10 a 3000 caracteres.',
   ibH:'Mensajes de contacto',ibLead:n=>n===1?'1 mensaje pendiente.':n+' mensajes pendientes.',ibEmpty:'Todavía no hay mensajes.',ibNoName:'(sin nombre)',ibDone:'Marcar como resuelto',ibDoneAt:at=>'Resuelto el '+at});
+
+/* The house browser (#houses, B-064) */
+Object.assign(STR.en,{
+  navHomes:'Homes',brH:'Homes for sale',brAll:'See all homes',
+  brLead:'Every home in our index, from the agencies’ own websites. The score compares each one with your profile: bedrooms, type, area and your must-haves. A group’s homes use everyone’s profile.',
+  brWhere:'Where',brMine:'My areas (from my profile)',brAllSpain:'All of Spain',brPrice:'Price',brMin:'From €',brMax:'Up to €',brSort:'Order',
+  brSorts:{fit:'Best fit first',priceUp:'Price: lowest first',priceDown:'Price: highest first',pm2:'Price per m²: lowest first',size:'Size: largest first',new:'Newest in our index'},
+  brFits:'Only homes with everything I need',brSavedOnly:n=>'Only my saved homes ('+n+')',
+  brSum:(n,ns,fs)=>(n===1?'1 home':ns+' homes')+' · '+fs+' fit your profile',brUpdating:'updating…',
+  brNone:'No homes match these filters.',brNoneSaved:'You haven’t saved any homes yet. Use ☆ Save on a home to keep it here.',
+  brSave:'Save',brSaved:'Saved',brAddTo:who=>'Add to the group with '+who,brInGroup:who=>'On the shortlist with '+who,
+  tSaved:'Saved. Find it again with “Only my saved homes”.',tUnsaved:'Removed from your saved homes.',err_savedFull:'You can save up to 200 homes. Remove some first.'});
+Object.assign(STR.es,{
+  navHomes:'Viviendas',brH:'Viviendas en venta',brAll:'Ver todas las viviendas',
+  brLead:'Todas las viviendas de nuestro índice, sacadas de las webs de las propias agencias. La puntuación compara cada una con tu perfil: dormitorios, tipo, zona y lo imprescindible. Las viviendas de un grupo usan el perfil de todos.',
+  brWhere:'Dónde',brMine:'Mis zonas (las de mi perfil)',brAllSpain:'Toda España',brPrice:'Precio',brMin:'Desde €',brMax:'Hasta €',brSort:'Orden',
+  brSorts:{fit:'Las que mejor encajan',priceUp:'Precio: de menor a mayor',priceDown:'Precio: de mayor a menor',pm2:'Precio por m²: de menor a mayor',size:'Tamaño: de mayor a menor',new:'Las más recientes en el índice'},
+  brFits:'Solo las que tienen todo lo que necesito',brSavedOnly:n=>'Solo mis guardadas ('+n+')',
+  brSum:(n,ns,fs)=>(n===1?'1 vivienda':ns+' viviendas')+' · '+fs+' encajan con tu perfil',brUpdating:'actualizando…',
+  brNone:'Ninguna vivienda cumple estos filtros.',brNoneSaved:'Todavía no has guardado ninguna vivienda. Usa ☆ Guardar en una vivienda para tenerla aquí.',
+  brSave:'Guardar',brSaved:'Guardada',brAddTo:who=>'Añadir al grupo con '+who,brInGroup:who=>'En la lista del grupo con '+who,
+  tSaved:'Guardada. La encontrarás con «Solo mis guardadas».',tUnsaved:'Quitada de tus guardadas.',err_savedFull:'Puedes guardar hasta 200 viviendas. Quita alguna primero.'});

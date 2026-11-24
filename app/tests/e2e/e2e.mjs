@@ -225,6 +225,14 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   await shot(tag + '-3-home-es');
   await send('Page.navigate', { url: base + '/#funnel' });
   await until(`/solo para quienes gestionan/.test(document.querySelector('#app')?.innerText||'')`, tag + ': the release funnel is refused to someone not listed (B-074)');
+  await send('Page.navigate', { url: base + '/#houses' });
+  ok(await until(`location.hash==='#houses' && document.querySelectorAll('.homes .home').length>0`, tag + ': the house browser lists homes (B-064)'), tag + ': house browser opens from #houses');
+  ok(await js(`/viviendas/.test(document.querySelector('.sumline')?.innerText||'')`), tag + ': the house browser says how many homes');
+  await shot(tag + '-9-houses');
+  await js(`document.querySelector('[data-action="br-save"]').click(),true`);
+  ok(await until(`document.querySelector('[data-action="br-save"]')?.getAttribute('aria-pressed')==='true'`, tag + ': saving a home marks it saved (B-064)'), tag + ': a home can be saved');
+  await js(`(()=>{document.getElementById('br-more-f').open=true;const c=document.getElementById('br-saved');c.checked=true;c.dispatchEvent(new Event('change',{bubbles:true}));return true;})()`);
+  ok(await until(`document.querySelectorAll('.homes .home').length===1`, tag + ': only saved homes'), tag + ': the saved filter shows the one saved home');
   await send('Page.navigate', { url: base + '/#inbox' });
   await until(`/solo para quienes gestionan/.test(document.querySelector('#app')?.innerText||'')`, tag + ': the contact inbox is refused to someone not listed (B-078)');
   await send('Page.navigate', { url: base + '/#contact' });
@@ -237,7 +245,7 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   await until(`location.hash==='#home' && !!document.querySelector('.dash-steps') && !document.querySelector('.help')`, tag + ': the logo goes to Home');
 
   // Header menu (Session 21): profile, language, colour scheme, help; Profile left the tab bar
-  ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===3 && !document.querySelector('#tabs [data-tab="you"]')`), tag + ': three tabs, Profile in the menu');
+  ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===4 && !!document.querySelector('#tabs [data-tab="browse"]') && !document.querySelector('#tabs [data-tab="you"]')`), tag + ': four tabs (People, Homes, Groups, Messages), Profile in the menu');
   await click('#menu-btn');
   await until(`!document.getElementById('menu').hidden && document.getElementById('menu-btn').getAttribute('aria-expanded')==='true'`, tag + ': menu opens');
   ok(await js(`['#menu a[href="#profile"]','#menu [data-action="logout"]','#menu [data-action="lang"][data-id="en"]','#menu [data-action="theme"][data-id="dark"]','#menu a[href="#help"]'].every(q=>!!document.querySelector(q))`), tag + ': menu has profile, sign out, language, theme and the guide');
@@ -323,7 +331,7 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
     await until(`!!document.getElementById('chat-form') && /-chat$/.test(location.hash)`, 'the group chat is its own view');
     await click('[data-tab="messages"]');
     await until(`document.querySelectorAll('ul.convs li').length>0`, 'Messages lists conversations');
-    ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===3`), 'three destinations, with Messages (Profile is in the menu)');
+    ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===4`), 'four destinations, with Homes and Messages (Profile is in the menu)');
     await click('ul.convs a[href^="#chat-"]');
     await until(`!!document.getElementById('chat-form') && /^#chat-/.test(location.hash)`, 'a conversation with a match opens');
     await fill('chat-input', 'Hola, ¿qué tal?');
