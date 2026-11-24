@@ -2,6 +2,25 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-24 · Session 31: in-app feedback
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Product and Legal & Compliance; the CEO for D-052
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** Session 30 (home photos deployed). Sam: "Start a new session per AGENTS.md. Goal: B-081, user feedback for continual improvement. Build it on the existing contact form and #inbox (B-078)." No new answers in the queue; no dropped session.
+**Goals:** 1. B-081 user feedback.
+**Needs Sam:** F-042 (new): push to deploy; recommend yes. His account id for `Admin__AccountIds` as before.
+**Did**
+- B-081: `POST /api/feedback` (signed in only; kinds `idea`, `wrong`, `like`; 3 to 3,000 characters; optional rating 1–5; rate limit `feedback`, 20 an hour per address) stores into `ContactMessages` with the account id, no email, and `Feedback.PageShape` of the screen left (ids removed; unknown addresses not kept). Migration `Feedback` adds `Rating` and `Page`. `#feedback` view in both languages, linked from the menu and footer when signed in; the screen comes from `routeHash()` before the view switches. `#inbox` became "Messages and feedback": filters by kind with open counts, average rating, screen and rating on each item, sender's email looked up from the account, "(account deleted)" when it's gone. Draft privacy notice: a new line on contact messages and feedback (both languages). Service worker version session31.
+- Tests: `FeedbackTests.cs` (screen shapes, signed out refused, stored minimum, bad input, admin view with email, counts and average); `AccountsTests` expects the new migration; four browser checks (footer link, three kinds, screen remembered as `#houses`, sent and thanked).
+- Found and fixed while testing: the first version took the screen from `S.atHash`, which the hashchange handler had already overwritten, so nothing was stored (seen in the local database, `Page` empty); filter chips wrapped badly on a phone (screenshot).
+- B-039's row now also covers deleting a person's contact messages and feedback.
+
+**Decided:** D-052 feedback in the contact store and `#inbox`; a page with an address rather than a sheet (D-038); minimum data.
+**Approvals used:** none (nothing pushed).
+**Learned:** locally the SQLite database is made by EnsureCreated, so after a model change it must be deleted (Azure SQL runs migrations); the first browser run failed on contact messages until it was. The app exposes `window.__compicasa.S` for tests.
+**Open or blocked:** F-042; F-040, F-033, F-037, F-014 as before; email alerts for new feedback wait for F-014.
+**Saved and checked:** `dotnet test` 113 of 113; browser test 99 of 99 against a fresh local database; stored rows read back (kind `like`, rating 4, screen `houses`, no email); phone screenshots of the form (Spanish and English) and the admin inbox looked at; project files checked with `git status` and `git diff` before the commit; LOG.md saved last.
+**Next session should start with:** 1. If pushed (F-042), check the CI/CD run and feedback live. 2. Check `/api/browse?real=true` returns photos (Session 30). 3. B-052 with B-027, B-039, B-041, B-072.
+
 ## 2026-11-24 · Session 30: home thumbnails
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Legal & Compliance; the CEO for D-051
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

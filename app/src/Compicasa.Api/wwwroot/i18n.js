@@ -425,6 +425,7 @@ Object.assign(STR.en,{
   privacyBody:[
     'Who is responsible: the operator of '+BRAND+'. Their name and contact details will appear here before the service opens to the public.',
     "What we keep: your email address; when you confirmed you're 18 or over and accepted these texts; the profile you fill in; your likes, matches and groups.",
+    'Contact messages and feedback: what you send us, with your email (contact form) or your account (feedback), and for feedback the kind of screen you were on and any rating you give. Read only by the team, to answer you and improve '+BRAND+'; deleted within a year of being dealt with.',
     "Why: to give you the service you asked for, which is suggesting people and groups and building the group's home brief. We don't sell your data or use it for advertising.",
     'Who sees what: other people see your name to show, household, bio and the parts of your profile shown on cards. Your email, your dealbreakers and your day-to-day answers are never shown to anyone.',
     'Where: Microsoft Azure data centres in the United Kingdom (UK South), which the EU recognises as giving adequate protection to personal data. Sign-in is handled by Microsoft Entra External ID, in Europe.',
@@ -475,6 +476,7 @@ Object.assign(STR.es,{
   privacyBody:[
     'Responsable: quien gestiona '+BRAND+'. Su nombre y datos de contacto aparecerán aquí antes de que el servicio se abra al público.',
     'Qué guardamos: tu correo electrónico; cuándo confirmaste que tienes 18 años o más y aceptaste estos textos; el perfil que rellenas; tus «Me interesa», tus matches y tus grupos.',
+    'Mensajes de contacto y opiniones: lo que nos envías, con tu correo (formulario de contacto) o tu cuenta (opiniones) y, en las opiniones, el tipo de pantalla en la que estabas y la nota que pongas. Solo los lee el equipo, para responderte y mejorar '+BRAND+'; se borran como máximo un año después de resolverlos.',
     'Para qué: para darte el servicio que has pedido, es decir, sugerirte personas y grupos y preparar la ficha de la casa del grupo. No vendemos tus datos ni los usamos para publicidad.',
     'Quién ve qué: las demás personas ven tu nombre visible, tu hogar, tu presentación y las partes de tu perfil que aparecen en las tarjetas. Tu correo, lo que no es negociable para ti y tus respuestas sobre el día a día no se muestran nunca a nadie.',
     'Dónde: en centros de datos de Microsoft Azure en el Reino Unido (UK South), país al que la UE reconoce un nivel de protección de datos adecuado. El acceso lo gestiona Microsoft Entra External ID, en Europa.',
@@ -1180,7 +1182,7 @@ Object.assign(STR.en,{
   ctPrivacy:'A person from the '+BRAND+' team reads every message. We keep it, with your email, only to answer you, and delete it within a year of dealing with it.',
   ctThanks:'Thank you. Your message has arrived and a person will read it.',ctAgain:'Send another message',
   err_badTopic:'Choose what it is about.',err_badContactBody:'Write a message of 10 to 3,000 characters.',
-  ibH:'Contact messages',ibLead:n=>n===1?'1 message waiting.':n+' messages waiting.',ibEmpty:'No messages yet.',ibNoName:'(no name)',ibDone:'Mark as dealt with',ibDoneAt:at=>'Dealt with '+at});
+  ibLead:n=>n===1?'1 message waiting.':n+' messages waiting.',ibEmpty:'No messages yet.',ibNoName:'(no name)',ibDone:'Mark as dealt with',ibDoneAt:at=>'Dealt with '+at});
 Object.assign(STR.es,{
   ctLink:'Contacto',ctH:'Contacta con nosotros',
   ctLead:'Dudas, problemas, ideas o una solicitud sobre tus datos: escríbenos aquí. Para denunciar a una persona o un mensaje, es más rápido el botón Denunciar de su perfil o del chat.',
@@ -1189,7 +1191,33 @@ Object.assign(STR.es,{
   ctPrivacy:'Cada mensaje lo lee una persona del equipo de '+BRAND+'. Lo guardamos, con tu correo, solo para responderte, y lo borramos como máximo un año después de resolverlo.',
   ctThanks:'Gracias. Tu mensaje ha llegado y lo leerá una persona.',ctAgain:'Enviar otro mensaje',
   err_badTopic:'Elige sobre qué es.',err_badContactBody:'Escribe un mensaje de 10 a 3000 caracteres.',
-  ibH:'Mensajes de contacto',ibLead:n=>n===1?'1 mensaje pendiente.':n+' mensajes pendientes.',ibEmpty:'Todavía no hay mensajes.',ibNoName:'(sin nombre)',ibDone:'Marcar como resuelto',ibDoneAt:at=>'Resuelto el '+at});
+  ibLead:n=>n===1?'1 mensaje pendiente.':n+' mensajes pendientes.',ibEmpty:'Todavía no hay mensajes.',ibNoName:'(sin nombre)',ibDone:'Marcar como resuelto',ibDoneAt:at=>'Resuelto el '+at});
+
+/* Feedback (#feedback, B-081) and the inbox's filters */
+Object.assign(STR.en,{
+  fbLink:'Send feedback',fbH:'Send feedback',
+  fbLead:'Tell us what to improve, what isn’t working or what you like. A person from the team reads everything, and it shapes what we build next.',
+  fbKind:'What kind of feedback?',fbKinds:{idea:'An idea',wrong:'Something’s wrong',like:'Something I like'},
+  fbBody:'Your feedback',fbRating:'How’s '+BRAND+' so far? (optional)',fbNoRating:'Rather not say',
+  fbStars:['Poor','Not great','OK','Good','Very good'],fbSend:'Send feedback',
+  fbPrivacy:'We keep it with your account, plus the kind of screen you were on (for example “a group’s homes”, never whose), and delete it within a year of dealing with it. For a reply, use Contact us.',
+  fbThanks:'Thank you. Your feedback has arrived and a person will read it.',fbAgain:'Send more feedback',
+  fbSignIn:'Sign in to send feedback. Without an account, you can write to us through Contact us.',
+  err_badKind:'Choose what kind of feedback it is.',err_badRating:'Choose a rating from 1 to 5, or none.',err_badFeedbackBody:'Write between 3 and 3,000 characters.',
+  ibH:'Messages and feedback',ibFilter:'Show',ibKinds:{all:'All',contact:'Contact',idea:'Ideas',wrong:'Something’s wrong',like:'Likes'},
+  ibGone:'(account deleted)',ibPage:p=>'from '+p,ibRating:n=>'rated '+n+'/5',ibAvg:(a,n)=>'Average rating '+a+' out of 5, from '+n+(n===1?' answer.':' answers.')});
+Object.assign(STR.es,{
+  fbLink:'Enviar opinión',fbH:'Envíanos tu opinión',
+  fbLead:'Cuéntanos qué mejorar, qué no funciona o qué te gusta. Una persona del equipo lo lee todo, y nos ayuda a decidir qué hacer después.',
+  fbKind:'¿Qué tipo de opinión?',fbKinds:{idea:'Una idea',wrong:'Algo va mal',like:'Algo que me gusta'},
+  fbBody:'Tu opinión',fbRating:'¿Qué te parece '+BRAND+' hasta ahora? (opcional)',fbNoRating:'Prefiero no decirlo',
+  fbStars:['Mal','Regular','Bien','Muy bien','Excelente'],fbSend:'Enviar opinión',
+  fbPrivacy:'La guardamos con tu cuenta, junto con el tipo de pantalla en la que estabas (por ejemplo, «las viviendas de un grupo», nunca de quién), y la borramos como máximo un año después de revisarla. Si quieres respuesta, usa Contacto.',
+  fbThanks:'Gracias. Tu opinión ha llegado y la leerá una persona.',fbAgain:'Enviar otra opinión',
+  fbSignIn:'Entra en tu cuenta para enviar tu opinión. Sin cuenta, puedes escribirnos desde Contacto.',
+  err_badKind:'Elige qué tipo de opinión es.',err_badRating:'Elige una nota del 1 al 5, o ninguna.',err_badFeedbackBody:'Escribe entre 3 y 3000 caracteres.',
+  ibH:'Mensajes y opiniones',ibFilter:'Mostrar',ibKinds:{all:'Todo',contact:'Contacto',idea:'Ideas',wrong:'Algo va mal',like:'Lo que gusta'},
+  ibGone:'(cuenta borrada)',ibPage:p=>'desde '+p,ibRating:n=>'nota '+n+'/5',ibAvg:(a,n)=>'Nota media '+a+' de 5, con '+n+(n===1?' respuesta.':' respuestas.')});
 
 /* The house browser (#houses, B-064) */
 Object.assign(STR.en,{

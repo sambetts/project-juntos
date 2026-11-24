@@ -239,6 +239,14 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   await until(`!!document.querySelector('#contact-form') && !!document.querySelector('#ct-email').value`, tag + ': the contact form opens with your email filled in (B-078)');
   await js(`(()=>{const b=document.querySelector('#ct-body');b.value='Una prueba del formulario de contacto';document.querySelector('#contact-form button[type=submit]').click();return true;})()`);
   await until(`/Tu mensaje ha llegado/.test(document.querySelector('#app')?.innerText||'')`, tag + ': a contact message is sent and thanked (B-078)');
+  // Feedback (B-081): from the footer link while on the house browser; the screen it came from goes with it
+  await send('Page.navigate', { url: base + '/#houses' });
+  await until(`location.hash==='#houses' && !!document.querySelector('#footnote a[href="#feedback"]')`, tag + ': the footer links to feedback when signed in (B-081)');
+  await js(`document.querySelector('#footnote a[href="#feedback"]').click(),true`);
+  ok(await until(`!!document.querySelector('#feedback-form') && document.querySelectorAll('#feedback-form input[name=kind]').length===3`, tag + ': feedback form opens (B-081)'), tag + ': the feedback form has three kinds');
+  ok(await js(`window.__compicasa.S.fbFrom==='#houses'`), tag + ': feedback remembers the screen it was opened from (B-081)');
+  await js(`(()=>{const f=document.querySelector('#feedback-form');f.querySelector('input[name=kind][value=like]').click();f.querySelector('input[name=rating][value="4"]').click();f.querySelector('#fb-body').value='Una prueba de opinión';f.querySelector('button[type=submit]').click();return true;})()`);
+  ok(await until(`/Tu opinión ha llegado/.test(document.querySelector('#app')?.innerText||'')`, tag + ': feedback is sent and thanked (B-081)'), tag + ': feedback is sent and thanked');
   await send('Page.navigate', { url: base + '/#help' });
   await until(`!!document.querySelector('.help')`, tag + ': guide opens signed in');
   await click('#brandlink');

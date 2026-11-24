@@ -280,6 +280,7 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
             e.Property(x => x.Topic).HasMaxLength(16);
             e.Property(x => x.Body).HasMaxLength(ContactMessage.BodyMax);
             e.Property(x => x.Lang).HasMaxLength(2);
+            e.Property(x => x.Page).HasMaxLength(24);
         });
         b.Entity<Candidate>(e =>
         {

@@ -4,6 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-042 · Push in-app feedback to `main` (deploys B-081) · by 2026-11-26
+**Why:** a push deploys (D-041). Signed-in people get *Send feedback* in the menu and footer (an idea, something's wrong, something I like; a message; an optional 1–5 rating); you read it on `#inbox` with filters by kind and the average rating. Migration `Feedback` adds two empty columns to the contact table, applied at start-up.
+**Options:** push now; or wait.
+**Recommendation:** push now. 113 .NET tests and the browser test (99 of 99) pass locally. You still need your account id in `Admin__AccountIds` to read `#inbox` (send it from `/api/me`).
+**If no answer:** committed, not deployed.
+
 ### F-041 · Push the home photos to `main` (deploys B-080, D-051) · CLOSED 2026-11-24: pushed
 **Why:** a push deploys (D-041). Each real home's card then shows the advert's main photo, loaded from the agency's server (never copied), credited "Foto: Tecnocasa", with the sketch as fallback; the bot page and "Where homes come from" say so. Migration `HomePhotoUrl` adds one column. Homes already in the index get their photo when the crawl re-reads them, within the daily cap of 3,000, so all of them within about two days.
 **Options:** push now; or wait for the lawyer's view on A7 first.

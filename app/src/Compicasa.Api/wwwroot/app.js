@@ -273,17 +273,44 @@ async function sendContact(f){
     S.contactSent=true;render();focusHeading();}
   catch(err){btn.disabled=false;errEl.textContent=errText(err);}
 }
-/* The admins' inbox of contact messages (#inbox, B-078): same allow-list as #funnel. Not linked from menus */
+/* Feedback (#feedback, B-081, D-052): signed-in people only. Stored with their account for the admins' #inbox, with the
+   kind of screen they came from (the server keeps "group-homes", never whose group) */
+function viewFeedback(){
+  const back=`<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>`;
+  if(!S.me)return back+`<section class="card legal"><h2>${esc(t('fbH'))}</h2><p class="lead">${esc(t('fbSignIn'))}</p><p class="links"><a href="#contact">${esc(t('ctLink'))}</a></p></section>`;
+  if(S.fbSent)return back+`<section class="card legal"><h2>${esc(t('fbH'))}</h2><p class="lead" role="status">${esc(t('fbThanks'))}</p><p><button type="button" class="btn small" data-action="feedback-again">${esc(t('fbAgain'))}</button></p></section>`;
+  const kinds=t('fbKinds'),stars=t('fbStars');
+  return back+`<section class="card legal"><h2>${esc(t('fbH'))}</h2><p class="lead">${esc(t('fbLead'))}</p>
+<form id="feedback-form" class="mt" novalidate>
+<fieldset class="field"><legend class="label">${esc(t('fbKind'))}</legend><div class="seg">${Object.keys(kinds).map((k,i)=>`<label class="opt"><input type="radio" name="kind" value="${k}"${i===0?' checked':''}>${esc(kinds[k])}</label>`).join('')}</div></fieldset>
+<div class="field"><label for="fb-body">${esc(t('fbBody'))}</label><textarea id="fb-body" name="body" rows="5" maxlength="3000"></textarea></div>
+<fieldset class="field"><legend class="label">${esc(t('fbRating'))}</legend><div class="seg"><label class="opt"><input type="radio" name="rating" value="" checked>${esc(t('fbNoRating'))}</label>${[1,2,3,4,5].map(n=>`<label class="opt"><input type="radio" name="rating" value="${n}">${n} · ${esc(stars[n-1])}</label>`).join('')}</div></fieldset>
+<p class="hint">${esc(t('fbPrivacy'))}</p>
+<p class="error" id="feedback-error" role="alert"></p>
+<button type="submit" class="btn primary">${esc(t('fbSend'))}</button></form></section>`;
+}
+async function sendFeedback(f){
+  const pick=n=>(f.querySelector(`input[name=${n}]:checked`)||{}).value||'',errEl=document.getElementById('feedback-error'),btn=f.querySelector('button[type=submit]');
+  btn.disabled=true;errEl.textContent='';
+  const r=pick('rating');
+  try{await api('POST','/api/feedback',{kind:pick('kind'),body:f.querySelector('[name=body]').value,rating:r?Number(r):null,page:S.fbFrom||'',lang:LANG});
+    S.fbSent=true;render();focusHeading();}
+  catch(err){btn.disabled=false;errEl.textContent=errText(err);}
+}
+/* The admins' inbox of contact messages and feedback (#inbox, B-078, B-081): same allow-list as #funnel. Not linked from menus */
 function viewInbox(){
-  if(!S.ctInbox){S.ctInbox={loading:true};api('GET','/api/admin/contact').then(d=>{S.ctInbox=d.allowed?{data:d.messages}:{denied:true};if(S.view==='inbox')rerender();},()=>{S.ctInbox={denied:true};if(S.view==='inbox')rerender();});}
+  if(!S.ctInbox){S.ctInbox={loading:true};api('GET','/api/admin/contact').then(d=>{S.ctInbox=d.allowed?{data:d.messages,counts:d.counts,ratings:d.ratings}:{denied:true};if(S.view==='inbox')rerender();},()=>{S.ctInbox={denied:true};if(S.view==='inbox')rerender();});}
   const r=S.ctInbox,back=`<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>`;
   if(r.loading||r.denied)return back+`<section class="card legal"><h2>${esc(t('ibH'))}</h2><p class="hint">${esc(t(r.loading?'fnLoading':'fnDenied'))}</p></section>`;
-  const topics=t('ctTopics'),when=x=>new Date(x).toLocaleString(locale(),{timeZone:'Europe/Madrid'});
-  const open=r.data.filter(m=>!m.doneAt).length;
-  const items=r.data.map(m=>`<article class="card ct-msg${m.doneAt?' done':''}"><p class="hint">${esc(topics[m.topic]||m.topic)} · ${esc(when(m.at))} · ${esc(m.lang)}${m.accountId?` · ${esc(m.accountId)}`:''}</p>
-<p><strong>${esc(m.name||t('ibNoName'))}</strong> · ${esc(m.email)}</p><p class="ct-body">${esc(m.body)}</p>
+  const topics=Object.assign({},t('ctTopics'),t('fbKinds')),when=x=>new Date(x).toLocaleString(locale(),{timeZone:'Europe/Madrid'});
+  const kind=S.ibKind||'all',isFb=m=>!!m.feedback,shown=r.data.filter(m=>kind==='all'||(kind==='contact'?!isFb(m):m.topic===kind));
+  const cnt=k=>{const c=r.counts||{};return k==='all'?Object.values(c).reduce((a,x)=>a+x.open,0):k==='contact'?Object.keys(c).filter(x=>!(x in t('fbKinds'))).reduce((a,x)=>a+c[x].open,0):((c[k]||{}).open||0);};
+  const filters=`<div class="ibfilters mt" role="group" aria-label="${esc(t('ibFilter'))}">${['all','contact','idea','wrong','like'].map(k=>`<button type="button" class="chipbtn" data-action="inbox-kind" data-id="${k}" aria-pressed="${kind===k}">${esc(t('ibKinds')[k])} <span class="n">${cnt(k)}</span></button>`).join(' ')}</div>`;
+  const rt=r.ratings||{count:0},open=r.data.filter(m=>!m.doneAt).length;
+  const items=shown.map(m=>`<article class="card ct-msg${m.doneAt?' done':''}"><p class="hint">${esc(topics[m.topic]||m.topic)} · ${esc(when(m.at))} · ${esc(m.lang)}${m.accountId?` · ${esc(m.accountId)}`:''}${m.page?` · ${esc(t('ibPage',m.page))}`:''}${m.rating?` · ${esc(t('ibRating',m.rating))}`:''}</p>
+<p>${m.feedback?esc(m.email||t('ibGone')):`<strong>${esc(m.name||t('ibNoName'))}</strong> · ${esc(m.email)}`}</p><p class="ct-body">${esc(m.body)}</p>
 ${m.doneAt?`<p class="hint">${esc(t('ibDoneAt',when(m.doneAt)))}</p>`:`<p><button type="button" class="btn small" data-action="inbox-done" data-id="${m.id}">${esc(t('ibDone'))}</button></p>`}</article>`).join('');
-  return back+`<section class="card legal"><h2>${esc(t('ibH'))}</h2><p class="lead">${esc(t('ibLead',open))}</p><p class="links"><a href="#funnel">${esc(t('fnH'))}</a></p></section>${items||`<p class="hint">${esc(t('ibEmpty'))}</p>`}`;
+  return back+`<section class="card legal"><h2>${esc(t('ibH'))}</h2><p class="lead">${esc(t('ibLead',open))}</p>${rt.count?`<p>${esc(t('ibAvg',rt.average,rt.count))}</p>`:''}${filters}<p class="links"><a href="#funnel">${esc(t('fnH'))}</a></p></section>${items||`<p class="hint">${esc(t('ibEmpty'))}</p>`}`;
 }
 function viewLegal(kind){
   const body=t(kind+'Body');
@@ -1314,7 +1341,7 @@ function renderChrome(){
   set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));
   const bl=document.getElementById('brandlink');if(bl)bl.setAttribute('aria-label',BRAND+' · '+t('homeLink'));
   const foot=document.getElementById('footnote');
-  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#sources">${esc(t('srcLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a> · <a href="#contact">${esc(t('ctLink'))}</a></p>`;
+  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#sources">${esc(t('srcLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a> · <a href="#contact">${esc(t('ctLink'))}</a>${S.me?` · <a href="#feedback">${esc(t('fbLink'))}</a>`:''}</p>`;
   const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('navAria'));nav.hidden=!inApp();}
   const bell=document.getElementById('alerts-link');
   if(bell){const n=S.counts.alerts||0;bell.hidden=!inApp();bell.innerHTML=ICONS.bell+(n?`<span class="count" aria-hidden="true">${n}</span>`:'');bell.setAttribute('aria-label',t('alertsAria',n));if(S.tab==='alerts')bell.setAttribute('aria-current','page');else bell.removeAttribute('aria-current');}
@@ -1370,6 +1397,7 @@ function menuSections(){
   secs.push({id:'lang',label:t('menuLang'),items:[{choice:[{action:'lang',id:'es',label:'Español',lang:'es',on:LANG==='es'},{action:'lang',id:'en',label:'English',lang:'en',on:LANG==='en'}],label:t('menuLang')}]});
   secs.push({id:'theme',label:t('menuTheme'),items:[{choice:[['auto',ICONS.auto,t('themeAuto')],['light',ICONS.sun,t('themeLight')],['dark',ICONS.moon,t('themeDark')]].map(x=>({action:'theme',id:x[0],icon:x[1],label:x[2],on:THEME===x[0]})),label:t('menuTheme')}]});
   secs.push({id:'more',label:t('menuMore'),items:[{href:'#help',label:t('helpLink'),icon:ICONS.help,current:S.view==='help'},{href:'#sources',label:t('srcLink'),icon:ICONS.groups,current:S.view==='sources'},{href:'#terms',label:t('footTerms'),icon:ICONS.doc,current:S.view==='terms'},{href:'#privacy',label:t('footPrivacy'),icon:ICONS.doc,current:S.view==='privacy'},{href:'#contact',label:t('ctLink'),icon:ICONS.help,current:S.view==='contact'}]});
+  if(S.me)secs[secs.length-1].items.unshift({href:'#feedback',label:t('fbLink'),icon:ICONS.help,current:S.view==='feedback'});
   return secs;
 }
 function menuItem(it){
@@ -1417,7 +1445,7 @@ function render(){
   renderChrome();
   renderTabs();
   const views={browse:viewBrowse,home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
-  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():S.view==='contact'?viewContact():S.view==='inbox'?viewInbox():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
+  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():S.view==='contact'?viewContact():S.view==='inbox'?viewInbox():S.view==='feedback'?viewFeedback():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
   applyStyles(app);
   if(document.getElementById('hx-results'))updateHomes();
   drawCharts(app);
@@ -1534,11 +1562,12 @@ async function start(){
 /* #terms, #privacy, #help, #sources, #authError=code (back from External ID), #lang=en */
 function readHash(){
   const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
-  const prev=S.view;
-  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':(h.has('funnel')?'funnel':(h.has('contact')?'contact':(h.has('inbox')?'inbox':null))))));
+  const prev=S.view,from=routeHash(); // the app screen being left, before the view changes
+  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':(h.has('funnel')?'funnel':(h.has('contact')?'contact':(h.has('inbox')?'inbox':(h.has('feedback')?'feedback':null)))))));
   if(S.view==='funnel'&&prev!=='funnel')S.funnel=null; // fresh counts each visit
   if(S.view==='inbox'&&prev!=='inbox')S.ctInbox=null;
   if(S.view==='contact'&&prev!=='contact')S.contactSent=false;
+  if(S.view==='feedback'&&prev!=='feedback'){S.fbSent=false;S.fbFrom=prev?'':from;} // the screen it was sent from
   const err=h.get('authError');
   if(err){S.authError=t('err_'+err)!==undefined&&STR.es['err_'+err]!==undefined?t('err_'+err):t('err_generic');if(err==='noAccount')S.authMode='signup';
     try{history.replaceState(null,'',location.pathname);}catch(e){}}
@@ -1643,6 +1672,7 @@ function switchLang(l){setLang(l);try{localStorage.setItem(LANG_KEY,LANG);}catch
 app.addEventListener('submit',async e=>{
   if(e.target.id==='chat-form'){e.preventDefault();sendChat();return;}
   if(e.target.id==='contact-form'){e.preventDefault();sendContact(e.target);return;}
+  if(e.target.id==='feedback-form'){e.preventDefault();sendFeedback(e.target);return;}
   if(e.target.id!=='auth-form')return;
   e.preventDefault();
   const f=e.target,data={},errEl=document.getElementById('auth-error'),btn=f.querySelector('button[type=submit]');
@@ -1725,6 +1755,8 @@ document.addEventListener('click',async e=>{
     case 'br-more':loadBrowse(true);brRefresh();break;
     case 'br-reset':S.br=null;brState();loadBrowse();brRefresh();break;
     case 'contact-again':S.contactSent=false;render();focusHeading();break;
+    case 'feedback-again':S.fbSent=false;render();focusHeading();break;
+    case 'inbox-kind':S.ibKind=id;rerender();break;
     case 'inbox-done':try{await api('POST','/api/admin/contact/'+encodeURIComponent(id)+'/done');S.ctInbox=null;rerender();}catch(err){toast(errText(err));}break;
     case 'legal-back':S.view=null;try{history.replaceState(null,'',location.pathname);}catch(err){}render();window.scrollTo(0,0);focusHeading();break;
     case 'goto':go(id,el.getAttribute('data-sub'));break;

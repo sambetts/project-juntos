@@ -75,6 +75,6 @@ public class AccountsTests : IClassFixture<AppFactory>
     {
         using var db = new DesignTimeDb().CreateDbContext([]);
         Assert.False(db.Database.HasPendingModelChanges(), "The model has changes no migration covers: run `dotnet ef migrations add <Name>` in src/Compicasa.Api");
-        Assert.Equal(["Initial", "EmailAccounts", "Homes", "Social", "Shortlist", "Contact", "SavedHomes", "HomePhotoUrl"], db.Database.GetMigrations().Select(m => m[15..]));
+        Assert.Equal(["Initial", "EmailAccounts", "Homes", "Social", "Shortlist", "Contact", "SavedHomes", "HomePhotoUrl", "Feedback"], db.Database.GetMigrations().Select(m => m[15..]));
     }
 }

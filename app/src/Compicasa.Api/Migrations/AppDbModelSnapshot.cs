@@ -217,6 +217,13 @@ namespace Compicasa.Api.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
 
+                    b.Property<string>("Page")
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<int?>("Rating")
+                        .HasColumnType("int");
+
                     b.Property<string>("Topic")
                         .IsRequired()
                         .HasMaxLength(16)

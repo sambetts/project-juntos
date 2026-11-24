@@ -61,6 +61,10 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("contact", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = cfg.GetValue("Contact:PerHour", 5), Window = TimeSpan.FromHours(1) }));
+    // Feedback needs an account, so it can be looser than the open contact form (B-081).
+    o.AddPolicy("feedback", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = cfg.GetValue("Feedback:PerHour", 20), Window = TimeSpan.FromHours(1) }));
 });
 
 // App Service sits behind a proxy: take the client address and scheme from it.
@@ -124,6 +128,7 @@ Social.Map(app);
 Shortlist.Map(app);
 Funnel.Map(app);
 Contact.Map(app);
+Feedback.Map(app);
 Browse.Map(app);
 // What our crawler does and how to block it (D-035); named in its user agent.
 app.MapGet("/bot", (IWebHostEnvironment env) => Results.File(Path.Combine(env.WebRootPath, "bot.html"), "text/html; charset=utf-8"));
