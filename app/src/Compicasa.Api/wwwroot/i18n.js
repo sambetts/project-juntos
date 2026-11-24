@@ -193,8 +193,8 @@ en:{
   illustrative:"Illustrative bedroom allocation only; it doesn't determine ownership, payments or use rights.",
   homesH:'Homes for sale that fit',homesLead:"Homes from agencies' own websites that fit your brief. We show the main facts and link to the agency's advert: if one interests you, contact the agency there.",
   homesLoading:'Looking for homes…',homesNone:'No home in our index fits this brief yet.',homesCount:(n,r)=>pl(n,'home','homes')+' checked'+(r?'':' (only made-up homes so far)'),
-  homeFit:s=>s+'% fit',homeBeds:n=>pl(n,'bedroom','bedrooms'),homeBaths:n=>pl(n,'bathroom','bathrooms'),seeAdvert:a=>'See the advert at '+a,demoHome:'Made-up home (demo), no advert',demoAgency:'Example agency',
-  fit_beds:'enough bedrooms',fit_baths:'enough bathrooms',fit_size:'right size',fit_area:'in your area',miss_baths:'fewer bathrooms',miss_small:'smaller than your range',miss_big:'bigger than your range',
+  homeFit:s=>s+'% fit',homeBeds:n=>pl(n,'bedroom','bedrooms'),homeBaths:n=>pl(n,'bathroom','bathrooms'),seeAdvert:a=>'See the advert at '+a,photoAlt:a=>'Photo from the advert at '+a,photoCredit:a=>'Photo: '+a,demoHome:'Made-up home (demo), no advert',demoAgency:'Example agency',
+  fit_beds:'enough bedrooms',fit_baths:'enough bathrooms',fit_size:'right size',fit_area:'in your area',miss_baths:'fewer bathrooms',miss_beds:'too few bedrooms',miss_type:'another type of home',miss_area:'outside your areas',miss_small:'smaller than your range',miss_big:'bigger than your range',
   missF:f=>'not listed: '+f.toLowerCase(),checkH:'Check',check_baths:'bathrooms',check_size:'size',energy:e=>'Energy '+e,
   homesNote:"Facts come from the agency's advert and may be out of date: check them there. Not advice.",
   agreeH:'House agreement starters',agreeHint:"Talk these through before you buy. They're prompts for a lawyer-reviewed agreement, not the agreement itself.",
@@ -298,8 +298,8 @@ es:{
   illustrative:'Reparto de dormitorios solo orientativo: no determina la propiedad, los pagos ni los derechos de uso.',
   homesH:'Viviendas en venta que encajan',homesLead:'Viviendas de las webs de las propias agencias que encajan con lo que necesitáis. Mostramos los datos principales y enlazamos al anuncio de la agencia: si alguna os interesa, contactad con la agencia allí.',
   homesLoading:'Buscando viviendas…',homesNone:'Todavía no hay ninguna vivienda en nuestro índice que encaje.',homesCount:(n,r)=>(n===1?'1 vivienda revisada':n+' viviendas revisadas')+(r?'':' (de momento solo viviendas inventadas)'),
-  homeFit:s=>'Encaje '+s+' %',homeBeds:n=>pl(n,'dormitorio','dormitorios'),homeBaths:n=>pl(n,'baño','baños'),seeAdvert:a=>'Ver el anuncio en '+a,demoHome:'Vivienda inventada (demo), sin anuncio',demoAgency:'Agencia de ejemplo',
-  fit_beds:'dormitorios suficientes',fit_baths:'baños suficientes',fit_size:'tamaño adecuado',fit_area:'en vuestra zona',miss_baths:'menos baños',miss_small:'más pequeña que vuestro rango',miss_big:'más grande que vuestro rango',
+  homeFit:s=>'Encaje '+s+' %',homeBeds:n=>pl(n,'dormitorio','dormitorios'),homeBaths:n=>pl(n,'baño','baños'),seeAdvert:a=>'Ver el anuncio en '+a,photoAlt:a=>'Foto del anuncio en '+a,photoCredit:a=>'Foto: '+a,demoHome:'Vivienda inventada (demo), sin anuncio',demoAgency:'Agencia de ejemplo',
+  fit_beds:'dormitorios suficientes',fit_baths:'baños suficientes',fit_size:'tamaño adecuado',fit_area:'en vuestra zona',miss_baths:'menos baños',miss_beds:'menos dormitorios',miss_type:'otro tipo de vivienda',miss_area:'fuera de vuestras zonas',miss_small:'más pequeña que vuestro rango',miss_big:'más grande que vuestro rango',
   missF:f=>'no consta: '+f.toLowerCase(),checkH:'Comprobad',check_baths:'baños',check_size:'superficie',energy:e=>'Energía '+e,
   homesNote:'Los datos vienen del anuncio de la agencia y pueden estar desactualizados: comprobadlos allí. No es asesoramiento.',
   agreeH:'Temas para el acuerdo de convivencia',agreeHint:'Habladlo antes de comprar. Son ideas para un acuerdo revisado por un abogado, no el acuerdo en sí.',
@@ -1049,7 +1049,8 @@ Object.assign(STR.en,{
       'Never property portals or listing aggregators, such as Idealista, Fotocasa, habitaclia or pisos.com. Only the agencies\' own websites.']},
     {h:'What we keep',items:[
       'Only the facts: price, size, bedrooms, bathrooms, type of home, town, postcode, district, lift, parking, terrace, garden and energy rating, plus the agency\'s name and the link to its advert.',
-      'Never photos, the advert\'s description or agents\' contact details.',
+      'The address of the advert\'s main photo, so the home\'s card can show it straight from the agency\'s website, credited to the agency. We never copy or store the photo itself.',
+      'Never the advert\'s description or agents\' contact details.',
       'Every home shows its agency and a button to see the advert on the agency\'s website. You contact the agency there; we don\'t pass on your details.',
       'Prices and details are as the advert showed them when we last checked. The agency\'s advert is always the up-to-date version.']},
     {h:'For agencies',bot:true,items:[
@@ -1075,7 +1076,8 @@ Object.assign(STR.es,{
       'Nunca en portales inmobiliarios ni agregadores de anuncios, como Idealista, Fotocasa, habitaclia o pisos.com. Solo en las webs de las propias agencias.']},
     {h:'Qué guardamos',items:[
       'Solo los datos básicos: precio, superficie, dormitorios, baños, tipo de vivienda, municipio, código postal, barrio, ascensor, garaje, terraza, jardín y certificado energético, además del nombre de la agencia y el enlace a su anuncio.',
-      'Nunca fotos, la descripción del anuncio ni los datos de contacto de los agentes.',
+      'La dirección de la foto principal del anuncio, para que la ficha de la vivienda la muestre directamente desde la web de la agencia, con su crédito. Nunca copiamos ni guardamos la foto.',
+      'Nunca la descripción del anuncio ni los datos de contacto de los agentes.',
       'Cada vivienda muestra su agencia y un botón para ver el anuncio en la web de la agencia. Contactas con la agencia allí; no le pasamos tus datos.',
       'Los precios y datos son los que mostraba el anuncio en nuestra última revisión. El anuncio de la agencia es siempre la versión al día.']},
     {h:'Para agencias',bot:true,items:[

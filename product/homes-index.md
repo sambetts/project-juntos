@@ -7,7 +7,7 @@ Groups agree what their shared home needs (the home brief). The homes index show
 
 ## The rules (D-035)
 - **Agencies' own websites only, never portals.** Idealista, Fotocasa, habitaclia, pisos.com and similar are refused in the code.
-- **Facts and the link only.** We keep price, size, bedrooms, bathrooms, type, town, postcode, district, a few features (lift, parking, terrace, garden) and the energy rating. We also keep the agency's name and the advert's address. Never photos, description text or agents' contact details.
+- **Facts and the link only.** We keep price, size, bedrooms, bathrooms, type, town, postcode, district, a few features (lift, parking, terrace, garden) and the energy rating. We also keep the agency's name and the advert's address. Since D-051 (2026-11-24) also the address of the advert's main photo, which the card loads straight from the agency's server with a credit; we never copy or store the photo. Never description text or agents' contact details.
 - **Always credit the agency.** Every home shows its agency and a "See the advert at <agency>" button.
 - **Polite crawling.** It identifies itself as CompicasaBot, honours robots.txt, waits 3 seconds between requests, and only re-reads adverts that changed. Its `/bot` page explains what it does and how to block it.
 - **Stop at once if asked.** Adding an agency to the `Homes__Stopped` setting hides its homes and stops the crawler visiting it; then its rows are deleted (R-023).

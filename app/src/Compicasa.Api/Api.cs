@@ -339,7 +339,7 @@ public static partial class Api
         return new HomesResult(candidates.Count, candidates.Count(h => !h.IsDemo), budget, over, unset, ranked.Select(x => (object)new
         {
             x.Home.Id, x.Home.Agency, x.Home.Url, x.Home.Price, x.Home.M2, x.Home.Beds, x.Home.Baths, x.Home.Type,
-            x.Home.Municipality, x.Home.District, x.Home.Area, x.Home.Features, x.Home.Energy, x.Home.IsDemo,
+            x.Home.Municipality, x.Home.District, x.Home.Area, x.Home.Features, x.Home.Energy, x.Home.IsDemo, Photo = x.Home.PhotoUrl,
             x.Fit.Score, x.Fit.Fits, x.Fit.Misses, x.Fit.Check,
         }).ToList());
     }

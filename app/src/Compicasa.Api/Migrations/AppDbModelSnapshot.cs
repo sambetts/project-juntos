@@ -358,6 +358,9 @@ namespace Compicasa.Api.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
 
+                    b.Property<string>("PhotoUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Postcode")
                         .HasMaxLength(8)
                         .HasColumnType("nvarchar(8)");

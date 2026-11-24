@@ -4,6 +4,8 @@
 'use strict';
 (function(){
 window.addEventListener('error',e=>{document.documentElement.setAttribute('data-error',String(e.message));});
+/* An advert photo that won't load (moved, or the agency blocks it): drop it and show the sketch instead (D-051) */
+document.addEventListener('error',e=>{const el=e.target;if(el&&el.classList&&el.classList.contains('hphoto')){const v=el.parentNode;v.classList.remove('has-photo');v.querySelectorAll('.hphoto,.credit').forEach(n=>n.remove());}},true);
 
 /* ---------- labels (ported from the prototype) ---------- */
 const PET_WORDS_=PET_WORDS;
@@ -1008,7 +1010,7 @@ function scatter(w,pts,selIds,refPm2){
   s+=pts.filter(p=>!selIds[p.id]).map(p=>dot(p,false)).join('')+pts.filter(p=>selIds[p.id]).map(p=>dot(p,true)).join('');
   return `<svg width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" aria-hidden="true">${s}</svg>`;
 }
-/* An illustrative floor-plan sketch drawn from the advert's facts (no photos: D-035). Not the real plan. */
+/* An illustrative floor-plan sketch drawn from the advert's facts, shown when there's no advert photo (D-051). Not the real plan. */
 function planSvg(x){
   const W=240,H=110,p=5,r=hash(x.id),beds=Math.max(1,Math.min(6,x.beds||1)),baths=Math.max(1,Math.min(3,x.baths||1)),fe=x.features||[];
   const out=(x.type==='house'&&(fe.indexOf('garden')>=0||fe.indexOf('pool')>=0))||fe.indexOf('terrace')>=0?50:0;
@@ -1097,7 +1099,10 @@ function homeItem(x,medPm2,onGroup,extra){
   const delta=d==null?'':`<span class="delta ${d<=-5?'lo':(d>=5?'hi':'')}">${esc(t('vsMedian',d))}</span>`;
   const cls=x.score>=85?'hi':(x.score>=70?'mid':'lo');
   const energy=x.energy&&EN_ORDER.indexOf(x.energy)>=0?`<span class="energy e-${x.energy}" title="${esc(t('energy',x.energy))}" aria-label="${esc(t('energy',x.energy))}">${esc(x.energy)}</span>`:'';
-  return `<li class="home" id="home-${esc(x.id)}"><div class="home-vis">${planSvg(x)}${energy}${x.isDemo?`<span class="demo">${esc(t('demoHomeTag'))}</span>`:''}</div>
+  /* D-051: the advert's main photo, loaded straight from the agency's own server (never copied); the sketch if there's none or it fails */
+  const firm=(x.agency||'').split(' · ')[0];
+  const photo=x.photo&&!x.isDemo?`<img class="hphoto" src="${esc(x.photo)}" alt="${esc(t('photoAlt',x.agency))}" loading="lazy" decoding="async" referrerpolicy="no-referrer"><span class="credit">${esc(t('photoCredit',firm))}</span>`:'';
+  return `<li class="home" id="home-${esc(x.id)}"><div class="home-vis${photo?' has-photo':''}">${photo}${planSvg(x)}${energy}${x.isDemo?`<span class="demo">${esc(t('demoHomeTag'))}</span>`:''}</div>
 <div class="home-top"><b class="price">${esc(euros(x.price))}</b><div class="ring sm ${cls}" data-p="${x.score}" role="img" aria-label="${esc(t('homeFit',x.score))}"><b>${x.score}</b></div></div>
 <div class="pm2">${x.pm2?esc(num(Math.round(x.pm2))+' €/m²'):''} ${delta}</div>
 <div>${esc(facts)}</div><div class="who">${esc(where)} · ${esc(x.isDemo?t('demoAgency'):x.agency)}</div><div class="home-tags">${tags}</div>${check}<div class="row">${link}${onGroup?slButton(x.id):''}${extra||''}</div></li>`;

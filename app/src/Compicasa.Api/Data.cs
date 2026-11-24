@@ -118,8 +118,9 @@ public sealed class DemoState
 }
 
 /// <summary>
-/// A home for sale in our index (D-035): facts and the link to the agency's own advert only. No photos,
-/// description text or agents' contact details are ever stored. Made-up homes have Source "demo" and no link.
+/// A home for sale in our index (D-035): facts and the link to the agency's own advert. No photos are ever copied
+/// or stored, only the address of the advert's main photo on the agency's own server (D-051), and no description
+/// text or agents' contact details. Made-up homes have Source "demo" and no link.
 /// </summary>
 public sealed class Home
 {
@@ -145,6 +146,9 @@ public sealed class Home
     /// <summary>Comma-separated HomeFit.Knowable ids.</summary>
     public string Features { get; set; } = "";
     public string? Energy { get; set; }
+    /// <summary>The address of the advert's main photo on the agency's own server (D-051): shown from there, never
+    /// downloaded or copied. Null if we haven't read the advert since D-051; "" if it has no photo we can use.</summary>
+    public string? PhotoUrl { get; set; }
     public DateTimeOffset FirstSeenAt { get; set; }
     public DateTimeOffset LastSeenAt { get; set; }
     /// <summary>When we last read the advert itself (not just saw it in the sitemap).</summary>
@@ -155,7 +159,10 @@ public sealed class Home
     public bool IsDemo => Source == HomeSources.Demo;
 
     public HomeListing ToListing() => new(Id, Source, Agency, Url, Price, M2, Beds, Baths, Type, Municipality, Postcode, District, Area,
-        Features.Split(',', StringSplitOptions.RemoveEmptyEntries), Energy, IsDemo);
+        Features.Split(',', StringSplitOptions.RemoveEmptyEntries), Energy, IsDemo, Photo);
+
+    /// <summary>The photo address to send to the browser, or null (D-051).</summary>
+    public string? Photo => IsDemo || string.IsNullOrEmpty(PhotoUrl) ? null : PhotoUrl;
 }
 
 public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)

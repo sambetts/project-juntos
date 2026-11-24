@@ -79,6 +79,8 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 if (!app.Environment.IsDevelopment()) app.UseHsts();
 
+// Advert photos are shown straight from the agencies' own servers (D-051), so the browser may load images from those hosts.
+var photoSrc = string.Join(' ', HomeSources.PhotoHosts.Select(host => "https://" + host));
 app.Use(async (ctx, next) =>
 {
     var h = ctx.Response.Headers;
@@ -88,7 +90,7 @@ app.Use(async (ctx, next) =>
     h["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
     // Made-up data, closed PoC (D-027): keep it out of search engines.
     h["X-Robots-Tag"] = "noindex, nofollow";
-    h["Content-Security-Policy"] = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
+    h["Content-Security-Policy"] = $"default-src 'self'; img-src 'self' data: {photoSrc}; style-src 'self'; script-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
     // Changing requests must carry our header: a cross-site form can't add one, so this blocks CSRF.
     if (ctx.Request.Path.StartsWithSegments("/api") && !HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method)
         && ctx.Request.Headers[Api.CsrfHeader] != "1")

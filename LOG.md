@@ -2,6 +2,24 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-24 · Session 30: home thumbnails
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Legal & Compliance; the CEO for D-051
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** Session 29 (house browser deployed). Sam: "For flats, we don't import images or thumbnails. We should at least have the thumbnail".
+**Goals:** 1. B-080 thumbnails for homes (new).
+**Needs Sam:** F-041 (new): push to deploy; recommend yes.
+**Did**
+- B-080: `Home.PhotoUrl` and migration `HomePhotoUrl`; `TecnocasaSource.Parse` keeps the first image's `card` address from the advert's `media.images` (checked on one live advert, 664111); `HomeSources.PhotoHosts` and `Photo()` keep only https addresses on `cdn-media.medialabtc.it`; the crawl re-reads a home stored before this once (`PhotoUrl` null), then skips it as before; the three home APIs return `photo`; `homeItem` shows it with `referrerpolicy="no-referrer"`, lazy loading and a "Foto: <agency>" credit, and a capturing error handler swaps back to the sketch; the CSP allows images from the photo hosts only; service worker version bumped; bot page and "Where homes come from" reworded (both languages). Tests: parser keeps the card address and not the large one, host check, the one-off re-read.
+- Fixed blank "miss" tags in the house browser: `miss_area`, `miss_beds` and `miss_type` had no wording (Session 29 gap, visible when browsing all of Spain).
+- Kept within the rules: AGENTS.md section 4's agency line now names the photo address (Sam's chat words, D-051); D-035, `product/homes-index.md`, STATE and the lawyer brief (A7, a new question) updated; R-029 added.
+
+**Decided:** D-051 photos shown from the agency's server, never copied (Sam's instruction; the hotlink design is the CEO's).
+**Approvals used:** none (nothing pushed).
+**Learned:** Tecnocasa's advert JSON lists photos under `media.images[].url` in six sizes, and floor plans under `media.floor_plans`; the sitemaps list 5,421 homes for sale we can use (Verified, local crawl 2026-11-24). The case law in D-051 is Reported (not re-checked this session).
+**Open or blocked:** F-041; F-040, F-033, F-037, F-014 as before.
+**Saved and checked:** `dotnet test` 98 of 98; browser test 93 of 93; a local crawl of five real adverts stored five photo addresses and all five loaded in headless Edge with no script errors; project files checked with `git status` and `git diff` before the commit; LOG.md saved last.
+**Next session should start with:** 1. F-041: if pushed, the CI/CD run and photos live after the next crawl. 2. B-052 with B-027, B-039, B-041, B-072. 3. B-079 once F-040 is answered.
+
 ## 2026-11-24 · Session 29: contact form
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Legal & Compliance
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

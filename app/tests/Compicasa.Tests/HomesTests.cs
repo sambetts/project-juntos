@@ -106,7 +106,7 @@ public class HomesTests
             bathrooms = "2 baños",
             rooms = $"{beds} dorm.",
             description = "<p>Texto de la agencia que no guardamos</p>",
-            media = new { images = new[] { new { url = "https://example.invalid/photo.jpg" } } },
+            media = new { images = new[] { new { url = new { card = $"https://cdn-media.medialabtc.it/es/agencies/x/estates/{id}/images/1/card.jpeg", detail = "https://cdn-media.medialabtc.it/big.jpeg" } } } },
             energy_data = new { @class = "d" },
             features = new { elevator = "Sí", garden = "", terraces = 1, car_places = (int?)null, box = (string?)null },
             agency = new { name = "Oficina Ejemplo SL", phone = "+34 600 000 000" },
@@ -123,12 +123,24 @@ public class HomesTests
         Assert.Equal((210000, 88, 3, 2, "flat"), (h.Price!.Value, h.M2!.Value, h.Beds!.Value, h.Baths!.Value, h.Type!));
         Assert.Equal(("Getafe", "28901", "south", "D"), (h.Municipality!, h.Postcode!, h.Area!, h.Energy!));
         Assert.Equal("lift,terrace", h.Features);
-        // Nothing beyond the facts: no description, photo or phone ends up anywhere on the record.
+        // D-051: only the address of the first photo's small size, on the agency's own server.
+        Assert.Equal("https://cdn-media.medialabtc.it/es/agencies/x/estates/7/images/1/card.jpeg", h.PhotoUrl);
+        // Nothing else beyond the facts: no description, other photo or phone ends up anywhere on the record.
         var stored = JsonSerializer.Serialize(h);
         Assert.DoesNotContain("Texto de la agencia", stored);
-        Assert.DoesNotContain("photo.jpg", stored);
+        Assert.DoesNotContain("big.jpeg", stored);
         Assert.DoesNotContain("600 000 000", stored);
         Assert.Null(new TecnocasaSource().Parse("https://www.tecnocasa.es/x.html", AdvertPage(8, contract: "alquiler")));
+    }
+
+    [Fact]
+    public void Photo_addresses_are_kept_only_from_agencies_photo_servers()
+    {
+        Assert.Equal("https://cdn-media.medialabtc.it/a/card.jpeg", HomeSources.Photo("https://cdn-media.medialabtc.it/a/card.jpeg"));
+        Assert.Equal("", HomeSources.Photo("http://cdn-media.medialabtc.it/a/card.jpeg"));
+        Assert.Equal("", HomeSources.Photo("https://img.idealista.com/a.jpg"));
+        Assert.Equal("", HomeSources.Photo("javascript:alert(1)"));
+        Assert.Equal("", HomeSources.Photo(null));
     }
 
     static byte[] Sitemap(params (string Url, string LastMod)[] urls)
@@ -214,6 +226,14 @@ public class HomesTests
         Assert.DoesNotContain(Advert(1), site.Requested);
         Assert.NotNull((await db.Homes.FindAsync("tecnocasa:2"))!.GoneAt);
         Assert.Null((await db.Homes.FindAsync("tecnocasa:1"))!.GoneAt);
+
+        // D-051: a home read before we kept photo addresses is read once more to pick its photo up, then left alone.
+        (await db.Homes.FindAsync("tecnocasa:1"))!.PhotoUrl = null;
+        await db.SaveChangesAsync();
+        var third = await crawl.RunAsync(new TecnocasaSource(), 100, new HashSet<string>(), default);
+        Assert.Equal((0, 1), (third.Unchanged, third.Fetched));
+        Assert.EndsWith("/estates/1/images/1/card.jpeg", (await db.Homes.FindAsync("tecnocasa:1"))!.PhotoUrl);
+        Assert.Equal(1, (await crawl.RunAsync(new TecnocasaSource(), 100, new HashSet<string>(), default)).Unchanged);
 
         // An agency that asked us to stop is never crawled.
         await Assert.ThrowsAsync<InvalidOperationException>(() => crawl.RunAsync(new TecnocasaSource(), 100, new HashSet<string> { "tecnocasa" }, default));

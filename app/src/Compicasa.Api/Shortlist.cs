@@ -150,7 +150,7 @@ public static class Shortlist
             {
                 home.Id, home.Agency, Url = home.IsDemo ? null : home.Url, home.Price, home.M2, home.Beds, home.Baths, home.Type,
                 home.Municipality, home.District, home.Area, Features = home.Features.Split(',', StringSplitOptions.RemoveEmptyEntries),
-                home.Energy, home.IsDemo, fit!.Score, fit.Fits, fit.Misses, fit.Check,
+                home.Energy, home.IsDemo, home.Photo, fit!.Score, fit.Fits, fit.Misses, fit.Check,
             },
             addedBy = cand.AddedById,
             addedAt = cand.AddedAt,

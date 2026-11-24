@@ -127,7 +127,7 @@ public static class Browse
             homes = page.Select(x => new
             {
                 x.H.Id, x.H.Agency, Url = x.H.IsDemo ? null : x.H.Url, x.H.Price, x.H.M2, x.H.Beds, x.H.Baths, x.H.Type,
-                x.H.Municipality, x.H.District, x.H.Province, x.H.Area, Features = x.H.Features.Split(',', StringSplitOptions.RemoveEmptyEntries), x.H.Energy, x.H.IsDemo,
+                x.H.Municipality, x.H.District, x.H.Province, x.H.Area, Features = x.H.Features.Split(',', StringSplitOptions.RemoveEmptyEntries), x.H.Energy, x.H.IsDemo, x.H.Photo,
                 x.Fit.Score, x.Fit.Ok, x.Fit.Fits, x.Fit.Misses, x.Fit.Check, saved = saved.Contains(x.H.Id),
             }).ToList(),
         };

@@ -4,13 +4,14 @@ using System.Text;
 namespace Compicasa.Core;
 
 /// <summary>
-/// A home for sale, as our index holds it (D-035): facts and the link to the agency's own advert only.
-/// No photos, description text or agents' contact details. Made-up homes have no link.
+/// A home for sale, as our index holds it (D-035): facts and the link to the agency's own advert, plus the address of
+/// its main photo on the agency's server (D-051; never a copy). No description text or agents' contact details.
+/// Made-up homes have no link or photo.
 /// </summary>
 public sealed record HomeListing(
     string Id, string Source, string Agency, string? Url, int? Price, int? M2, int? Beds, int? Baths,
     string? Type, string? Municipality, string? Postcode, string? District, string? Area,
-    IReadOnlyList<string> Features, string? Energy, bool IsDemo);
+    IReadOnlyList<string> Features, string? Energy, bool IsDemo, string? PhotoUrl = null);
 
 /// <summary>How a home fits a group's brief. Codes, not sentences: the front end words them (D-024).</summary>
 public sealed record HomeFitResult(bool Ok, int Score, IReadOnlyList<string> Fits, IReadOnlyList<string> Misses, IReadOnlyList<string> Check);

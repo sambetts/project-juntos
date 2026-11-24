@@ -25,6 +25,15 @@ public static partial class HomeSources
         "casafari.com", "tucasa.com", "globaliza.com", "housfy.com",
     ];
 
+    /// <summary>Hosts the agencies serve their advert photos from (D-051). A photo address on any other host is dropped,
+    /// and the browser may load images only from these (Content-Security-Policy in Program.cs).</summary>
+    public static readonly string[] PhotoHosts = ["cdn-media.medialabtc.it"];
+
+    /// <summary>A photo address we may show: https, on one of PhotoHosts, not too long. Otherwise "".</summary>
+    public static string Photo(string? url) =>
+        url is { Length: <= 400 } && Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps
+        && PhotoHosts.Contains(u.Host, StringComparer.OrdinalIgnoreCase) ? u.AbsoluteUri : "";
+
     public static bool IsPortal(Uri u) => Portals.Any(p => u.Host.Equals(p, StringComparison.OrdinalIgnoreCase) || u.Host.EndsWith("." + p, StringComparison.OrdinalIgnoreCase));
 
     public static HashSet<string> Stopped(IConfiguration cfg) =>
@@ -155,7 +164,18 @@ public sealed partial class TecnocasaSource : IHomeSource
             Area = Regions.AreaFor(town, postcode),
             Features = string.Join(',', features),
             Energy = Str(e, "energy_data", "class")?.ToUpperInvariant() is { Length: 1 } en && "ABCDEFG".Contains(en) ? en : null,
+            // D-051: the address of the first photo's small "card" size, on Tecnocasa's own server. Never downloaded.
+            PhotoUrl = HomeSources.Photo(FirstPhoto(e)),
         };
+    }
+
+    static string? FirstPhoto(JsonElement e)
+    {
+        if (!e.TryGetProperty("media", out var m) || m.ValueKind != JsonValueKind.Object
+            || !m.TryGetProperty("images", out var imgs) || imgs.ValueKind != JsonValueKind.Array) return null;
+        foreach (var img in imgs.EnumerateArray())
+            if (Str(img, "url", "card") is { } u) return u;
+        return null;
     }
 
     static string? Str(JsonElement e, params string[] path)
@@ -295,7 +315,8 @@ public sealed class Crawl(AppDb db, TimeProvider clock, ILogger log, HttpClient 
 
         foreach (var d in listed.Values)
         {
-            if (known.TryGetValue(d.Url, out var h) && d.LastModified is { } lm && lm <= h.CheckedAt)
+            // Unchanged since we last read it: skip, unless we read it before D-051 and so have no photo address yet.
+            if (known.TryGetValue(d.Url, out var h) && d.LastModified is { } lm && lm <= h.CheckedAt && h.PhotoUrl is not null)
             {
                 h.LastSeenAt = now; h.GoneAt = null; unchanged++;
                 continue;
@@ -343,7 +364,7 @@ public sealed class Crawl(AppDb db, TimeProvider clock, ILogger log, HttpClient 
         to.Source = from.Source; to.Agency = from.Agency; to.Url = from.Url; to.Price = from.Price; to.M2 = from.M2;
         to.Beds = from.Beds; to.Baths = from.Baths; to.Type = from.Type; to.Province = from.Province;
         to.Municipality = Clip(from.Municipality, 80); to.Postcode = Clip(from.Postcode, 8); to.District = Clip(from.District, 80);
-        to.Area = from.Area; to.Features = from.Features; to.Energy = from.Energy;
+        to.Area = from.Area; to.Features = from.Features; to.Energy = from.Energy; to.PhotoUrl = from.PhotoUrl;
     }
 
     async Task<string?> GetTextAsync(Uri u, CancellationToken ct)

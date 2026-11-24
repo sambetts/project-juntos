@@ -315,6 +315,11 @@ input[type=search]{inline-size:100%;padding:9px 12px;border-radius:10px;border:1
 .pl-garden{fill:var(--plan-garden)}.pl-terrace{fill:var(--plan-terrace)}.pl-pool{fill:var(--plan-pool)}.pl-park{fill:var(--plan-park);stroke:var(--plan-wall);stroke-width:.6}
 .home-vis .energy{position:absolute;inset-block-start:10px;inset-inline-end:10px}
 .home-vis .demo{position:absolute;inset-block-start:10px;inset-inline-start:10px}
+/* D-051: the advert's own photo, from the agency's server, in place of the sketch */
+.home-vis.has-photo{padding:0;overflow:hidden}
+.home-vis.has-photo .plan{display:none}
+.hphoto{display:block;inline-size:100%;aspect-ratio:16/9;object-fit:cover;background:var(--surface-2)}
+.home-vis .credit{position:absolute;inset-block-end:6px;inset-inline-start:6px;font-size:11px;font-weight:600;padding:2px 6px;border-radius:6px;background:rgb(0 0 0 / .55);color:#fff}
 .energy{display:inline-grid;place-items:center;inline-size:24px;block-size:24px;border-radius:6px;font-weight:800;font-size:13px;color:#fff}
 .e-A{background:#00843d}.e-B{background:#3c9a3a}.e-C{background:#8db32e;color:#14210a}.e-D{background:#f2d500;color:#2a2400}.e-E{background:#f5a623;color:#2b1a00}.e-F{background:#e5641e}.e-G{background:#d0242b}
 .home-top .price{font-size:21px;letter-spacing:-.02em}
