@@ -4,6 +4,30 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-032 · Move hosting off the Visual Studio credit before anyone else signs up (R-024) · by 2026-12-05
+**Why:** your subscription is the Visual Studio subscriber offer. Microsoft's terms: "This benefit is for development and testing only. Production workloads must be run on regular subscriptions." The credit also stops if that Visual Studio subscription ends. Fine for the closed preview; not for a public tool.
+**Options:** A) a pay-as-you-go subscription in your name for the live app (about €16 a month before VAT estimated in D-028, to re-price; the credit stays for testing) · B) apply for startup credits meant for production (eligibility not checked) · C) stay as now.
+**Recommendation:** A, set up before release; B in parallel if you're eligible. Opening the subscription is yours; I then redeploy from Bicep.
+**If no answer:** nothing opens to the public.
+
+### F-033 · Approve the release checklist as the gate to real users (changes AGENTS.md section 3) · by 2026-12-05
+**Why:** the free-release strategy (D-048) needs a gate. Today Pilot mode needs every gate in section 2 of the pilot plan, which assumes a hand-run pilot. Changing the modes is yours.
+**Ask:** approve section 4 of `project/strategy.md` (11 items: hosting, who operates it, lawyer Part A, privacy and DPIA, DSA basics, deletion, safety, measurement, Spanish review, domain) as Pilot mode's gate; you remain the named responder.
+**Recommendation:** approve. Item 3 makes the lawyer (F-006) the critical path: book it now.
+**If no answer:** the old gate stands and nothing opens.
+
+### F-034 · Who runs Compicasa in law: you as an individual, or a company (S.L.)? · by 2026-12-19
+**Why:** once public, the site may have to show the operator's name, address and NIF (LSSI art. 10.1, Verified), and fines or claims fall on the operator. With an individual, that is you, personally (R-026).
+**Options:** A) ask the lawyer first (question 1 in `research/2026-11-24-free-launch-rules.md`), then decide · B) individual now · C) form an S.L. now (costs not checked).
+**Recommendation:** A, within the F-006 consultation.
+**If no answer:** checklist item 2 stays open and nothing opens.
+
+### F-035 · What counts as critical mass, and where we focus (replaces F-004, F-005, F-010) · by 2026-12-19
+**Why:** D-048 says charge only at critical mass; we need the number now so we measure the right things from day one.
+**Proposal** (`project/strategy.md` section 4, all Assumptions): in Madrid, buying to live in, over a quarter: 1,000 completed profiles, 60% with a mutual match in 14 days, 30 groups formed, 10 agreeing on a home, and one group-made purchase at any time. Pivot rule: after 90 days of real promotion, under 10% matched or no agreed brief means change course or stop.
+**Recommendation:** approve or edit the numbers; retire F-004, F-005 and F-010, keeping the pilot plan as a fallback.
+**If no answer:** we measure the funnel but declare nothing.
+
 ### F-031 · Widen the mission wording to include buying to rent out (D-047) · by 2026-11-30
 **Why:** AGENTS.md section 1 says the mission is helping people buy a home to live in together. Since B-063 (your request) the app also matches people buying to rent out. Changing the rulebook's mission needs you.
 **Options:** A) add "or to rent out" to section 1; B) keep the mission about homes to live in, and treat renting out as a secondary path; C) remove the rent-out path.

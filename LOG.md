@@ -2,6 +2,26 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-24 · Session 27: a free tool first (strategy)
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the CEO (D-048, strategy, roadmap); Research and Legal & Compliance through five helpers run by the deep-research skill (affordability, demand for co-buying, Spanish competitors, international platforms, launch rules)
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** STATE.md after Session 26 and its log entry. Sam: "We're going to update the strategy a bit here for this project. The plan is to release as a free tool and see if we can gain traction as a concept & service. Once and if we hit critical mas, we can look at monetising. I have some free Azure credit (where it's deployed)." He asked for the problem statement, research backing it, competitors and where we can do better, the strategy and the risks, and to see which skills could help.
+**Goals:** 1. Record the strategy change (D-048). 2. Strategy document with fresh research. 3. RISKS, roadmap, backlog and founder queue to match.
+**Needs Sam:** F-032 (new) hosting off the Visual Studio credit, recommend A; F-033 (new) the release checklist as the gate to real users; F-034 (new) individual or S.L., ask the lawyer first; F-035 (new) critical mass and the focus area, replacing F-004, F-005 and F-010. F-006 (the lawyer) is now the critical path.
+**Did**
+- D-048 recorded with Sam's words; D-010's recommendation updated (no charging until critical mass; matching free for good).
+- Deep-research skill: five helpers in parallel, notes kept in the scratch folder. The Chief of Staff wrote the repository notes from them in AGENTS.md's format (the skill's own report writer was skipped for that reason): `research/2026-11-24-problem-evidence.md`, `research/2026-11-24-competitors-refresh.md`, `research/2026-11-24-free-launch-rules.md`.
+- `project/strategy.md` v1.0 (CEO): problem statement, evidence by strength, competitor comparison and where we do better, four stages (release checklist; open free with one focus area; measure groups agreeing on a home; charge later), risks. `project/roadmap.md` v0.3; a pointer in `project/charter.md`.
+- RISKS: R-001 updated; R-024 to R-028 added; R-022 noted. BACKLOG: B-071 done, B-004 done, B-072 to B-077 added (B-075 and B-076 proposals), B-027, B-039, B-041, B-042, B-052 tied to the release checklist, B-019 next due 2027-02-24, B-047 updated.
+- Checked the 05:00 crawl: succeeded (3,163 Tecnocasa homes, last checked 2026-11-24 04:01 UTC via `/api/homes/sources`), so `Schema.WakeAsync` works against Azure SQL.
+
+**Decided:** D-048 a free tool first; charge only at critical mass (Sam).
+**Approvals used:** none; nothing deployed, published or sent.
+**Learned:** the Azure subscription is the Visual Studio subscriber offer (`quotaId MSDN_2014-09-01`, spending limit Off; read with `az rest`), and Microsoft's terms say "Production workloads must be run on regular subscriptions" (Verified on the offer page and Microsoft Learn by a separate fetch). Demand for buying with strangers is unmeasured everywhere; stated willingness abroad runs 5–10 times above actual co-buying; habitacion.com converts under 1% of its waiting list; Kohab (Australia) has closed; CoBuy (US) earns from the agreement, not matching. Casicasa now says it has no people search or way to join a group. A helper's note cited Cataluña's agents' register under a decree I had written from memory; replaced with the Generalitat page it actually read. Not confirmed: Banco de España chapter 2 (PDF wouldn't open), the survey primaries (B-077), Microsoft for Startups eligibility, a pay-as-you-go price for today's set-up.
+**Open or blocked:** F-032 to F-035; B-073 waits on F-032; B-072's operator notice on F-034.
+**Saved and checked:** every changed file re-read in `git diff` against the records above (DECISIONS, RISKS, BACKLOG, FOUNDER-QUEUE, STATE, project/strategy, roadmap, charter, three research notes); IDs checked unique (R-024 to R-028, B-071 to B-077, F-032 to F-035, D-048). LOG.md saved last; its own check and the commit are confirmed in the closing report.
+**Next session should start with:** 1. Sam's answers to F-032 to F-035. 2. Release checklist items that don't wait on Sam: B-042, B-052 with B-027, B-074, B-039, B-041. 3. B-075 or B-076 if Sam agrees; B-070.
+
 ## 2026-11-23 · Session 26: live in or rent out, full ITP scales, the sheet race, the crawl's wake-up
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; three helpers in their own git worktrees (Product, Builder and Legal & Compliance for B-063; Builder and Tester for B-061; Research and Builder for B-060); the CEO (D-047)
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

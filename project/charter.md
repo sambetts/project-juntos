@@ -1,5 +1,7 @@
 # Charter (v0.2, 2026-11-20, after the independent review)
 
+_Since 2026-11-24 (D-048), `project/strategy.md` sets the strategy: a free public release instead of the hand-run pilot, with fresh evidence on the problem and competitors. Where the two differ, the strategy wins._
+
 ## Problem
 Housing is hard to afford in Spain: the Banco de España's 2025 annual report (chapter 2) documents the strain. It doesn't show demand for buying with strangers rather than renting, moving, waiting or buying with someone you know. That's the open question (B-004 and the pilot). Buying with others is legally possible, but finding the right people, agreeing what to buy, getting a mortgage and planning a safe exit are hard.
 
