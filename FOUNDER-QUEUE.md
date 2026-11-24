@@ -4,10 +4,11 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-038 · Push the contact form to `main` (deploys B-078) · by 2026-11-28
+### F-038 · Push the contact form to `main` (deploys B-078) · CLOSED 2026-11-24: pushed
 **Why:** a push deploys (D-041). It adds `#contact`, open to anyone, storing messages in the database for you to read at `#inbox`, and a database migration (one new table, applied at start-up). Nothing is emailed until Compicasa has an address and domain (F-014).
 **Recommendation:** yes. 94 .NET tests and the browser test pass locally. Before real users the privacy notice must mention it (B-052).
 **If no answer:** committed, not deployed.
+**ANSWER (Sam, 2026-11-24, in Claude Code):** "that's fine. Make it happen." In reply to the closing report asking him to say "push" for F-038 and "may I set your account ID in `Admin__AccountIds`?": read as approval for both, the push and setting the live app setting to his own account ID only.
 
 ### F-037 · What the site shows about you as its operator (LSSI art. 10.1) · before release
 **Why:** you'll run Compicasa as an individual (D-050). If a free site counts as an information society service (a question we can't settle without a lawyer), the law asks for the operator's name, address, email and NIF on the site (Verified, BOE). That would be your own.
