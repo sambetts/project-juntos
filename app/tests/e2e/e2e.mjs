@@ -1,6 +1,8 @@
 // End-to-end check of the PoC in a real browser (headless Microsoft Edge or Chrome), with no npm packages:
 // it drives the browser through the DevTools protocol using Node's built-in WebSocket.
 // Usage: node app/tests/e2e/e2e.mjs <base-url> <invite-code> [screenshot-dir]
+// Locally, start the app with Contact__PerHour=1000 and Auth__AttemptsPerMinute=1000: each run sends a contact message (the
+// default allows 5 an hour) and several sign-in attempts (10 a minute), so back-to-back runs otherwise hit the limits.
 // Runs at phone size (390 x 844) and desktop size, in Spanish and English. Exit code 1 if any check fails.
 // With local accounts (a developer's machine) it runs the whole journey: sign-up, onboarding wizard, matches, groups.
 // With Entra External ID (the live site, D-033) it checks the sign-up checks and the hand-over to External ID,
@@ -229,16 +231,22 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   ok(await until(`location.hash==='#houses' && document.querySelectorAll('.homes .home').length>0`, tag + ': the house browser lists homes (B-064)'), tag + ': house browser opens from #houses');
   ok(await js(`/viviendas/.test(document.querySelector('.sumline')?.innerText||'')`), tag + ': the house browser says how many homes');
   await shot(tag + '-9-houses');
-  await js(`document.querySelector('[data-action="br-save"]').click(),true`);
-  ok(await until(`document.querySelector('[data-action="br-save"]')?.getAttribute('aria-pressed')==='true'`, tag + ': saving a home marks it saved (B-064)'), tag + ': a home can be saved');
+  // B-084: the phone and desktop passes share one account, so save a home that isn't saved yet and count from what was saved before
+  const savedBefore = await js(`window.__compicasa.S.br?.data?.savedCount||0`);
+  const saveId = await js(`document.querySelector('[data-action="br-save"][aria-pressed="false"]')?.getAttribute('data-id')||''`);
+  await js(`document.querySelector('[data-action="br-save"][data-id=${JSON.stringify(saveId)}]').click(),true`);
+  ok(await until(`document.querySelector('[data-action="br-save"][data-id=${JSON.stringify(saveId)}]')?.getAttribute('aria-pressed')==='true'`, tag + ': saving a home marks it saved (B-064)'), tag + ': a home can be saved');
   await js(`(()=>{document.getElementById('br-more-f').open=true;const c=document.getElementById('br-saved');c.checked=true;c.dispatchEvent(new Event('change',{bubbles:true}));return true;})()`);
-  ok(await until(`document.querySelectorAll('.homes .home').length===1`, tag + ': only saved homes'), tag + ': the saved filter shows the one saved home');
+  ok(await until(`document.querySelectorAll('.homes .home').length===${savedBefore + 1} && !!document.getElementById('home-'+${JSON.stringify(saveId)})`, tag + ': only saved homes'), tag + ': the saved filter shows the saved homes, including the new one');
   await send('Page.navigate', { url: base + '/#inbox' });
   await until(`/solo para quienes gestionan/.test(document.querySelector('#app')?.innerText||'')`, tag + ': the contact inbox is refused to someone not listed (B-078)');
   await send('Page.navigate', { url: base + '/#contact' });
   await until(`!!document.querySelector('#contact-form') && !!document.querySelector('#ct-email').value`, tag + ': the contact form opens with your email filled in (B-078)');
   await js(`(()=>{const b=document.querySelector('#ct-body');b.value='Una prueba del formulario de contacto';document.querySelector('#contact-form button[type=submit]').click();return true;})()`);
-  await until(`/Tu mensaje ha llegado/.test(document.querySelector('#app')?.innerText||'')`, tag + ': a contact message is sent and thanked (B-078)');
+  // The contact form allows Contact:PerHour messages an hour per address (5 live); start the local app with Contact__PerHour=1000 for repeated runs
+  await until(`/Tu mensaje ha llegado/.test(document.querySelector('#app')?.innerText||'') || !!document.getElementById('contact-error')?.textContent`, tag + ': the contact form answers');
+  const ctErr = await js(`document.getElementById('contact-error')?.textContent||''`);
+  ok(!ctErr, tag + ': a contact message is sent and thanked (B-078)' + (ctErr ? ` — refused: "${ctErr}"; if it is the hourly limit, restart the local app with Contact__PerHour=1000` : ''));
   // Feedback (B-081): from the footer link while on the house browser; the screen it came from goes with it
   await send('Page.navigate', { url: base + '/#houses' });
   await until(`location.hash==='#houses' && !!document.querySelector('#footnote a[href="#feedback"]')`, tag + ': the footer links to feedback when signed in (B-081)');
