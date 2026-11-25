@@ -18,7 +18,8 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Learned:** the browser test sends a contact message each run and the form allows five an hour, so repeated local runs fail with 429 until the app restarts. The "only saved homes" check failed once in five runs (B-084; probably the test, which shares one account between the phone and desktop passes). Signing up through the API from a script needs a page reload before the app sees the session.
 **Open or blocked:** F-044; F-040, F-033, F-037, F-014 as before.
 **Saved and checked:** `dotnet test` 118 of 118; browser test 99 of 99 on a freshly started app (earlier runs: 98 with the saved-homes flake, then 429s from the contact limit); screenshots of the front page (both themes, both sizes, English), Home, a group, the house browser, the area picker and a toast looked at; project files checked with `git status` and `git diff` against what was written; LOG.md saved last.
-**Next session should start with:** 1. If Sam pushes (F-044), check the run and the live site on a phone, signed out and in. 2. B-084. 3. B-052 with B-027, B-039, B-041, B-072.
+**After the closing report:** Sam: "push" (recorded in F-044). Pushed `a5dec46`; run 45599692064 passed (test, deploy); live: `/healthz/ready` 200, service worker `session33`, `app.js` has the front page and the Home tab, `index.html` the ribbon, `/api/browse` 401 signed out; the live front page screenshotted in headless Edge at desktop and phone size and renders as locally (no CSP blocks). This follow-up commit is not pushed.
+**Next session should start with:** 1. Sam to look at the live site on his phone, signed out (the front page) and signed in (five tabs). 2. B-084. 3. B-052 with B-027, B-039, B-041, B-072.
 
 ## 2026-11-25 · Session 32: code review and fixes
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with the Tester; the CEO for D-053
