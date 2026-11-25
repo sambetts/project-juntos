@@ -1240,3 +1240,47 @@ Object.assign(STR.es,{
   brNone:'Ninguna vivienda cumple estos filtros.',brNoneSaved:'Todavía no has guardado ninguna vivienda. Usa ☆ Guardar en una vivienda para tenerla aquí.',
   brSave:'Guardar',brSaved:'Guardada',brAddTo:who=>'Añadir al grupo con '+who,brInGroup:who=>'En la lista del grupo con '+who,
   tSaved:'Guardada. La encontrarás con «Solo mis guardadas».',tUnsaved:'Quitada de tus guardadas.',err_savedFull:'Puedes guardar hasta 200 viviendas. Quita alguna primero.'});
+
+/* Session 33 (B-083): the front-end review. The ribbon, singular wording for one person, one line when every home
+   scores the same, and the front page for visitors (B-035, from prototype/compicasa-landing-draft.html) */
+Object.assign(STR.en,{
+  ribbonH:'Preview',ribbonShort:'Everyone here is made up.',ribbonText:"Everyone here is made up, with a new batch every morning. Please don't enter real personal details.",footAbout:'About this preview',
+  allScore:s=>s===100?'all fit your profile fully':'all score '+s+'%',
+  sc_live:'How you live: move at least one slider',
+  lHeroH:'If buying on your own is out of reach, buy together.',
+  lHeroLead:'Find compatible people to buy a home with in Spain. Before you choose a home, you agree what it needs, who sleeps where, and how anyone can leave one day.',
+  lCtaUp:'I have an invite code',lCtaIn:'Sign in',
+  lNote:'A closed preview: creating an account needs an invite code, and everyone you meet is made up.',
+  lPlanCap:'A made-up example: one home, three households',lPlanHint:'Each household has its own bedroom and the rest is shared. You agree this before choosing a home.',
+  lA:'Ana',lB:'Luis and Marta',lC:'You',lBed:'bedroom',lLiving:'Living and dining',lKitchen:'Kitchen',lBath:'Bathroom',lTerrace:'Terrace',
+  lHowH:'How it works',lHowLead:'First, who with. Then, which home. And how to leave, from the start.',
+  lSteps:[['Tell us how you live','Where you want to buy, and how you like to live: hours, pets, noise, working from home. We never ask about origin, religion, age or anything like that.'],
+    ['Meet compatible people','See who you fit with and why. Like someone; if they like you back, you can talk. A group forms only if everyone in it says yes.'],
+    ['Agree on the home you need','Together you get a shared brief: bedrooms, area, must-haves and nice-to-haves, and who has which room.'],
+    ['Choose it together','Vote on homes from agencies, see a cost estimate per person and the questions to take to a lawyer and a notary.']],
+  lNotH:'What we are not',lNot:["We aren't an estate agent: we don't sell homes.","We don't lend money or promise you a mortgage.","We don't give legal, tax or financial advice.","It isn't for renting a room: this is about buying."],
+  lFaqH:'Questions',lFaq:[['Do I need to know the other people already?',"No. The idea is to help you find compatible people you haven't met yet."],
+    ['How many people are in a group?','Two to four households. A household can be one person, a couple or a family.'],
+    ['What if someone wants to sell their share one day?',"It's one of the first things you talk through, before choosing a home. A lawyer should review whatever you agree."]],
+  lJoinH:'Sign in or create your account'});
+Object.assign(STR.es,{
+  ribbonH:'Versión de prueba',ribbonShort:'Todas las personas son inventadas.',ribbonText:'Todas las personas son inventadas y cada mañana llegan nuevas. No pongas datos personales reales.',footAbout:'Sobre esta versión',
+  allScore:s=>s===100?'todas encajan del todo con tu perfil':'todas encajan al '+s+' %',
+  checkH1:'Comprueba',fit_area1:'en tu zona',miss_area1:'fuera de tus zonas',miss_small1:'más pequeña que tu rango',miss_big1:'más grande que tu rango',
+  sc_live:'Cómo vives: mueve al menos un control',
+  lHeroH:'Si comprar casa por tu cuenta no te alcanza, hazlo en compañía.',
+  lHeroLead:'Encuentra personas compatibles con quienes comprar una vivienda en España. Antes de elegir casa, acordáis qué necesita, quién duerme dónde y cómo podrá salir quien algún día quiera vender.',
+  lCtaUp:'Tengo un código de invitación',lCtaIn:'Entrar',
+  lNote:'Versión preliminar cerrada: para crear una cuenta hace falta un código de invitación, y todas las personas que conocerás son inventadas.',
+  lPlanCap:'Ejemplo inventado: una casa, tres hogares',lPlanHint:'Cada hogar tiene su dormitorio y el resto se comparte. Lo acordáis antes de elegir casa.',
+  lA:'Ana',lB:'Luis y Marta',lC:'Tú',lBed:'dormitorio',lLiving:'Salón y comedor',lKitchen:'Cocina',lBath:'Baño',lTerrace:'Terraza',
+  lHowH:'Cómo funciona',lHowLead:'Primero, con quién. Después, qué casa. Y la salida, desde el principio.',
+  lSteps:[['Cuéntanos cómo vives','Dónde quieres comprar y cómo te gusta convivir: horarios, mascotas, ruido, teletrabajo. Nunca te preguntamos por tu origen, religión, edad ni nada parecido.'],
+    ['Conoce a gente compatible','Ves con quién encajas y por qué. Si te interesa alguien y tú le interesas, podéis hablar. Un grupo solo se forma si todos dicen que sí.'],
+    ['Acordad qué casa necesitáis','Tenéis una ficha común: dormitorios, zona, lo imprescindible y lo deseable, y quién se queda cada habitación.'],
+    ['Elegidla juntos','Votáis viviendas de agencias y veis una estimación de lo que pondría cada uno y las preguntas para el abogado y la notaría.']],
+  lNotH:'Lo que no somos',lNot:['No somos una inmobiliaria: no vendemos viviendas.','No concedemos hipotecas ni prometemos financiación.','No damos asesoramiento legal, fiscal ni financiero.','No es para alquilar una habitación: aquí se compra.'],
+  lFaqH:'Preguntas',lFaq:[['¿Tengo que conocer ya a las otras personas?','No. La idea es ayudarte a encontrar a personas compatibles que aún no conoces.'],
+    ['¿Cuántas personas forman un grupo?','Entre dos y cuatro hogares. Un hogar puede ser una persona, una pareja o una familia.'],
+    ['¿Y si un día alguien quiere vender su parte?','Es de lo primero que habláis, antes de elegir casa. Lo que acordéis debe revisarlo un abogado.']],
+  lJoinH:'Entra o crea tu cuenta'});

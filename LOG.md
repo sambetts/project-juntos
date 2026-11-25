@@ -2,6 +2,24 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-25 · Session 33: front-end review
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Product and Brand & Marketing; the Tester; the CEO for D-054
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** Session 32 (code review fixes deployed). Sam: "See what front-end changes you'd make to this web-app"; after twelve proposals in chat, "Do it all. Make it amazing". No new answers in the queue; no dropped session.
+**Goals:** 1. B-083 front-end review (new row).
+**Needs Sam:** F-044 (new): push to deploy; recommend yes.
+**Did**
+- Review: ran the app locally with made-up data, took the browser test's 25 screenshots and read `app.js` and `app.css`. Found that the current tab never looked selected: the script sets `aria-current="page"`, the CSS only styled `aria-selected`.
+- B-083, all twelve: (1) current tab styled, with a bar on the phone tab bar; (2) toasts at the bottom above the bars, cleared on a new page unless the same action raised them; (3) the minimum-affinity value on its own line on phones; (4) your colour `#c2410c` through `colorOf()` for avatars and both split bars (the server's default grey no longer wins); (5) Home as the first of five tabs (D-054, amends D-042); (6) options with a hint as two-line rounded boxes; (7) group overview: members and fit on the left, the three tiles on the right; (8) a slim ribbon (one line on phones), the long note folded into the footer; (9) score rings hidden when every listed home scores the same, said once in the summary; general fits shown only next to a miss; (10) dark-mode plan colours mixed from the brand colours; (11) Spanish singular for one person ("Comprueba", "en tu zona" …), the lifestyle check reworded, the Home stepper marks the profile done once the next step is past it; (12) the front page for visitors (B-035): headline, a made-up floor plan whose bedrooms fill in one household at a time (still with reduced motion), four steps, what we aren't, three questions, then the sign-in card as a segmented control.
+- Tests: the browser test now expects five tabs with Home; service worker bumped to `session33`.
+
+**Decided:** D-054 (Sam): the twelve changes, Home as a tab.
+**Approvals used:** D-054 for building and committing; nothing pushed.
+**Learned:** the browser test sends a contact message each run and the form allows five an hour, so repeated local runs fail with 429 until the app restarts. The "only saved homes" check failed once in five runs (B-084; probably the test, which shares one account between the phone and desktop passes). Signing up through the API from a script needs a page reload before the app sees the session.
+**Open or blocked:** F-044; F-040, F-033, F-037, F-014 as before.
+**Saved and checked:** `dotnet test` 118 of 118; browser test 99 of 99 on a freshly started app (earlier runs: 98 with the saved-homes flake, then 429s from the contact limit); screenshots of the front page (both themes, both sizes, English), Home, a group, the house browser, the area picker and a toast looked at; project files checked with `git status` and `git diff` against what was written; LOG.md saved last.
+**Next session should start with:** 1. If Sam pushes (F-044), check the run and the live site on a phone, signed out and in. 2. B-084. 3. B-052 with B-027, B-039, B-041, B-072.
+
 ## 2026-11-25 · Session 32: code review and fixes
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with the Tester; the CEO for D-053
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

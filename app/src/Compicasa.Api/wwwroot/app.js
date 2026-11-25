@@ -38,6 +38,9 @@ const PEOPLE={};
 function remember(map){if(map)Object.keys(map).forEach(k=>{PEOPLE[k]=map[k];});}
 function rememberLite(map){if(map)Object.keys(map).forEach(k=>{PEOPLE[k]=Object.assign({},map[k],PEOPLE[k]||{});});}
 function isMe(id){return S.me&&id===S.me.id;}
+/* Your own colour, for your avatar and your share of a split: the brand's, readable in light and dark (B-083; was a grey lost on dark) */
+const ME_COLOR='#c2410c';
+function colorOf(id){return isMe(id)?ME_COLOR:((PEOPLE[id]||{}).color||'#495057');}
 function personName(id){return PEOPLE[id]?PEOPLE[id].name:'?';}
 function nm(id){return isMe(id)?t('you'):personName(id);}
 function dn(id){return isMe(id)?t('youName'):personName(id);}
@@ -106,7 +109,7 @@ function errText(e){
 /* ---------- small view helpers ---------- */
 function loc(opts){return opts.map(o=>({id:o.id,label:tx(o.label),hint:tx(o.hint)}));}
 function avatar(id,size,color,name){
-  const p=PEOPLE[id]||{},c=color||p.color||'#495057',n=name||dn(id);
+  const c=isMe(id)?ME_COLOR:(color||colorOf(id)),n=name||dn(id);
   return `<span class="avatar" data-bg="${esc(c)}" data-sz="${size}" aria-hidden="true">${esc(initials(n))}</span>`;
 }
 function bar(label,v){const pct=Math.round(v*100);return `<div class="bar"><span>${esc(label)}</span><div class="track"><div class="fill" data-w="${pct}"></div></div><span>${pct}%</span></div>`;}
@@ -115,7 +118,7 @@ function radioGroup(field,opts,val,label){
   return `<div class="field"><span class="label">${esc(label)}</span><div class="seg" role="radiogroup" aria-label="${esc(label)}">${opts.map(o=>`<label class="opt"><input type="radio" name="f-${field}" data-field="${field}" value="${esc(o.id)}"${String(o.id)===String(val)?' checked':''}>${esc(o.label)}</label>`).join('')}</div></div>`;
 }
 function checkGroup(field,label,opts,vals){
-  return `<div class="field"><span class="label">${esc(label)}</span><div class="seg">${opts.map(o=>`<label class="opt"><input type="checkbox" data-field="${field}" data-multi="1" value="${esc(o.id)}"${vals.indexOf(o.id)>=0?' checked':''}>${esc(o.label)}${o.hint?` <span class="hint">${esc(o.hint)}</span>`:''}</label>`).join('')}</div></div>`;
+  return `<div class="field"><span class="label">${esc(label)}</span><div class="seg">${opts.map(o=>`<label class="opt"><input type="checkbox" data-field="${field}" data-multi="1" value="${esc(o.id)}"${vals.indexOf(o.id)>=0?' checked':''}>${optLabel(o.label,o.hint)}</label>`).join('')}</div></div>`;
 }
 /* Areas across Spain (B-059): one folding group per region, open where you have chosen something (Madrid if nothing yet)
    or where you opened it. The checkboxes are the same multi field as any other, so saving is unchanged. */
@@ -126,7 +129,7 @@ function areaPicker(vals){
   const sorted=REGIONS.slice(0,1).concat(REGIONS.slice(1).sort((a,b)=>tx(a.label).localeCompare(tx(b.label),LANG)));
   const groups=sorted.map(r=>{
     const n=r.areas.filter(a=>vals.indexOf(a.id)>=0).length,open=n>0||OPEN_REGIONS.has(r.id)||(!vals.length&&r.id==='mad');
-    return `<details class="region" data-region="${r.id}"${open?' open':''}><summary>${esc(tx(r.label))}${areaCount(n)}</summary><div class="seg">${r.areas.map(a=>`<label class="opt"><input type="checkbox" data-field="areas" data-multi="1" value="${esc(a.id)}"${vals.indexOf(a.id)>=0?' checked':''}>${esc(tx(a.label))}${a.hint?` <span class="hint">${esc(tx(a.hint))}</span>`:''}</label>`).join('')}</div></details>`;}).join('');
+    return `<details class="region" data-region="${r.id}"${open?' open':''}><summary>${esc(tx(r.label))}${areaCount(n)}</summary><div class="seg">${r.areas.map(a=>`<label class="opt"><input type="checkbox" data-field="areas" data-multi="1" value="${esc(a.id)}"${vals.indexOf(a.id)>=0?' checked':''}>${optLabel(tx(a.label),tx(a.hint))}</label>`).join('')}</div></details>`;}).join('');
   return `<div class="field"><span class="label">${esc(t('areasLabel'))}</span><p class="hint" id="areas-chosen" aria-live="polite">${esc(areasChosenText(chosen))}</p><div class="regions">${groups}</div></div>`;
 }
 function areaCount(n){return n?` <span class="pill">${n}</span>`:'';}
@@ -139,6 +142,8 @@ function refreshAreaPicker(vals){
     const n=r.areas.filter(a=>vals.indexOf(a.id)>=0).length,sum=d.querySelector('summary'),old=sum.querySelector('.pill');
     if(old)old.remove();if(n)sum.insertAdjacentHTML('beforeend',areaCount(n));});
 }
+/* An option's label, with its hint on a line of its own (B-083: hints beside the label wrapped pills into lumps) */
+function optLabel(label,hint){return hint?`<span class="ol">${esc(label)}<span class="hint">${esc(hint)}</span></span>`:esc(label);}
 function checkField(field,label,val){return `<div class="field"><label class="opt"><input type="checkbox" data-field="${field}" data-bool="1"${val?' checked':''}>${esc(label)}</label></div>`;}
 function selectField(field,label,opts,val){
   const o2=opts.map(o=>typeof o==='object'?o:{id:o,label:String(o)});
@@ -181,7 +186,7 @@ function passwordField(up){
   return `<div class="field"><label for="a-pass">${esc(t('password'))}</label><div class="pw"><input id="a-pass" name="password" type="password" autocomplete="${up?'new-password':'current-password'}" minlength="${up?10:1}" required><button type="button" class="btn small ghost" data-action="pw-toggle" aria-controls="a-pass" aria-pressed="false" aria-label="${esc(t('showPwAria'))}">${esc(t('showPw'))}</button></div>
 ${up?`<div class="meter" id="pw-meter" data-level="0" aria-hidden="true"><span></span></div><p class="hint" id="pw-label" aria-live="polite">${esc(t('passwordHint'))}</p>`:''}</div>`;
 }
-function viewAuth(){
+function viewAuth(onLanding){
   const up=S.authMode==='signup',ext=S.config&&S.config.auth==='external';
   let body;
   if(ext&&!up)body=`<p>${esc(t('extSignInLead'))}</p><p class="error" id="auth-error" role="alert">${esc(S.authError)}</p><button type="button" class="btn primary wide" data-action="ext-signin">${esc(t('extSignInBtn'))}</button>`;
@@ -193,14 +198,49 @@ ${up?`<div class="field"><label for="a-name">${esc(t('displayName'))}</label><in
 <p class="error" id="auth-error" role="alert">${esc(S.authError)}</p>
 <button type="submit" class="btn primary"${S.busy?' disabled':''}>${esc(up?t('signUp'):t('signIn'))}</button>
 </form>`;
-  return `<section class="card auth">
-<h2>${esc(t('authH'))}</h2>
+  return `<section class="card auth" id="auth-card">
+${onLanding?`<h2>${esc(t('lJoinH'))}</h2>`:`<h2>${esc(t('authH'))}</h2>`}
 <p class="lead">${esc(t('authLead'))}</p>
-<div class="seg mb" role="tablist">
+<div class="authseg mb" role="tablist">
 <button type="button" class="tab" role="tab" data-action="auth-mode" data-id="signin" aria-selected="${!up}">${esc(t('signIn'))}</button>
 <button type="button" class="tab" role="tab" data-action="auth-mode" data-id="signup" aria-selected="${up}">${esc(t('signUp'))}</button>
 </div>
 ${body}</section>`;
+}
+/* The front page for visitors (B-035, B-083): the idea, a shared home drawn as a floor plan (each household's bedroom in
+   its colour, the rest shared), how it works, what we aren't, then sign in or sign up on the same page */
+function landingPlan(){
+  const room=(x,y,w,h,cls,r)=>`<rect class="lp-room ${cls} ${r}" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+  const label=(x,y,name,sub,r)=>`<text class="lp-o ${r}" x="${x}" y="${y}" text-anchor="middle">${esc(name)}</text><text class="lp-t" x="${x}" y="${y+16}" text-anchor="middle">${esc(sub)}</text>`;
+  const shared=(x,y,txt)=>`<text class="lp-t" x="${x}" y="${y}" text-anchor="middle">${esc(txt)}</text>`;
+  return `<svg viewBox="0 0 360 236" role="img" aria-label="${esc(t('lPlanCap')+'. '+t('lPlanHint'))}">
+<rect class="lp-shared" x="10" y="108" width="340" height="118"/>
+${room(10,10,108,98,'h-a','r1')}${room(118,10,124,98,'h-b','r2')}${room(242,10,108,98,'h-c','r3')}
+<path class="lp-in" d="M118 10V96M242 10V96M10 108H60M76 108H180M200 108H300M318 108H350M86 108V140M86 156V226M86 168H10M282 108V150M282 170V226"/>
+<rect class="lp-wall" x="10" y="10" width="340" height="216" rx="3"/>
+${label(64,56,t('lA'),t('lBed'),'r1')}${label(180,56,t('lB'),t('lBed'),'r2')}${label(296,56,t('lC'),t('lBed'),'r3')}
+${shared(48,142,t('lBath'))}${shared(48,201,t('lKitchen'))}${shared(184,172,t('lLiving'))}${shared(316,172,t('lTerrace'))}
+</svg>`;
+}
+function viewLanding(){
+  const how=t('lSteps').map(x=>`<li><h3>${esc(x[0])}</h3><p>${esc(x[1])}</p></li>`).join('');
+  return `<div class="landing">
+<section class="lhero"><div><h2>${esc(t('lHeroH'))}</h2><p class="lead">${esc(t('lHeroLead'))}</p>
+<div class="lctas"><button type="button" class="btn primary" data-action="land-auth" data-id="signup">${esc(t('lCtaUp'))}</button><button type="button" class="btn" data-action="land-auth" data-id="signin">${esc(t('lCtaIn'))}</button></div>
+<p class="lnote">${esc(t('lNote'))}</p></div>
+<figure class="lplan">${landingPlan()}<figcaption><span class="lkey"><i class="h-a"></i>${esc(t('lA'))}</span><span class="lkey"><i class="h-b"></i>${esc(t('lB'))}</span><span class="lkey"><i class="h-c"></i>${esc(t('lC'))}</span><p class="hint">${esc(t('lPlanCap'))}. ${esc(t('lPlanHint'))}</p></figcaption></figure></section>
+<section class="lsec"><h2>${esc(t('lHowH'))}</h2><p class="lead">${esc(t('lHowLead'))}</p><ol class="lsteps">${how}</ol></section>
+<section class="ljoin">${viewAuth(true)}
+<div class="lnot lsec"><h2>${esc(t('lNotH'))}</h2><ul>${t('lNot').map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+<h2>${esc(t('lFaqH'))}</h2><div class="faq mt-s">${t('lFaq').map(x=>`<details><summary>${esc(x[0])}</summary><p>${esc(x[1])}</p></details>`).join('')}</div></div></section>
+</div>`;
+}
+/* From the front page's buttons: the right form, scrolled to, with the first field ready */
+function landAuth(mode){
+  S.authMode=mode;S.authError='';render();
+  const card=document.getElementById('auth-card');if(!card)return;
+  card.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+  const f=card.querySelector('input,button[data-action="ext-signin"]');if(f)f.focus({preventScroll:true});
 }
 /* A rough guide, not a rule: the server only insists on 10 characters */
 function pwLevel(v){
@@ -321,7 +361,7 @@ function viewLegal(kind){
 }
 
 const SECTIONS={
-  purpose:u=>`<div class="field"><span class="label">${esc(t('purposeQ'))}</span><div class="seg purpose" role="radiogroup" aria-label="${esc(t('purposeQ'))}">${['live','let'].map(id=>`<label class="opt"><input type="radio" name="f-purpose" data-field="purpose" value="${id}"${u.purpose===id?' checked':''}>${esc(purposeLabel(id))} <span class="hint">${esc(t(id==='let'?'purposeLetHint':'purposeLiveHint'))}</span></label>`).join('')}</div></div>
+  purpose:u=>`<div class="field"><span class="label">${esc(t('purposeQ'))}</span><div class="seg purpose" role="radiogroup" aria-label="${esc(t('purposeQ'))}">${['live','let'].map(id=>`<label class="opt"><input type="radio" name="f-purpose" data-field="purpose" value="${id}"${u.purpose===id?' checked':''}>${optLabel(purposeLabel(id),t(id==='let'?'purposeLetHint':'purposeLiveHint'))}</label>`).join('')}</div></div>
 <p class="hint">${esc(t('purposeNote'))}</p>`,
   letting:u=>`${selectField('bedrooms',t('letBedsLabel'),[1,2,3,4],u.bedrooms)}
 ${selectField('maxHouseholds',t('letMaxLabel'),[{id:2,label:t('maxHH2')},{id:3,label:'3'},{id:4,label:t('maxHH4')}],u.maxHouseholds)}
@@ -427,6 +467,8 @@ function viewDash(){
     else next=[t('dn_wait'),'','',g.open.length?2:1];
   }
   const now=next?next[3]:-1;
+  /* the profile counts as done once the next step has moved past it, so the stepper never shows step 4 as current with step 1 undone (B-083) */
+  if(now>0)done[0]=true;
   const grpLine=g.formed?t('dsGroupFormed'):(g.invites.length?t('dsGroupInvite',g.invites.length):(g.open.length?t('dsGroupWaiting'):t('dsGroupNone')));
   const steps=[['profile','#profile',t('dsScore',ps.score)],['people','#people-'+peopleSub(),loading?t('loading'):t('dsPeople',c.review,c.matches)],
     ['group','#groups',loading?t('loading'):grpLine],['home',g.formed?groupHash(g.formed,'homes'):'#groups',g.formed?t('dsHomeNow'):t('dsHomeLater')]];
@@ -443,7 +485,7 @@ ${missing.length?'':`<p class="hint">${esc(t('scoreAll'))}</p>`}</section>`;
   else{
     const d=r.data,list=d.homes.slice(0,3).map(x=>Object.assign({},x,{pm2:x.price&&x.m2?x.price/x.m2:null})),med=median(list.map(x=>x.pm2));
     const who=d.with?t('dashHomesWith',d.with.name,d.with.mutual):t('dashHomesAlone');
-    homes=`<p class="hint">${esc(who)}</p>${d.budgetSet===false?`<p class="budgetline">${esc(t('dashBudget'))} <a class="quiet" href="#profile" data-action="open-sec" data-id="budget">${esc(t('hbSetMine'))}</a></p>`:''}${list.length?`<ul class="homes">${list.map(x=>homeItem(x,med)).join('')}</ul><p class="hint mt">${esc(t('dashHomesNote'))}</p>`:`<p>${esc(t('dashHomesNone'))}</p>`}
+    homes=`<p class="hint">${esc(who)}${sameScore(list)?' · '+esc(t('allScore',list[0].score)):''}</p>${d.budgetSet===false?`<p class="budgetline">${esc(t('dashBudget'))} <a class="quiet" href="#profile" data-action="open-sec" data-id="budget">${esc(t('hbSetMine'))}</a></p>`:''}${list.length?`<ul class="homes">${list.map(x=>homeItem(x,med,false,'',{plural:!!d.with,noScore:sameScore(list)})).join('')}</ul><p class="hint mt">${esc(t('dashHomesNote'))}</p>`:`<p>${esc(t('dashHomesNone'))}</p>`}
 <p class="mt"><a class="btn small ghost" href="#houses">${esc(t('brAll'))}</a></p>${g.formed?`<p class="mt"><a class="btn small" href="${groupHash(g.formed,'homes')}">${esc(t('dashHomesGroup'))}</a></p>`:''}`;
   }
   return `<header class="phead2"><div><h2>${esc(t('dashH',u.name||''))}</h2><p class="hint">${esc(t('dashLead'))}</p></div></header>
@@ -677,7 +719,7 @@ ${hb.extras.length?`<h4>${t('worthH')}</h4><ul class="clean">${hb.extras.map(x=>
 </section>
 <div class="stackcol">
 ${letting?`<section class="card"><h3>${esc(t('letCardH'))}</h3><p>${esc(t('letCardLead'))}</p><p class="hint">${esc(t('letCardLaw'))}</p></section>`:`<section class="card"><h3>${t('roomsH')}</h3>
-<div class="split" aria-hidden="true">${h.rooms.map(r=>`<span data-w="${r.pct}" data-bg="${esc((PEOPLE[r.id]||{}).color||'#495057')}"></span>`).join('')}</div>
+<div class="split" aria-hidden="true">${h.rooms.map(r=>`<span data-w="${r.pct}" data-bg="${esc(colorOf(r.id))}"></span>`).join('')}</div>
 <ul class="clean">${h.rooms.map(r=>`<li>${avatar(r.id,28)}<div><b>${esc(dn(r.id))}</b>: ${esc(t('roomsOf',r.rooms,hb.beds))}${r.bath?esc(t('plusOwnBath')):''}${h.cars[r.id]?`<div class="who">${esc(t('parkingSpaces',h.cars[r.id]))}</div>`:''}</div></li>`).join('')}</ul>
 <h4>${t('placementH')}</h4>
 <ul class="clean">${h.tips.map(x=>`<li><span class="tag tip">${t('tipTag')}</span><div>${esc(M(x))}</div></li>`).join('')}</ul>
@@ -700,7 +742,7 @@ ${letting?`<section class="card"><h3>${esc(t('letCardH'))}</h3><p>${esc(t('letCa
   else if(h.state==='broken')next=`<div class="nextstep"><span>${esc(life.canInvite?t('nextBroken'):t('gBrokenLine'))}</span></div>`;
   const medP=hr?median(hr.homes.map(x=>x.price)):null;
   const otile=(k,v,label,sub2)=>`<a class="otile" href="${groupHash(h,k)}"><span class="tk">${esc(label)}</span><span class="tv">${v}</span><span class="ts">${esc(sub2)}</span><span class="go" aria-hidden="true">→</span></a>`;
-  const overview=`${next}<div class="grid cols-2">${fitCard}<div class="stackcol">${chips}${isPreview?'':freePlaces(h,life,ids)}
+  const overview=`${next}<div class="grid cols-2"><div class="stackcol">${chips}${fitCard}${isPreview?'':freePlaces(h,life,ids)}</div><div class="stackcol">
 ${otile('brief',esc(cap(line)),letting?t('oBriefLet'):t('oBrief'),[letting?purposeLabel('let'):t('bathsN',hb.baths),h.size.min+'–'+h.size.max+' m²',where].join(' · '))}
 ${isPreview?'':otile('homes',hr?num(hr.homes.length):'…',t('oHomes'),hr?(hr.homes.length?t('oHomesSub',kEur(medP)):t('oHomesNone')):t('loading'))}
 ${isPreview?'':otile('shortlist',sl?num(sl.items.length):'…',t('oShortlist'),sl?(sl.items.length?t('oShortlistSub',sl.items.filter(x=>x.stage===3).length,myTurn):t('oShortlistNone')):t('loading'))}
@@ -995,7 +1037,7 @@ function homesResults(){
   const medP=median(sel.map(x=>x.price)),medPm2=median(sel.map(x=>x.pm2)),medM2=median(sel.map(x=>x.m2)),allPm2=median(all.map(x=>x.pm2));
   const best=sel.length?Math.max(...sel.map(x=>x.score)):null;
   const market=S.hview==='market';
-  const sumline=`<p class="sumline" aria-live="polite"><b>${esc(t('hxSumN',sel.length,all.length))}</b>${sel.length?` · ${esc(t('hxSumMed',kEur(medP)))}${medPm2?' · '+esc(num(Math.round(medPm2))+' €/m²'):''}`:''}</p>`;
+  const sumline=`<p class="sumline" aria-live="polite"><b>${esc(t('hxSumN',sel.length,all.length))}</b>${sameScore(sel)?' · '+esc(t('allScore',sel[0].score)):''}${sel.length?` · ${esc(t('hxSumMed',kEur(medP)))}${medPm2?' · '+esc(num(Math.round(medPm2))+' €/m²'):''}`:''}</p>`;
   const tiles=!market?sumline:`<div class="tiles">${tile(num(sel.length),t('stHomes'),esc(t('stOfTotal',all.length)))}${tile(kEur(medP),t('stMedPrice'),'')}${tile(medPm2?num(Math.round(medPm2))+' €/m²':'–',t('stMedPm2'),medPm2&&allPm2&&f!==null&&hfActive(f)?esc(t('vsAll',Math.round((medPm2/allPm2-1)*100))):'')}${tile(medM2?num(medM2)+' m²':'–',t('stMedSize'),'')}${tile(best!=null?best+' %':'–',t('stBestFit'),'')}</div>`;
   if(!sel.length)return `${tiles}<div class="card empty mt"><p>${esc(t('hxNone'))}</p><button type="button" class="btn" data-action="hf-reset">${esc(t('hxReset'))}</button></div>`;
   /* price histogram: all homes that fit (context) and the filtered ones (accent) */
@@ -1014,7 +1056,7 @@ ${areaBars?`<figure class="chartcard"><figcaption><b>${esc(t('chAreaH'))}</b></f
 </div>`;
   if(market)return `${tiles}${charts}<p class="center"><button type="button" class="btn" data-action="hview" data-v="list">${esc(t('hxSeeList',sel.length))}</button></p>`;
   const shown=sel.slice(0,f.show),more=sel.length-shown.length;
-  return `${tiles}<ul class="homes">${shown.map(x=>homeItem(x,medPm2,true)).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-homes">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`;
+  return `${tiles}<ul class="homes">${shown.map(x=>homeItem(x,medPm2,true,'',{noScore:sameScore(sel)})).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-homes">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`;
 }
 function scatter(w,pts,selIds,refPm2){
   if(!pts.length)return '';
@@ -1105,22 +1147,28 @@ ${brSelect('energy',t('hxEnergy'),[['',any],['C','A–C'],['E','A–E']],f.energ
   else if(!b.items.length)body=`<div class="card empty mt"><p>${esc(t(f.saved?'brNoneSaved':'brNone'))}</p><button type="button" class="btn" data-action="br-reset">${esc(t('hxReset'))}</button></div>`;
   else{
     const more=d.total-b.items.length;
-    body=`<ul class="homes">${b.items.map(x=>homeItem(x,d.medPm2,false,brExtra(x))).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="br-more"${b.loadingMore?' disabled':''}>${esc(t('moreHomes',Math.min(24,more),more))}</button></p>`:''}`;
+    body=`<ul class="homes">${b.items.map(x=>homeItem(x,d.medPm2,false,brExtra(x),{noScore:sameScore(b.items)})).join('')}</ul>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="br-more"${b.loadingMore?' disabled':''}>${esc(t('moreHomes',Math.min(24,more),more))}</button></p>`:''}`;
   }
-  const sum=d?`<p class="sumline" aria-live="polite"><b>${esc(t('brSum',d.total,num(d.total),num(d.fitting)))}</b>${d.medPrice?' · '+esc(t('hxSumMed',kEur(d.medPrice))):''}${d.medPm2?' · '+esc(num(Math.round(d.medPm2))+' €/m²'):''}${b.loading?' · '+esc(t('brUpdating')):''}</p>`:'';
+  const sum=d?`<p class="sumline" aria-live="polite"><b>${esc(t('brSum',d.total,num(d.total),num(d.fitting)))}</b>${sameScore(b.items)?' · '+esc(t('allScore',b.items[0].score)):''}${d.medPrice?' · '+esc(t('hxSumMed',kEur(d.medPrice))):''}${d.medPm2?' · '+esc(num(Math.round(d.medPm2))+' €/m²'):''}${b.loading?' · '+esc(t('brUpdating')):''}</p>`:'';
   return `<header class="phead2"><div><h2>${esc(t('brH'))}</h2><p class="hint">${esc(t('brLead'))} <a class="quiet" href="#sources">${esc(t('srcLinkHomes'))}</a></p></div></header>
 ${filters}${sum}${b.error&&d?`<p class="error">${esc(b.error)}</p>`:''}<div class="${b.loading&&d?'dim':''}">${body}</div>`;
 }
-function homeItem(x,medPm2,onGroup,extra){
+/* o: {plural} when the card speaks to a group or a pair (Spanish "vuestra"), {noScore} when every card scores the same */
+/* When every home listed scores the same, the rings repeat one number and help no one choose: hide them and say it once */
+function sameScore(list){return list.length>1&&list.every(x=>x.score===list[0].score);}
+function homeItem(x,medPm2,onGroup,extra,o){
+  o=o||{};const pl=o.plural||onGroup,w=k=>!pl&&STR[LANG][k+'1']!==undefined?t(k+'1'):t(k);
   const where=[x.district,x.municipality].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');
   const facts=[typeLabel(x.type),x.beds!=null?t('homeBeds',x.beds):'',x.baths!=null?t('homeBaths',x.baths):'',x.m2?x.m2+' m²':''].filter(Boolean).join(' · ');
   /* misses first (they matter most), then confirmed must-haves, then the general fits; three at most */
-  const tagList=x.misses.map(f=>`<span class="tag must">${esc(f.startsWith('f:')?t('missF',featLabel(f.slice(2))):t('miss_'+f))}</span>`)
-    .concat(x.fits.filter(f=>f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(featLabel(f.slice(2)))}</span>`))
-    .concat(x.fits.filter(f=>!f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(t('fit_'+f))}</span>`));
-  const allTags=x.misses.map(f=>f.startsWith('f:')?t('missF',featLabel(f.slice(2))):t('miss_'+f)).concat(x.fits.map(f=>f.startsWith('f:')?featLabel(f.slice(2)):t('fit_'+f)));
+  /* The general fits (enough bedrooms, in your area) only say something next to a miss; on a home that fits, they're on every card (B-083) */
+  const fits=x.fits.filter(f=>f.startsWith('f:')||x.misses.length);
+  const tagList=x.misses.map(f=>`<span class="tag must">${esc(f.startsWith('f:')?t('missF',featLabel(f.slice(2))):w('miss_'+f))}</span>`)
+    .concat(fits.filter(f=>f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(featLabel(f.slice(2)))}</span>`))
+    .concat(fits.filter(f=>!f.startsWith('f:')).map(f=>`<span class="tag nice">${esc(w('fit_'+f))}</span>`));
+  const allTags=x.misses.map(f=>f.startsWith('f:')?t('missF',featLabel(f.slice(2))):w('miss_'+f)).concat(fits.map(f=>f.startsWith('f:')?featLabel(f.slice(2)):w('fit_'+f)));
   const tags=tagList.slice(0,3).join('')+(tagList.length>3?`<span class="tag tip" title="${esc(allTags.slice(3).join(', '))}">${esc(t('plusN',tagList.length-3))}</span>`:'');
-  const check=x.check.length?`<div class="who">${esc(t('checkH'))}: ${esc(listAnd(x.check.map(c=>c.startsWith('f:')?featLabel(c.slice(2)).toLowerCase():t('check_'+c))))}</div>`:'';
+  const check=x.check.length?`<div class="who">${esc(w('checkH'))}: ${esc(listAnd(x.check.map(c=>c.startsWith('f:')?featLabel(c.slice(2)).toLowerCase():t('check_'+c))))}</div>`:'';
   const link=x.url&&!x.isDemo?`<a class="btn small primary" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer external">${esc(t('seeAdvert',x.agency))} ↗</a>`:`<span class="hint">${esc(t('demoHome'))}</span>`;
   const d=x.pm2&&medPm2?Math.round((x.pm2/medPm2-1)*100):null;
   const delta=d==null?'':`<span class="delta ${d<=-5?'lo':(d>=5?'hi':'')}">${esc(t('vsMedian',d))}</span>`;
@@ -1130,7 +1178,7 @@ function homeItem(x,medPm2,onGroup,extra){
   const firm=(x.agency||'').split(' · ')[0];
   const photo=x.photo&&!x.isDemo?`<img class="hphoto" src="${esc(x.photo)}" alt="${esc(t('photoAlt',x.agency))}" loading="lazy" decoding="async" referrerpolicy="no-referrer"><span class="credit">${esc(t('photoCredit',firm))}</span>`:'';
   return `<li class="home" id="home-${esc(x.id)}"><div class="home-vis${photo?' has-photo':''}">${photo}${planSvg(x)}${energy}${x.isDemo?`<span class="demo">${esc(t('demoHomeTag'))}</span>`:''}</div>
-<div class="home-top"><b class="price">${esc(euros(x.price))}</b><div class="ring sm ${cls}" data-p="${x.score}" role="img" aria-label="${esc(t('homeFit',x.score))}"><b>${x.score}</b></div></div>
+<div class="home-top"><b class="price">${esc(euros(x.price))}</b>${o.noScore?'':`<div class="ring sm ${cls}" data-p="${x.score}" role="img" aria-label="${esc(t('homeFit',x.score))}"><b>${x.score}</b></div>`}</div>
 <div class="pm2">${x.pm2?esc(num(Math.round(x.pm2))+' €/m²'):''} ${delta}</div>
 <div>${esc(facts)}</div><div class="who">${esc(where)} · ${esc(x.isDemo?t('demoAgency'):x.agency)}</div><div class="home-tags">${tags}</div>${check}<div class="row">${link}${onGroup?slButton(x.id):''}${extra||''}</div></li>`;
 }
@@ -1218,7 +1266,7 @@ function agreedPack(h,sl,x){
     const row=s=>`<tr><th scope="row">${esc(dn(s.id))}</th><td>${num(Math.round(s.share*100))} %</td><td class="c-price">${esc(euros(Math.round(P*s.share)))}</td><td>${esc(euros(Math.round(P*up*s.share)))}</td><td>${esc(euros(Math.round(P*loan*s.share)))}</td></tr>`;
     cost=`<section class="pack"><h4>${esc(t('pkCostH'))}</h4>
 ${h.rooms&&h.rooms.length?`<div class="seg2" role="group" aria-label="${esc(t('pkSplit'))}"><button type="button" class="chipbtn" data-action="sl-split" data-v="equal" aria-pressed="${S.slSplit!=='rooms'}">${esc(t('pkEqual'))}</button><button type="button" class="chipbtn" data-action="sl-split" data-v="rooms" aria-pressed="${S.slSplit==='rooms'}">${esc(t('pkRooms'))}</button></div>`:''}
-<div class="split" aria-hidden="true">${sh.map(s=>`<span data-w="${(s.share*100).toFixed(1)}" data-bg="${esc((PEOPLE[s.id]||{}).color||'#495057')}"></span>`).join('')}</div>
+<div class="split" aria-hidden="true">${sh.map(s=>`<span data-w="${(s.share*100).toFixed(1)}" data-bg="${esc(colorOf(s.id))}"></span>`).join('')}</div>
 <div class="tablewrap"><table class="costs"><thead><tr><th scope="col">${esc(t('pkWho'))}</th><th scope="col">${esc(t('pkShare'))}</th><th scope="col" class="c-price">${esc(t('pkPrice'))}</th><th scope="col">${esc(t('pkUpfront'))}</th><th scope="col">${esc(t('pkLoan'))}</th></tr></thead>
 <tbody>${sh.map(row).join('')}</tbody><tfoot><tr><th scope="row">${esc(t('pkTotal'))}</th><td>100 %</td><td class="c-price">${esc(euros(P))}</td><td>${esc(euros(Math.round(P*up)))}</td><td>${esc(euros(Math.round(P*loan)))}</td></tr></tfoot></table></div>
 <p class="hint">${esc(t('pkCostNote',num(tax.rate,2),tax.region))}</p></section>`;
@@ -1341,7 +1389,10 @@ function renderChrome(){
   set('tagline',t('tagline').replace(/ \((working name|nombre provisional)\)/,''));
   const bl=document.getElementById('brandlink');if(bl)bl.setAttribute('aria-label',BRAND+' · '+t('homeLink'));
   const foot=document.getElementById('footnote');
-  if(foot)foot.innerHTML=`<p>${esc(t('footnote'))}</p><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#sources">${esc(t('srcLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a> · <a href="#contact">${esc(t('ctLink'))}</a>${S.me?` · <a href="#feedback">${esc(t('fbLink'))}</a>`:''}</p>`;
+  /* B-083 (part of B-044): one slim line says it's a preview with made-up people; the full note folds into the footer */
+  const rib=document.getElementById('ribbon');
+  if(rib){rib.hidden=false;rib.querySelector('.wrap').innerHTML=`<b>${esc(t('ribbonH'))}</b><span class="rl">${esc(t('ribbonText'))}</span><span class="rs">${esc(t('ribbonShort'))}</span><a href="#help">${esc(t('helpLink'))}</a>`;}
+  if(foot)foot.innerHTML=`<details><summary>${esc(t('footAbout'))}</summary><p>${esc(t('footnote'))}</p></details><p class="links"><a href="#help">${esc(t('helpLink'))}</a> · <a href="#sources">${esc(t('srcLink'))}</a> · <a href="#terms">${esc(t('footTerms'))}</a> · <a href="#privacy">${esc(t('footPrivacy'))}</a> · <a href="#contact">${esc(t('ctLink'))}</a>${S.me?` · <a href="#feedback">${esc(t('fbLink'))}</a>`:''}</p>`;
   const nav=document.getElementById('steps');if(nav){nav.setAttribute('aria-label',t('navAria'));nav.hidden=!inApp();}
   const bell=document.getElementById('alerts-link');
   if(bell){const n=S.counts.alerts||0;bell.hidden=!inApp();bell.innerHTML=ICONS.bell+(n?`<span class="count" aria-hidden="true">${n}</span>`:'');bell.setAttribute('aria-label',t('alertsAria',n));if(S.tab==='alerts')bell.setAttribute('aria-current','page');else bell.removeAttribute('aria-current');}
@@ -1356,12 +1407,14 @@ function renderTabs(){
   /* Badges count what is waiting for you: people not answered yet, invitations not answered yet */
   /* Only invitations get a badge: they wait for your answer (B-051 review) */
   const invites=S.groups?S.groups.filter(g=>g.myStatus==='pending').length:(S.counts.invites||0),unread=S.counts.messages||0;
-  const tabs=[['matches','#people-'+peopleSub(),t('navPeople'),'','',ICONS.people],['browse','#houses',t('navHomes'),'','',ICONS.house],['groups','#groups',t('navGroups'),invites?String(invites):'',t('srInvites'),ICONS.groups],
+  /* Home is a tab too (D-054): it's where the one next step is */
+  const tabs=[['home','#home',t('homeLink'),'','',ICONS.home],['matches','#people-'+peopleSub(),t('navPeople'),'','',ICONS.people],['browse','#houses',t('navHomes'),'','',ICONS.house],['groups','#groups',t('navGroups'),invites?String(invites):'',t('srInvites'),ICONS.groups],
     ['messages','#messages',t('navMessages'),unread?String(unread):'',t('srUnread'),ICONS.chat]];
   tabsEl.innerHTML=tabs.map(x=>`<a class="tab" href="${x[1]}" id="tab-${x[0]}" data-tab="${x[0]}"${S.tab===x[0]?' aria-current="page"':''}>${x[5]}<span>${esc(x[2])}</span>${x[3]?`<span class="count"><span aria-hidden="true">${x[3]}</span><span class="sr">: ${x[3]} ${esc(x[4])}</span></span>`:''}</a>`).join('');
 }
 /* Line icons for the tabs (stroke only, coloured by CSS) */
 const ICONS={
+  home:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><path d="M14.2 16.6l2 2 3.4-3.8"/></svg>',
   house:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="1"/><path d="M9 7.5h2M13 7.5h2M9 11h2M13 11h2M9 14.5h2M13 14.5h2M11 20.5v-3h2v3"/></svg>',
   people:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c2.4.2 4 1.8 4.5 4.3"/></svg>',
   groups:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-5h2v5M12.5 20v-5h2v5"/></svg>',
@@ -1445,7 +1498,7 @@ function render(){
   renderChrome();
   renderTabs();
   const views={browse:viewBrowse,home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
-  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():S.view==='contact'?viewContact():S.view==='inbox'?viewInbox():S.view==='feedback'?viewFeedback():viewLegal(S.view)):(!S.me?viewAuth():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
+  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():S.view==='contact'?viewContact():S.view==='inbox'?viewInbox():S.view==='feedback'?viewFeedback():viewLegal(S.view)):(!S.me?viewLanding():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
   applyStyles(app);
   if(document.getElementById('hx-results'))updateHomes();
   drawCharts(app);
@@ -1527,7 +1580,10 @@ function rerender(){const y=window.scrollY||0;render();window.scrollTo(0,y);}
 function focusHeading(){const h=document.querySelector('#app h2');if(h){h.setAttribute('tabindex','-1');h.focus({preventScroll:true});}}
 
 let toastTimer=0;
-function toast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),3200);}
+let toastAt=0;
+function toast(msg){toastEl.textContent=msg;toastEl.classList.add('show');toastAt=Date.now();clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),3200);}
+/* A message belongs to the page it was raised on: moving on clears it, unless the move came from the same action (B-083) */
+function clearToast(){if(Date.now()-toastAt>800){clearTimeout(toastTimer);toastEl.classList.remove('show');}}
 
 /* ---------- loading ---------- */
 async function loadMatches(){const m=await api('GET','/api/matches');remember(m.people);S.matches=m;}
@@ -1545,7 +1601,7 @@ async function go(tab,sub){
 /* After signing in or up: load the profile, then either the wizard or the app */
 async function enter(me){
   S.me=me;S.authError='';
-  PEOPLE[S.me.id]={name:S.me.name,color:'#52607a'};
+  PEOPLE[S.me.id]={name:S.me.name,color:ME_COLOR};
   try{S.profile=await api('GET','/api/profile');}catch(e){toast(errText(e));}
   if(S.me.onboarded){S.tab=S.tab||'home';
     /* Opening the app at an address: applyRoute sees the same tab as before and skips loading, so always load here (found in Session 19) */
@@ -1557,7 +1613,8 @@ async function start(){
   readHash();
   if(parseRoute(location.hash))S.startRoute=location.hash;
   let me=null;try{me=await api('GET','/api/me');}catch(e){}
-  if(me){S.tab='home';await enter(me);}else render();
+  if(me){S.tab='home';await enter(me);}
+  else{render();if(S.authError){const c=document.getElementById('auth-card');if(c)c.scrollIntoView({block:'start'});}}
 }
 /* #terms, #privacy, #help, #sources, #authError=code (back from External ID), #lang=en */
 function readHash(){
@@ -1740,6 +1797,7 @@ document.addEventListener('click',async e=>{
     case 'menu':S.menuOpen?closeMenu(false):openMenu();break;
     case 'theme':setTheme(id);break;
     case 'auth-mode':S.authMode=id;S.authError='';render();break;
+    case 'land-auth':landAuth(id);break;
     case 'ext-signin':location.href='/auth/external?lang='+LANG;break;
     case 'pw-toggle':{const inp=document.getElementById('a-pass'),show=inp.type==='password';inp.type=show?'text':'password';el.setAttribute('aria-pressed',String(show));el.textContent=show?t('hidePw'):t('showPw');inp.focus();break;}
     case 'wiz-next':wizMove(1);break;
@@ -1830,7 +1888,7 @@ document.addEventListener('submit',async e=>{
 /* Enter sends; Shift+Enter starts a new line */
 app.addEventListener('keydown',e=>{if(e.target.id==='chat-input'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendChat();}});
 window.addEventListener('popstate',()=>{S.goingBack=false;});
-window.addEventListener('hashchange',()=>{S.goingBack=false;S.atHash=location.hash;if(S.menuOpen){S.menuOpen=false;renderMenu();}
+window.addEventListener('hashchange',()=>{S.goingBack=false;S.atHash=location.hash;clearToast();if(S.menuOpen){S.menuOpen=false;renderMenu();}
   /* the logo (#home) also closes the guide and the legal pages */
   if(readHash()){if(!applyRoute(location.hash)){render();window.scrollTo(0,0);focusHeading();}return;}
   if(location.hash!==routeHash())applyRoute(location.hash);

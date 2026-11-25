@@ -4,6 +4,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-044 · Push the front-end review to `main` (deploys B-083) · Open
+**Why:** a push deploys (D-041). It brings the twelve changes you approved ("Do it all. Make it amazing", D-054): the current tab shows, Home is a tab, toasts at the bottom, a readable colour for you, two-line options, a balanced group page, a slim preview ribbon, one line instead of a row of identical 100 scores, better dark-mode plans, singular Spanish, and a front page for visitors.
+**Options:** push now; or look at it locally first (`dotnet run` in `app/src/Compicasa.Api`, invite code `local-test`).
+**Recommendation:** push now. Front end only: no database or API change. 99 of 99 browser checks and 118 .NET tests pass.
+**Suggested date:** 2026-11-26.
+**If no answer:** committed, not deployed.
+
 ### F-043 · Push the code review fixes to `main` (deploys B-082) · CLOSED 2026-11-25: pushed
 **Why:** a push deploys (D-041). The fixes stop a failed sitemap from hiding about half the homes for a day, stop blocked people sending notifications, make account deletion all-or-nothing, and cut the database work behind the 10- and 30-second refreshes and the house browser (D-053).
 **Options:** push now; or wait.

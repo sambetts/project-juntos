@@ -253,7 +253,7 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   await until(`location.hash==='#home' && !!document.querySelector('.dash-steps') && !document.querySelector('.help')`, tag + ': the logo goes to Home');
 
   // Header menu (Session 21): profile, language, colour scheme, help; Profile left the tab bar
-  ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===4 && !!document.querySelector('#tabs [data-tab="browse"]') && !document.querySelector('#tabs [data-tab="you"]')`), tag + ': four tabs (People, Homes, Groups, Messages), Profile in the menu');
+  ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===5 && !!document.querySelector('#tabs [data-tab="home"]') && !!document.querySelector('#tabs [data-tab="browse"]') && !document.querySelector('#tabs [data-tab="you"]')`), tag + ': five tabs (Home, People, Homes, Groups, Messages), Profile in the menu');
   await click('#menu-btn');
   await until(`!document.getElementById('menu').hidden && document.getElementById('menu-btn').getAttribute('aria-expanded')==='true'`, tag + ': menu opens');
   ok(await js(`['#menu a[href="#profile"]','#menu [data-action="logout"]','#menu [data-action="lang"][data-id="en"]','#menu [data-action="theme"][data-id="dark"]','#menu a[href="#help"]'].every(q=>!!document.querySelector(q))`), tag + ': menu has profile, sign out, language, theme and the guide');
@@ -339,7 +339,7 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
     await until(`!!document.getElementById('chat-form') && /-chat$/.test(location.hash)`, 'the group chat is its own view');
     await click('[data-tab="messages"]');
     await until(`document.querySelectorAll('ul.convs li').length>0`, 'Messages lists conversations');
-    ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===4`), 'four destinations, with Homes and Messages (Profile is in the menu)');
+    ok(await js(`document.querySelectorAll('#tabs [data-tab]').length===5`), 'five destinations: Home, People, Homes, Groups and Messages (Profile is in the menu; Home a tab since D-054)');
     await click('ul.convs a[href^="#chat-"]');
     await until(`!!document.getElementById('chat-form') && /^#chat-/.test(location.hash)`, 'a conversation with a match opens');
     await fill('chat-input', 'Hola, ¿qué tal?');

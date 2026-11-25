@@ -355,7 +355,7 @@ input[type=search]{inline-size:100%;padding:9px 12px;border-radius:10px;border:1
   .hbtn{padding:6px 10px;min-inline-size:36px;text-align:center}
   .hbtn .long{display:none}.hbtn .short{display:inline}
   nav.tabs{position:fixed;inset-inline:0;inset-block-end:0;margin:0;z-index:8;background:var(--surface);border-block-start:1px solid var(--border);box-shadow:0 -4px 16px rgba(16,24,40,.06);padding-block-end:env(safe-area-inset-bottom)}
-  #tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+  #tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0}
   nav.tabs .tab{flex-direction:column;gap:2px;justify-content:center;border-radius:0;padding:7px 4px 6px;font-size:12px;min-block-size:56px;position:relative}
   nav.tabs .tab[aria-selected="true"]{background:transparent}
   nav.tabs .tab[aria-selected="true"] .ico{stroke-width:2.2}
@@ -471,7 +471,8 @@ select.inline{inline-size:auto}
   .actionbar .stat{flex-basis:100%}
   .toolbar{gap:8px 10px}
   .toolbar .fcell:not(.grow){flex:1 1 0;min-inline-size:0}
-  .toolbar .fcell .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .toolbar .fcell .label{display:flex;flex-wrap:wrap;column-gap:6px}
+  .toolbar .fcell .label output{margin:0}
   .toolbar input[type=range]{inline-size:100%}
   .toolbar select{inline-size:100%}
   .toolbar .fcell.grow{flex-basis:100%}
@@ -678,3 +679,97 @@ table.costs thead th{white-space:normal;vertical-align:bottom}
 /* B-063: what the home is for */
 .seg.purpose .opt{flex:1 1 240px}
 .purposeline{margin:6px 0 0}
+
+/* ---------- Session 33 (B-083): front-end review ---------- */
+/* (1) The tab you're on. The script marks it aria-current="page"; the old rules only styled aria-selected */
+nav.tabs .tab[aria-current="page"]{background:var(--brand-soft);color:var(--brand)}
+nav.tabs .tab[aria-current="page"] .ico{stroke-width:2.2}
+@media (max-width:720px){
+  nav.tabs .tab{font-size:11.5px;padding-inline:2px}
+  nav.tabs .tab[aria-current="page"]{background:transparent}
+  nav.tabs .tab[aria-current="page"]::before{content:"";position:absolute;inset-block-start:0;inset-inline:28%;block-size:3px;border-radius:0 0 3px 3px;background:var(--brand)}
+}
+@media (min-width:721px) and (max-width:940px){.brand{display:none}nav.tabs{margin-inline-start:4px}nav.tabs .tab{padding:8px 9px;gap:6px}}
+/* (2) Toasts at the bottom, above whatever is fixed there, so they never cover the header or the page title */
+.toast{inset-block-start:auto;inset-block-end:calc(20px + env(safe-area-inset-bottom))}
+.toast div{transform:translateY(8px);font-size:14.5px;padding:10px 14px}
+body.has-bar .toast{inset-block-end:calc(96px + env(safe-area-inset-bottom))}
+@media (max-width:720px){body.has-nav .toast{inset-block-end:calc(70px + env(safe-area-inset-bottom))}body.has-nav.has-bar .toast{inset-block-end:calc(96px + env(safe-area-inset-bottom))}}
+@media (prefers-reduced-motion:reduce){.toast div{transition:none}}
+/* (6) An option with a hint: the hint goes on its own line and the shape stops being a pill */
+.opt:has(.ol){border-radius:14px;align-items:flex-start;padding:9px 12px}
+.opt:has(.ol) input{margin-block-start:3px}
+.ol{display:grid;gap:1px;min-inline-size:0}
+.ol .hint{font-size:12.5px;line-height:1.3}
+.regions .seg .opt{flex:1 1 220px}
+/* (8) A slim ribbon instead of the long footnote; the full text folds into the footer */
+.ribbon{background:var(--brand-soft);color:var(--text);font-size:13px;border-block-end:1px solid var(--border)}
+.ribbon .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding-block:6px}
+.ribbon b{color:var(--brand)}
+.ribbon a{color:var(--text);text-underline-offset:2px}
+footer.note details{margin-block-end:8px}
+footer.note summary{cursor:pointer;font-weight:600}
+footer.note details p{margin-block-start:6px;max-inline-size:80ch}
+/* (10) Floor-plan sketches: tints of the brand colours instead of mud brown in dark mode */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--plan-wall:#56647b;--plan-bed:color-mix(in srgb,#ff7a45 34%,#1e2735);--plan-bath:color-mix(in srgb,#4fd1c5 30%,#1e2735);--plan-live:#263142;--plan-garden:color-mix(in srgb,#5bd39b 26%,#1e2735);--plan-terrace:color-mix(in srgb,#f3b45f 24%,#1e2735);--plan-pool:color-mix(in srgb,#5aa9e6 40%,#1e2735)}
+}
+:root[data-theme="dark"]{--plan-wall:#56647b;--plan-bed:color-mix(in srgb,#ff7a45 34%,#1e2735);--plan-bath:color-mix(in srgb,#4fd1c5 30%,#1e2735);--plan-live:#263142;--plan-garden:color-mix(in srgb,#5bd39b 26%,#1e2735);--plan-terrace:color-mix(in srgb,#f3b45f 24%,#1e2735);--plan-pool:color-mix(in srgb,#5aa9e6 40%,#1e2735)}
+/* Sign in or create an account: a segmented control like the menu's, not two loose pills */
+.authseg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;background:var(--surface-2);border-radius:12px}
+.authseg .tab{border:0;background:transparent;color:var(--muted);border-radius:9px;padding:9px 12px}
+.authseg .tab[aria-selected="true"]{background:var(--surface);color:var(--text);border:0;box-shadow:0 1px 3px rgba(16,24,40,.18)}
+/* (12) The front page for visitors (B-035): a shared home drawn as a floor plan, each bedroom coloured by its household */
+.landing{display:grid;gap:56px;padding-block:12px 8px}
+.lhero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:48px;align-items:center}
+.lhero h2{font-size:clamp(30px,4.6vw,48px);line-height:1.06;letter-spacing:-.03em;margin:0 0 18px;max-inline-size:18ch;text-wrap:balance}
+.lhero .lead{font-size:17.5px;line-height:1.55;color:var(--ink-2);max-inline-size:46ch;margin-block-end:24px}
+.lctas{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.lctas .btn{padding:12px 20px;font-size:15.5px}
+.lnote{margin:14px 0 0;color:var(--muted);font-size:13.5px}
+.lplan{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
+.lplan svg{display:block;inline-size:100%;block-size:auto}
+.lplan figcaption{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-block-start:16px;font-size:13.5px}
+.lplan figcaption .hint{flex-basis:100%;margin:0}
+.lkey{display:inline-flex;align-items:center;gap:7px;font-weight:600}
+.lkey i{inline-size:12px;block-size:12px;border-radius:4px}
+.lp-wall{fill:none;stroke:var(--text);stroke-width:3;stroke-linejoin:round}
+.lp-in{fill:none;stroke:var(--muted);stroke-width:1.4}
+.lp-shared{fill:var(--surface-2)}
+.lp-t{font-size:11px;font-weight:600;fill:var(--muted);font-family:var(--font)}
+.lp-o{font-size:13px;font-weight:700;font-family:var(--font)}
+.h-a{fill:#0f8a80}.h-b{fill:#7a4fd6}.h-c{fill:var(--brand)}
+.lkey .h-a{background:#0f8a80}.lkey .h-b{background:#7a4fd6}.lkey .h-c{background:var(--brand)}
+.lp-room{fill-opacity:.22}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .lp-room{fill-opacity:.32}}
+:root[data-theme="dark"] .lp-room{fill-opacity:.32}
+@media (prefers-reduced-motion:no-preference){
+  .lp-room{animation:lp-fill .7s ease-out both}
+  .lp-room.r2{animation-delay:.45s}.lp-room.r3{animation-delay:.9s}
+  .lp-o{animation:lp-name .5s ease-out both}
+  .lp-o.r1{animation-delay:.35s}.lp-o.r2{animation-delay:.8s}.lp-o.r3{animation-delay:1.25s}
+}
+@keyframes lp-fill{from{fill-opacity:0}}
+@keyframes lp-name{from{opacity:0}to{opacity:1}}
+.lsec h2{font-size:clamp(22px,3vw,28px);letter-spacing:-.02em;margin:0 0 6px}
+.lsec>.lead{max-inline-size:60ch}
+.lsteps{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;counter-reset:s}
+.lsteps li{counter-increment:s;padding:18px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border)}
+.lsteps li::before{content:counter(s);display:grid;place-items:center;inline-size:30px;block-size:30px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-weight:800;margin-block-end:12px}
+.lsteps h3{margin:0 0 6px;font-size:16px}
+.lsteps p{margin:0;color:var(--ink-2);font-size:14px}
+.ljoin{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start}
+.ljoin .auth{order:2;max-inline-size:none;margin:0;scroll-margin-block-start:80px}
+.lnot{order:1}
+.lnot ul{list-style:none;margin:12px 0 22px;padding:0;display:grid;gap:10px}
+.lnot li{display:flex;gap:10px;align-items:flex-start;color:var(--ink-2)}
+.lnot li::before{content:"";flex:none;inline-size:14px;block-size:2px;background:var(--muted);margin-block-start:11px}
+.faq{display:grid;gap:8px}
+.faq details{border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:10px 14px}
+.faq summary{font-weight:600}
+.faq p{margin:8px 0 2px;color:var(--ink-2)}
+@media (max-width:860px){.lhero,.ljoin{grid-template-columns:minmax(0,1fr)}.lhero{gap:28px}.lsteps{grid-template-columns:repeat(2,minmax(0,1fr))}.ljoin .auth{order:0}}
+@media (max-width:520px){.landing{gap:40px}.lsteps{grid-template-columns:minmax(0,1fr)}.lplan{padding:14px}.lhero .lead{font-size:16px}}
+.lp-o{fill:var(--text)}
+.ribbon .rs{display:none}
+@media (max-width:720px){.ribbon{font-size:12.5px}.ribbon .wrap{flex-wrap:nowrap;gap:8px;padding-block:5px}.ribbon .rl{display:none}.ribbon .rs{display:inline;flex:1;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ribbon b,.ribbon a{white-space:nowrap}}
