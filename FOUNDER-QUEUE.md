@@ -4,12 +4,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-043 · Push the code review fixes to `main` (deploys B-082) · open
+### F-043 · Push the code review fixes to `main` (deploys B-082) · CLOSED 2026-11-25: pushed
 **Why:** a push deploys (D-041). The fixes stop a failed sitemap from hiding about half the homes for a day, stop blocked people sending notifications, make account deletion all-or-nothing, and cut the database work behind the 10- and 30-second refreshes and the house browser (D-053).
 **Options:** push now; or wait.
 **Recommendation:** push now. 118 .NET tests (5 new) and the browser test (99 of 99) pass locally. After the next 05:00 crawl, the WebJob log should end `Partial = False`; `True` means a sitemap couldn't be read and nothing was marked gone.
 **Suggested date:** 2026-11-26.
 **If no answer:** committed, not deployed.
+**ANSWER (Sam, 2026-11-25, in Claude Code):** "push". In reply to the Session 32 closing report asking him to approve F-043: approval to push the code review fixes to `main` only.
 
 ### F-042 · Push in-app feedback to `main` (deploys B-081) · CLOSED 2026-11-24: pushed
 **Why:** a push deploys (D-041). Signed-in people get *Send feedback* in the menu and footer (an idea, something's wrong, something I like; a message; an optional 1–5 rating); you read it on `#inbox` with filters by kind and the average rating. Migration `Feedback` adds two empty columns to the contact table, applied at start-up.
