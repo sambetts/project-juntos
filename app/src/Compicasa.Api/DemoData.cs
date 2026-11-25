@@ -44,28 +44,35 @@ public sealed class DemoData(AppDb db, TimeProvider clock, ILogger<DemoData> log
         if (state is not null && state.BatchDate == day && !force) return false;
 
         var prefix = DemoGenerator.Prefix(day);
-        var stale = await db.Accounts.Where(a => a.Kind == AccountKind.Generated && !a.Id.StartsWith(prefix)).Select(a => a.Id).ToListAsync(ct);
-        if (stale.Count > 0)
+        var stale = new List<string>();
+        // All or nothing, so a failure can't leave yesterday's people half removed (Session 32 code review).
+        await Transactions.RunAsync(db, async () =>
         {
-            await db.Reactions.Where(r => stale.Contains(r.FromId) || stale.Contains(r.ToId)).ExecuteDeleteAsync(ct);
-            var groupIds = await db.GroupMembers.Where(m => stale.Contains(m.AccountId)).Select(m => m.GroupId).Distinct().ToListAsync(ct);
-            await Threads.ForgetAsync(db, stale, groupIds, ct);
-            await db.GroupMembers.Where(m => groupIds.Contains(m.GroupId)).ExecuteDeleteAsync(ct);
-            await db.Groups.Where(g => groupIds.Contains(g.Id)).ExecuteDeleteAsync(ct);
-            await db.Accounts.Where(a => stale.Contains(a.Id)).ExecuteDeleteAsync(ct);
-        }
+            stale = await db.Accounts.Where(a => a.Kind == AccountKind.Generated && !a.Id.StartsWith(prefix)).Select(a => a.Id).ToListAsync(ct);
+            if (stale.Count > 0)
+            {
+                await db.Reactions.Where(r => stale.Contains(r.FromId) || stale.Contains(r.ToId)).ExecuteDeleteAsync(ct);
+                var groupIds = await db.GroupMembers.Where(m => stale.Contains(m.AccountId)).Select(m => m.GroupId).Distinct().ToListAsync(ct);
+                await Threads.ForgetAsync(db, stale, groupIds, ct);
+                await db.GroupMembers.Where(m => groupIds.Contains(m.GroupId)).ExecuteDeleteAsync(ct);
+                await db.Groups.Where(g => groupIds.Contains(g.Id)).ExecuteDeleteAsync(ct);
+                await db.Accounts.Where(a => stale.Contains(a.Id)).ExecuteDeleteAsync(ct);
+            }
 
-        var have = await db.Accounts.Where(a => a.Id.StartsWith(prefix)).Select(a => a.Id).ToListAsync(ct);
-        foreach (var p in DemoGenerator.Batch(day).Where(p => !have.Contains(p.Id)))
-        {
-            var acc = new Account { Id = p.Id, Kind = AccountKind.Generated, CreatedAt = clock.GetUtcNow() };
-            acc.WriteProfile(p);
-            db.Accounts.Add(acc);
-        }
-        if (state is null) db.DemoStates.Add(state = new DemoState());
-        state.BatchDate = day;
-        state.RefreshedAt = clock.GetUtcNow();
-        await db.SaveChangesAsync(ct);
+            var have = await db.Accounts.Where(a => a.Id.StartsWith(prefix)).Select(a => a.Id).ToListAsync(ct);
+            foreach (var p in DemoGenerator.Batch(day).Where(p => !have.Contains(p.Id)))
+            {
+                var acc = new Account { Id = p.Id, Kind = AccountKind.Generated, CreatedAt = clock.GetUtcNow() };
+                acc.WriteProfile(p);
+                db.Accounts.Add(acc);
+            }
+            // Read again: the transaction starts with nothing tracked, so a retry can't add anything twice.
+            var row = await db.DemoStates.FindAsync([1], ct);
+            if (row is null) db.DemoStates.Add(row = new DemoState());
+            row.BatchDate = day;
+            row.RefreshedAt = clock.GetUtcNow();
+            await db.SaveChangesAsync(ct);
+        }, ct);
         log.LogInformation("Made-up batch {Day} loaded; {Removed} old made-up profiles removed", day, stale.Count);
         return true;
     }

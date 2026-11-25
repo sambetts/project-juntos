@@ -55,17 +55,20 @@ public static class Threads
 {
     public static string Pair(string a, string b) => string.CompareOrdinal(a, b) < 0 ? $"p:{a}|{b}" : $"p:{b}|{a}";
     public static string Group(Guid id) => $"g:{id:N}";
-    static bool Involves(string thread, string id) => thread.StartsWith("p:") && thread[2..].Split('|').Contains(id);
 
     /// <summary>Removes everything social that involves these accounts or groups: when an account is deleted, and when
     /// the daily batch of made-up people is replaced (D-029).</summary>
     public static async Task ForgetAsync(AppDb db, IReadOnlyCollection<string> accounts, IReadOnlyCollection<Guid> groups, CancellationToken ct = default)
     {
-        var groupThreads = groups.Select(Group).ToList();
-        var pairThreads = (await db.Messages.Where(m => m.Thread.StartsWith("p:")).Select(m => m.Thread).Distinct().ToListAsync(ct))
-            .Concat(await db.ThreadReads.Where(r => r.Thread.StartsWith("p:")).Select(r => r.Thread).Distinct().ToListAsync(ct))
-            .Where(t => accounts.Any(id => Involves(t, id))).Distinct().ToList();
-        var threads = groupThreads.Concat(pairThreads).ToList();
+        // Pair conversations they're in ("p:{a}|{b}"), found by the database rather than by reading every
+        // conversation's name into memory (Session 32 code review).
+        foreach (var id in accounts)
+        {
+            string first = $"p:{id}|", last = $"|{id}";
+            await db.Messages.Where(m => m.Thread.StartsWith(first) || (m.Thread.StartsWith("p:") && m.Thread.EndsWith(last))).ExecuteDeleteAsync(ct);
+            await db.ThreadReads.Where(r => r.Thread.StartsWith(first) || (r.Thread.StartsWith("p:") && r.Thread.EndsWith(last))).ExecuteDeleteAsync(ct);
+        }
+        var threads = groups.Select(Group).ToList();
         await db.Messages.Where(m => threads.Contains(m.Thread) || accounts.Contains(m.FromId)).ExecuteDeleteAsync(ct);
         await db.ThreadReads.Where(r => threads.Contains(r.Thread) || accounts.Contains(r.AccountId)).ExecuteDeleteAsync(ct);
         await db.Notifications.Where(n => accounts.Contains(n.AccountId) || (n.ActorId != null && accounts.Contains(n.ActorId))
@@ -196,18 +199,22 @@ public static class Social
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
             var convs = await ConversationsAsync(db, c, http.RequestAborted);
             var threads = convs.Select(x => x.Thread).ToList();
-            var marks = await ReadMarksAsync(db, a.Id, http.RequestAborted);
             var lastIds = await db.Messages.AsNoTracking().Where(m => threads.Contains(m.Thread)).GroupBy(m => m.Thread)
                 .Select(g => g.Max(m => m.Id)).ToListAsync(http.RequestAborted);
             var last = (await db.Messages.AsNoTracking().Where(m => lastIds.Contains(m.Id)).ToListAsync(http.RequestAborted)).ToDictionary(m => m.Thread);
-            var unreadRows = await db.Messages.AsNoTracking().Where(m => threads.Contains(m.Thread) && m.FromId != a.Id)
-                .Select(m => new { m.Thread, m.Id }).ToListAsync(http.RequestAborted);
+            // Counted in the database, against each conversation's read mark, rather than reading every message's id.
+            var unreadCounts = await (from m in db.Messages.AsNoTracking()
+                                      where threads.Contains(m.Thread) && m.FromId != a.Id
+                                      let mark = db.ThreadReads.Where(r => r.AccountId == a.Id && r.Thread == m.Thread).Select(r => (long?)r.LastReadId).FirstOrDefault() ?? 0
+                                      where m.Id > mark
+                                      group m by m.Thread into g
+                                      select new { g.Key, N = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.N, http.RequestAborted);
             var items = convs.Select(x => new
             {
                 kind = x.Kind, id = x.Id, members = x.Members, state = x.State,
                 last = last.TryGetValue(x.Thread, out var l) ? View(l) : null,
                 lastId = last.TryGetValue(x.Thread, out var l2) ? l2.Id : 0,
-                unread = unreadRows.Count(r => r.Thread == x.Thread && r.Id > marks.GetValueOrDefault(x.Thread)),
+                unread = unreadCounts.GetValueOrDefault(x.Thread),
             }).OrderByDescending(x => x.lastId).ThenBy(x => x.kind).ToList();
             var people = items.SelectMany(x => x.members).Distinct().Select(c.Get).OfType<Profile>()
                 .ToDictionary(p => p.Id, p => new { id = p.Id, name = p.Name, color = p.Color, isDemo = c.IsDemo(p.Id) });
@@ -326,7 +333,16 @@ public static class Social
     /// so nobody is left in a group with someone they blocked.</summary>
     public static async Task BlockAsync(AppDb db, string from, string to, DateTimeOffset now, CancellationToken ct)
     {
-        if (await db.Blocks.FindAsync([from, to], ct) is null) db.Blocks.Add(new Block { FromId = from, ToId = to, At = now });
+        if (await db.Blocks.FindAsync([from, to], ct) is null)
+        {
+            db.Blocks.Add(new Block { FromId = from, ToId = to, At = now });
+            // Two blocks of the same person at once: the other request saved it first, which is all we wanted.
+            try { await db.SaveChangesAsync(ct); }
+            catch (DbUpdateException) { db.ChangeTracker.Clear(); }
+        }
+        // Unread notices between them go too: neither can see the other any more (Session 32 code review).
+        await db.Notifications.Where(n => n.ReadAt == null && ((n.AccountId == from && n.ActorId == to) || (n.AccountId == to && n.ActorId == from)))
+            .ExecuteDeleteAsync(ct);
         var shared = await db.Groups.Include(g => g.Members)
             .Where(g => g.Members.Any(m => m.AccountId == from && (m.Status == MemberStatus.Pending || m.Status == MemberStatus.Accepted))
                      && g.Members.Any(m => m.AccountId == to && (m.Status == MemberStatus.Pending || m.Status == MemberStatus.Accepted))).ToListAsync(ct);

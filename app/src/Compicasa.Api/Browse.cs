@@ -33,12 +33,12 @@ public static class Browse
     {
         var me = app.MapGroup("/api").RequireAuthorization();
 
-        me.MapGet("/browse", async (HttpContext http, AppDb db, IConfiguration cfg, bool? mine, string? areas, string? province, int? pmin, int? pmax,
+        me.MapGet("/browse", async (HttpContext http, AppDb db, IConfiguration cfg, TimeProvider clock, bool? mine, string? areas, string? province, int? pmin, int? pmax,
             int? beds, int? m2, string? type, string? energy, bool? fits, bool? saved, bool? real, string? sort, int? skip, int? take) =>
         {
             var a = await OnboardedAsync(http, db); if (a is null) return Results.Unauthorized();
             var q = new Query(mine == true, areas, province, pmin, pmax, beds, m2, type, energy, fits == true, saved == true, real == true, sort, skip ?? 0, take ?? 24);
-            return Results.Ok(await SearchAsync(db, cfg, a, q, http.RequestAborted));
+            return Results.Ok(await SearchAsync(db, cfg, clock, a, q, http.RequestAborted));
         });
 
         me.MapPut("/saved/{*homeId}", async (string homeId, HttpContext http, AppDb db, TimeProvider clock) =>
@@ -79,13 +79,13 @@ public static class Browse
     static bool EnergyAtLeast(string? have, string? want) =>
         string.IsNullOrEmpty(want) || (have is { Length: 1 } && Energies.Contains(have[0]) && Energies.IndexOf(have[0]) <= Energies.IndexOf(want[0]));
 
-    public static async Task<object> SearchAsync(AppDb db, IConfiguration cfg, Account a, Query q, CancellationToken ct)
+    public static async Task<object> SearchAsync(AppDb db, IConfiguration cfg, TimeProvider clock, Account a, Query q, CancellationToken ct)
     {
         var hb = Matching.Brief([a.ReadProfile()]);
-        var stopped = HomeSources.Stopped(cfg);
-        var src = db.Homes.AsNoTracking().Where(h => h.GoneAt == null);
-        if (!DemoHomes.Enabled(cfg)) src = src.Where(h => h.Source != HomeSources.Demo);
-        var live = (await src.ToListAsync(ct)).Where(h => !stopped.Contains(h.Source)).ToList();
+        // From the in-memory index (HomeIndex): about 3,000 homes, not read from the table on every filter change.
+        var index = await HomeIndex.LiveAsync(db, cfg, clock, ct);
+        var live = index.Select(e => e.Home).ToList();
+        var listing = index.ToDictionary(e => e.Home.Id, e => e.Listing);
         var saved = (await db.SavedHomes.Where(s => s.AccountId == a.Id).Select(s => s.HomeId).ToListAsync(ct)).ToHashSet();
         var areaSet = q.Mine ? hb.Areas.ToHashSet() : (q.Areas ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet();
 
@@ -97,7 +97,7 @@ public static class Browse
                 && (string.IsNullOrEmpty(q.Type) || h.Type == q.Type)
                 && EnergyAtLeast(h.Energy, q.Energy)
                 && (!q.Saved || saved.Contains(h.Id)) && (!q.Real || !h.IsDemo))
-            .Select(h => (H: h, Fit: HomeFit.Fit(hb, hb.M2Min, hb.M2Max, h.ToListing())))
+            .Select(h => (H: h, Fit: HomeFit.Fit(hb, hb.M2Min, hb.M2Max, listing[h.Id])))
             .Where(x => !q.Fits || x.Fit.Ok)
             .ToList();
 

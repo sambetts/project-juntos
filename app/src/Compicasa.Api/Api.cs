@@ -52,13 +52,17 @@ public static partial class Api
         me.MapDelete("/me", async (HttpContext http, AppDb db) =>
         {
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
-            await db.Reactions.Where(x => x.FromId == a.Id || x.ToId == a.Id).ExecuteDeleteAsync();
-            await db.SavedHomes.Where(x => x.AccountId == a.Id).ExecuteDeleteAsync();
-            var created = await db.Groups.Where(g => g.CreatedById == a.Id).Select(g => g.Id).ToListAsync();
-            await Threads.ForgetAsync(db, [a.Id], created);
-            await db.GroupMembers.Where(m => created.Contains(m.GroupId) || m.AccountId == a.Id).ExecuteDeleteAsync();
-            await db.Groups.Where(g => created.Contains(g.Id)).ExecuteDeleteAsync();
-            await db.Accounts.Where(x => x.Id == a.Id).ExecuteDeleteAsync();
+            // All or nothing: a failure part-way must not leave half an account behind (Session 32 code review).
+            await Transactions.RunAsync(db, async () =>
+            {
+                await db.Reactions.Where(x => x.FromId == a.Id || x.ToId == a.Id).ExecuteDeleteAsync();
+                await db.SavedHomes.Where(x => x.AccountId == a.Id).ExecuteDeleteAsync();
+                var created = await db.Groups.Where(g => g.CreatedById == a.Id).Select(g => g.Id).ToListAsync();
+                await Threads.ForgetAsync(db, [a.Id], created);
+                await db.GroupMembers.Where(m => created.Contains(m.GroupId) || m.AccountId == a.Id).ExecuteDeleteAsync();
+                await db.Groups.Where(g => created.Contains(g.Id)).ExecuteDeleteAsync();
+                await db.Accounts.Where(x => x.Id == a.Id).ExecuteDeleteAsync();
+            });
             await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Results.NoContent();
         });
@@ -99,6 +103,8 @@ public static partial class Api
         {
             var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
             if (id == a.Id || !await db.Accounts.AnyAsync(x => x.Id == id && (x.Kind != AccountKind.User || x.OnboardedAt != null))) return Error("unknownPerson", 404);
+            // Someone either side has blocked is out of sight, so they can't be liked or passed (and so can't be notified).
+            if (await db.Blocks.AnyAsync(b => (b.FromId == a.Id && b.ToId == id) || (b.FromId == id && b.ToId == a.Id))) return Error("unknownPerson", 404);
             var existing = await db.Reactions.FindAsync(a.Id, id);
             var added = false;
             if (r.Kind is ReactionKind.Like or ReactionKind.Pass)
@@ -187,7 +193,7 @@ public static partial class Api
         });
 
         // Homes for sale that fit the group's brief (D-035). Each carries its agency and the link to its own advert.
-        me.MapGet("/groups/{id:guid}/homes", async (Guid id, HttpContext http, AppDb db, IConfiguration cfg) =>
+        me.MapGet("/groups/{id:guid}/homes", async (Guid id, HttpContext http, AppDb db, IConfiguration cfg, TimeProvider clock) =>
         {
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
             var g = await db.Groups.AsNoTracking().Include(x => x.Members).FirstOrDefaultAsync(x => x.Id == id);
@@ -196,12 +202,12 @@ public static partial class Api
             var all = new List<Profile> { c.Me };
             all.AddRange(Views.OthersInOrder(g, a.Id).Select(c.Get).OfType<Profile>());
             // Up to 200, so the group can filter, sort and chart them in the browser (Session 16 design review).
-            return Results.Ok(await HomesForAsync(db, cfg, all, g.M2Min, g.M2Max, 200, http.RequestAborted));
+            return Results.Ok(await HomesForAsync(db, cfg, clock, all, g.M2Min, g.M2Max, 200, http.RequestAborted));
         });
 
         // The Home page (Session 20): a few homes for the viewer and their best match, before any group exists.
         // The partner is the best-scoring mutual match, or failing that the best-scoring person not passed on.
-        me.MapGet("/me/homes", async (HttpContext http, AppDb db, IConfiguration cfg) =>
+        me.MapGet("/me/homes", async (HttpContext http, AppDb db, IConfiguration cfg, TimeProvider clock) =>
         {
             var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
@@ -211,7 +217,7 @@ public static partial class Api
                 .OrderByDescending(x => c.Mutual(x.P.Id)).ThenByDescending(x => x.Score).ThenBy(x => x.P.Id, StringComparer.Ordinal)
                 .Select(x => x.P).FirstOrDefault();
             List<Profile> all = partner is null ? [c.Me] : [c.Me, partner];
-            var r = await HomesForAsync(db, cfg, all, null, null, 6, http.RequestAborted);
+            var r = await HomesForAsync(db, cfg, clock, all, null, null, 6, http.RequestAborted);
             return Results.Ok(new
             {
                 with = partner is null ? null : new { id = partner.Id, name = partner.Name, mutual = c.Mutual(partner.Id), isDemo = c.IsDemo(partner.Id) },
@@ -322,15 +328,15 @@ public static partial class Api
     static bool InGroup(Group g, string id) => g.Members.Any(m => m.AccountId == id && MemberStatus.IsActive(m.Status));
 
     /// <summary>Homes for sale that fit these people's shared brief (D-035), best first. Each carries its agency and the link to its own advert.</summary>
-    static async Task<HomesResult> HomesForAsync(AppDb db, IConfiguration cfg, IReadOnlyList<Profile> all, int? m2Min, int? m2Max, int limit, CancellationToken ct)
+    static async Task<HomesResult> HomesForAsync(AppDb db, IConfiguration cfg, TimeProvider clock, IReadOnlyList<Profile> all, int? m2Min, int? m2Max, int limit, CancellationToken ct)
     {
         var hb = Matching.Brief(all);
         int lo = m2Min ?? hb.M2Min, hi = m2Max ?? hb.M2Max;
-        var stopped = HomeSources.Stopped(cfg);
-        var q = db.Homes.AsNoTracking().Where(h => h.GoneAt == null && h.Beds >= hb.Beds);
-        if (!DemoHomes.Enabled(cfg)) q = q.Where(h => h.Source != HomeSources.Demo);
-        if (hb.Areas.Count > 0) q = q.Where(h => h.Area != null && hb.Areas.Contains(h.Area));
-        var candidates = (await q.ToListAsync(ct)).Where(h => !stopped.Contains(h.Source)).Select(h => h.ToListing()).ToList();
+        var areas = hb.Areas.ToHashSet();
+        // From the in-memory index (HomeIndex), not the whole table each time.
+        var candidates = (await HomeIndex.LiveAsync(db, cfg, clock, ct))
+            .Where(e => e.Home.Beds >= hb.Beds && (areas.Count == 0 || (e.Home.Area is not null && areas.Contains(e.Home.Area))))
+            .Select(e => e.Listing).ToList();
         // B-058: the members' maximum budgets added up; homes over it drop out, and we say how many.
         var budget = Budgets.Combined(all);
         var ranked = HomeFit.Rank(hb, lo, hi, candidates, limit, budget);

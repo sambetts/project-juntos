@@ -168,6 +168,39 @@ public class HomesTests
     static string Advert(int id) => $"https://www.tecnocasa.es/venta/piso/madrid/getafe/{id}.html";
 
     [Fact]
+    public async Task A_sitemap_that_cant_be_read_marks_nothing_gone()
+    {
+        using var conn = new SqliteConnection("Data Source=:memory:");
+        conn.Open();
+        using var db = new AppDb(new DbContextOptionsBuilder<AppDb>().UseSqlite(conn).Options);
+        db.Database.EnsureCreated();
+        var clock = new FakeTimeProvider(new DateTimeOffset(2026, 11, 22, 10, 0, 0, TimeSpan.Zero));
+        var pages = new Dictionary<string, byte[]>
+        {
+            ["https://www.tecnocasa.es/robots.txt"] = Encoding.UTF8.GetBytes("User-agent: *\nAllow: /\n"),
+            ["https://www.tecnocasa.es/sitemap/inmuebles-0.xml.gz"] = Sitemap((Advert(1), "2026-11-21T00:00:00+01:00")),
+            ["https://www.tecnocasa.es/sitemap/inmuebles-1.xml.gz"] = Sitemap((Advert(2), "2026-11-21T00:00:00+01:00")),
+            [Advert(1)] = Encoding.UTF8.GetBytes(AdvertPage(1)),
+            [Advert(2)] = Encoding.UTF8.GetBytes(AdvertPage(2)),
+        };
+        var crawl = new Crawl(db, clock, NullLogger.Instance, new HttpClient(new FakeSite(pages)), TimeSpan.Zero);
+        var first = await crawl.RunAsync(new TecnocasaSource(), 100, new HashSet<string>(), default);
+        Assert.Equal((2, false), (first.Stored, first.Partial));
+
+        // Next day the second sitemap fails (here a 404): advert 2 may still be for sale, so it stays.
+        clock.Advance(TimeSpan.FromDays(1));
+        pages.Remove("https://www.tecnocasa.es/sitemap/inmuebles-1.xml.gz");
+        var second = await crawl.RunAsync(new TecnocasaSource(), 100, new HashSet<string>(), default);
+        Assert.Equal((0, true), (second.Gone, second.Partial));
+        Assert.Null((await db.Homes.FindAsync("tecnocasa:2"))!.GoneAt);
+
+        // Both back: it's read again and still nothing is wrongly gone.
+        pages["https://www.tecnocasa.es/sitemap/inmuebles-1.xml.gz"] = Sitemap((Advert(2), "2026-11-21T00:00:00+01:00"));
+        var third = await crawl.RunAsync(new TecnocasaSource(), 100, new HashSet<string>(), default);
+        Assert.Equal((0, false), (third.Gone, third.Partial));
+    }
+
+    [Fact]
     public async Task Made_up_homes_are_added_by_default_and_deleted_when_switched_off()
     {
         using var conn = new SqliteConnection("Data Source=:memory:");
@@ -205,6 +238,7 @@ public class HomesTests
                 (Advert(1), "2026-11-21T00:00:00+01:00"), (Advert(2), "2026-11-21T00:00:00+01:00"), (Advert(3), "2026-11-21T00:00:00+01:00"),
                 ("https://www.tecnocasa.es/venta/local-comercial/madrid/getafe/9.html", "2026-11-21T00:00:00+01:00"),
                 ("https://www.tecnocasa.es/alquiler/piso/madrid/getafe/10.html", "2026-11-21T00:00:00+01:00")),
+            ["https://www.tecnocasa.es/sitemap/inmuebles-1.xml.gz"] = Sitemap(),
             [Advert(1)] = Encoding.UTF8.GetBytes(AdvertPage(1)),
             [Advert(2)] = Encoding.UTF8.GetBytes(AdvertPage(2)),
             [Advert(3)] = Encoding.UTF8.GetBytes(AdvertPage(3)),

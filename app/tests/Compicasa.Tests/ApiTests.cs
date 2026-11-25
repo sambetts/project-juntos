@@ -24,6 +24,8 @@ public sealed class AppFactory : WebApplicationFactory<Program>
         builder.UseSetting("Auth:AttemptsPerMinute", "1000");
         builder.UseSetting("Contact:PerHour", "1000");
         builder.UseSetting("Demo:RefreshDaily", "false");
+        // Tests change homes and read them back at once; HomeIndex's copy has its own test.
+        builder.UseSetting("Homes:CacheSeconds", "0");
         builder.ConfigureServices(s => s.AddSingleton<TimeProvider>(Clock));
     }
 

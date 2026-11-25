@@ -212,6 +212,7 @@ public sealed partial class TecnocasaSource : IHomeSource
 public sealed class Robots
 {
     readonly List<(bool Allow, string Pattern)> _rules = [];
+    readonly Dictionary<string, Regex> _compiled = [];
 
     public static Robots Parse(string? text, string agent)
     {
@@ -252,17 +253,19 @@ public sealed class Robots
         var best = (Allow: true, Length: -1);
         foreach (var (allow, pattern) in _rules)
         {
-            if (!Matches(pattern, path)) continue;
+            if (!Rx(pattern).IsMatch(path)) continue;
             if (pattern.Length > best.Length || (pattern.Length == best.Length && allow)) best = (allow, pattern.Length);
         }
         return best.Allow;
     }
 
-    static bool Matches(string pattern, string path)
+    /// <summary>Each rule's pattern as a regex, built once: a crawl checks thousands of addresses against the same rules.</summary>
+    Regex Rx(string pattern)
     {
+        if (_compiled.TryGetValue(pattern, out var r)) return r;
         var anchored = pattern.EndsWith('$');
         var rx = "^" + Regex.Escape(anchored ? pattern[..^1] : pattern).Replace(@"\*", ".*") + (anchored ? "$" : "");
-        return Regex.IsMatch(path, rx);
+        return _compiled[pattern] = new Regex(rx, RegexOptions.CultureInvariant);
     }
 }
 
@@ -275,7 +278,8 @@ public sealed class Crawl(AppDb db, TimeProvider clock, ILogger log, HttpClient 
 {
     public const string UserAgent = "CompicasaBot/0.1 (+https://app-compicasa-prod-25yr5.azurewebsites.net/bot; facts and a link to the advert only)";
 
-    public sealed record Result(int Listed, int Fetched, int Stored, int Unchanged, int Skipped, int Gone, int Blocked);
+    /// <summary><c>Partial</c>: a sitemap couldn't be read, so nothing was marked gone this run.</summary>
+    public sealed record Result(int Listed, int Fetched, int Stored, int Unchanged, int Skipped, int Gone, int Blocked, bool Partial = false);
 
     public static HttpClient NewClient()
     {
@@ -307,10 +311,25 @@ public sealed class Crawl(AppDb db, TimeProvider clock, ILogger log, HttpClient 
             return await r.Content.ReadAsByteArrayAsync(c);
         }
 
+        // A sitemap we couldn't read (an error, robots.txt, a renamed file) leaves the list incomplete. Then homes missing
+        // from it may still be advertised, so none is marked gone this run (Session 32 code review).
+        var partial = false;
+        async Task<byte[]?> Discover(Uri u, CancellationToken c)
+        {
+            var b = await Fetch(u, c);
+            if (b is null) { partial = true; log.LogWarning("Couldn't read the sitemap {Url}; nothing will be marked gone this run", u); }
+            return b;
+        }
         var listed = new Dictionary<string, Discovered>();
-        await foreach (var d in source.DiscoverAsync(Fetch, ct)) listed.TryAdd(d.Url, d);
+        await foreach (var d in source.DiscoverAsync(Discover, ct)) listed.TryAdd(d.Url, d);
+        if (listed.Count == 0) partial = true;
         var now = clock.GetUtcNow();
-        var known = await db.Homes.Where(h => h.Source == source.SourceId).ToDictionaryAsync(h => h.Url ?? h.Id, ct);
+        var homes = await db.Homes.Where(h => h.Source == source.SourceId).ToListAsync(ct);
+        // Looked up by the advert's link; two homes sharing one mustn't stop the run.
+        var known = new Dictionary<string, Home>();
+        foreach (var k in homes) known.TryAdd(k.Url ?? k.Id, k);
+        // Homes seen in the sitemap this run, by id, so one whose stored link differs from the sitemap's isn't marked gone.
+        var seen = new HashSet<string>();
         int fetched = 0, stored = 0, unchanged = 0, skipped = 0, blocked = 0, failures = 0;
 
         foreach (var d in listed.Values)
@@ -318,7 +337,7 @@ public sealed class Crawl(AppDb db, TimeProvider clock, ILogger log, HttpClient 
             // Unchanged since we last read it: skip, unless we read it before D-051 and so have no photo address yet.
             if (known.TryGetValue(d.Url, out var h) && d.LastModified is { } lm && lm <= h.CheckedAt && h.PhotoUrl is not null)
             {
-                h.LastSeenAt = now; h.GoneAt = null; unchanged++;
+                h.LastSeenAt = now; h.GoneAt = null; unchanged++; seen.Add(h.Id);
                 continue;
             }
             if (fetched >= max) { skipped++; continue; }
@@ -344,6 +363,7 @@ public sealed class Crawl(AppDb db, TimeProvider clock, ILogger log, HttpClient 
                 if (h is null) { db.Homes.Add(h = parsed); h.FirstSeenAt = now; }
                 known[d.Url] = h;
             }
+            seen.Add(h.Id);
             Copy(parsed, h);
             h.LastSeenAt = now; h.CheckedAt = now; h.GoneAt = null;
             stored++;
@@ -351,12 +371,13 @@ public sealed class Crawl(AppDb db, TimeProvider clock, ILogger log, HttpClient 
         }
 
         var gone = 0;
-        foreach (var h in known.Values.Where(h => h.GoneAt is null && h.Url is not null && !listed.ContainsKey(h.Url)))
-        {
-            h.GoneAt = now; gone++;
-        }
+        if (!partial)
+            foreach (var h in homes.Where(h => h.GoneAt is null && h.Url is not null && !listed.ContainsKey(h.Url) && !seen.Contains(h.Id)))
+            {
+                h.GoneAt = now; gone++;
+            }
         await db.SaveChangesAsync(ct);
-        return new Result(listed.Count, fetched, stored, unchanged, skipped, gone, blocked);
+        return new Result(listed.Count, fetched, stored, unchanged, skipped, gone, blocked, partial);
     }
 
     static void Copy(Home from, Home to)

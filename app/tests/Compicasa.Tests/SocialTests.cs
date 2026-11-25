@@ -204,6 +204,45 @@ public class SocialTests : IClassFixture<AppFactory>
     }
 
     [Fact]
+    public async Task Someone_blocked_cant_like_or_pass_and_unread_notices_between_them_go()
+    {
+        var (a, aId) = await PersonAsync("Ana");
+        var (b, bId) = await PersonAsync("Bea");
+        await Like(a, bId);
+        Assert.Equal(1, (await Count(b)).GetProperty("alerts").GetInt32());
+
+        // Two blocks of the same person at once (Session 32): both succeed.
+        var blocks = await Task.WhenAll(b.PutAsync($"/api/blocks/{aId}", null), b.PutAsync($"/api/blocks/{aId}", null));
+        Assert.All(blocks, r => Assert.Equal(HttpStatusCode.NoContent, r.StatusCode));
+        Assert.Equal(0, (await Count(b)).GetProperty("alerts").GetInt32());
+
+        // Neither side can react to the other now, so no new notice can reach the blocker.
+        Assert.Equal(HttpStatusCode.NotFound, (await a.PutAsJsonAsync($"/api/reactions/{bId}", new { kind = "none" })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await a.PutAsJsonAsync($"/api/reactions/{bId}", new { kind = "like" })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await b.PutAsJsonAsync($"/api/reactions/{aId}", new { kind = "pass" })).StatusCode);
+        Assert.Equal(0, (await Count(b)).GetProperty("alerts").GetInt32());
+    }
+
+    [Fact]
+    public async Task The_conversation_list_counts_unread_messages_per_conversation()
+    {
+        var (a, aId) = await PersonAsync("Ana");
+        var (b, bId) = await PersonAsync("Bea");
+        await Like(a, bId); await Like(b, aId);
+        await b.PostAsync("/api/me/conduct", null);
+        await b.PostAsJsonAsync($"/api/chats/person/{aId}", new { body = "Hola" });
+        await b.PostAsJsonAsync($"/api/chats/person/{aId}", new { body = "¿Qué tal?" });
+        static int Unread(JsonElement chats, string id) =>
+            chats.GetProperty("items").EnumerateArray().Single(x => x.GetProperty("id").GetString() == id).GetProperty("unread").GetInt32();
+        Assert.Equal(2, Unread(await a.GetFromJsonAsync<JsonElement>("/api/chats"), bId));
+        Assert.Equal(0, Unread(await b.GetFromJsonAsync<JsonElement>("/api/chats"), aId)); // their own messages don't count
+        await a.GetAsync($"/api/chats/person/{bId}");
+        Assert.Equal(0, Unread(await a.GetFromJsonAsync<JsonElement>("/api/chats"), bId));
+        await b.PostAsJsonAsync($"/api/chats/person/{aId}", new { body = "¿Sigues ahí?" });
+        Assert.Equal(1, Unread(await a.GetFromJsonAsync<JsonElement>("/api/chats"), bId));
+    }
+
+    [Fact]
     public async Task Deleting_an_account_removes_its_messages_and_notifications()
     {
         var (a, aId) = await PersonAsync("Ana");
@@ -211,10 +250,16 @@ public class SocialTests : IClassFixture<AppFactory>
         await Like(a, bId); await Like(b, aId);
         await a.PostAsync("/api/me/conduct", null);
         await a.PostAsJsonAsync($"/api/chats/person/{bId}", new { body = "Hola" });
+        await b.PostAsync("/api/me/conduct", null);
+        await b.PostAsJsonAsync($"/api/chats/person/{aId}", new { body = "Hola, Ana" });
         Assert.Equal(HttpStatusCode.NoContent, (await a.DeleteAsync("/api/me")).StatusCode);
         using var scope = _app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDb>();
         Assert.False(db.Messages.Any(m => m.FromId == aId));
+        // The whole conversation goes, the other person's side and their read mark included.
+        var thread = Threads.Pair(aId, bId);
+        Assert.False(db.Messages.Any(m => m.Thread == thread));
+        Assert.False(db.ThreadReads.Any(r => r.Thread == thread));
         Assert.False(db.Notifications.Any(n => n.AccountId == aId || n.ActorId == aId));
         Assert.Equal(0, (await Count(b)).GetProperty("messages").GetInt32());
     }

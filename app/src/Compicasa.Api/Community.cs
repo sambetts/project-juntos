@@ -21,15 +21,18 @@ public sealed class Community
         // Real people who haven't finished onboarding stay out of sight, and so does anyone either side has blocked (B-036).
         var blocked = (await db.Blocks.AsNoTracking().Where(b => b.FromId == viewer.Id || b.ToId == viewer.Id)
             .Select(b => new { b.FromId, b.ToId }).ToListAsync(ct)).Select(b => b.FromId == viewer.Id ? b.ToId : b.FromId).ToHashSet();
-        var accounts = (await db.Accounts.AsNoTracking().Where(a => a.Id != viewer.Id && (a.Kind != AccountKind.User || a.OnboardedAt != null)).ToListAsync(ct))
-            .Where(a => !blocked.Contains(a.Id)).ToList();
+        // Made-up people come from memory (DemoProfiles); only real people are read each time.
+        var real = (await db.Accounts.AsNoTracking().Where(a => a.Id != viewer.Id && a.Kind == AccountKind.User && a.OnboardedAt != null).ToListAsync(ct))
+            .Select(a => (Account: a, Profile: a.ReadProfile()));
+        var others = (await DemoProfiles.GetAsync(db, ct)).Concat(real).Where(o => o.Account.Id != viewer.Id && !blocked.Contains(o.Account.Id))
+            .ToDictionary(o => o.Account.Id, o => (o.Account, o.Profile));
         var mine = await db.Reactions.AsNoTracking().Where(r => r.FromId == viewer.Id).ToDictionaryAsync(r => r.ToId, r => r.Kind, ct);
         var likedMe = await db.Reactions.AsNoTracking().Where(r => r.ToId == viewer.Id && r.Kind == ReactionKind.Like).Select(r => r.FromId).ToListAsync(ct);
         return new Community
         {
             Viewer = viewer,
             Me = viewer.ReadProfile(),
-            Others = accounts.ToDictionary(a => a.Id, a => (a, a.ReadProfile())),
+            Others = others,
             MyReactions = mine,
             LikedMe = likedMe.ToHashSet(),
         };

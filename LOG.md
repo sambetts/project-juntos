@@ -2,6 +2,26 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-25 · Session 32: code review and fixes
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with the Tester; the CEO for D-053
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** Session 31 (in-app feedback deployed). Sam: "Run a code review on this solution. Check for performance bottlenecks & bugs", then "Fix and review loop". No new answers in the queue; no dropped session.
+**Goals:** 1. B-082 code review fixes (new row, from the review).
+**Needs Sam:** F-043 (new): push to deploy; recommend yes.
+**Did**
+- Review (read every backend file, the polling and escaping in `app.js`): five bugs and four performance problems, reported to Sam in chat and written into B-082.
+- Bugs fixed: a sitemap that can't be read (an error, robots.txt, a renamed file) no longer marks the homes missing from it as gone, which would have hidden about half the index for a day (`Crawl.Result.Partial`); homes seen this run are tracked by id, and a link shared by two homes no longer stops the run; blocked people can't like or pass (404), and a block deletes the unread notices between the two; account deletion and the daily made-up batch run in one transaction (`Transactions.RunAsync`, safe under Azure SQL's retries); a duplicate shortlist add gives 409 and a duplicate block succeeds instead of a 500.
+- Performance: made-up people (14 seeds and 30 a day) read once per batch (`DemoProfiles`), so the 10 s chat and 30 s count refreshes read only real accounts; the home index held up to 5 minutes (`HomeIndex`, `Homes:CacheSeconds`) for the house browser, Home and a group's homes; `/api/chats` counts unread messages in the database; `Threads.ForgetAsync` deletes pair conversations by query; robots.txt patterns compiled once.
+- Tests: `CacheTests.cs` (both caches), a failing-sitemap crawl, block rules with two blocks at once, unread counts per conversation; the deletion test now checks the other person's messages and read mark go too. The crawl test's fake site now serves both sitemaps (the old fixture's 404 on the second one made the run partial, as intended).
+- Second review pass over the diff: retries, cache staleness and race order, the new queries' SQL, the stricter reaction rule. Nothing further found.
+
+**Decided:** D-053 the two in-memory copies and no "gone" from an incomplete sitemap.
+**Approvals used:** none (nothing pushed).
+**Learned:** SQLite couldn't open a database file in the Claude scratch folder (error 14); a git-ignored `*.db` in `app/src/Compicasa.Api` works for the browser test. The previous review's "group homes scores twice" was overstated: the second scoring runs only on homes over the budget.
+**Open or blocked:** F-043; F-040, F-033, F-037, F-014 as before. Feedback and contact messages on account deletion stay with B-039.
+**Saved and checked:** `dotnet test` 118 of 118 (113 before); browser test 99 of 99 against a fresh local database; project files checked with `git status` and `git diff` against what was written.
+**Next session should start with:** 1. If pushed, check the run and, after 05:00, that the crawl log ends `Partial = False` with no drop in homes. 2. B-052 with B-027, B-039, B-041, B-072.
+
 ## 2026-11-24 · Session 31: in-app feedback
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Product and Legal & Compliance; the CEO for D-052
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

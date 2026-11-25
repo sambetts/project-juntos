@@ -225,7 +225,14 @@ public static class Shortlist
             var now = clock.GetUtcNow();
             db.Candidates.Add(new Candidate { GroupId = g!.Id, HomeId = homeId, AddedById = a!.Id, AddedAt = now, PriceAtAdd = home.Price });
             await Lifecycle.NotifyMembersAsync(db, g, NoteKind.Shortlisted, a.Id, now, a.Id, http.RequestAborted);
-            await db.SaveChangesAsync(http.RequestAborted);
+            try { await db.SaveChangesAsync(http.RequestAborted); }
+            catch (DbUpdateException)
+            {
+                // Another member added the same home a moment earlier (unique group and home).
+                db.ChangeTracker.Clear();
+                if (await db.Candidates.AnyAsync(x => x.GroupId == g.Id && x.HomeId == homeId, http.RequestAborted)) return Error("alreadyShortlisted", 409);
+                throw;
+            }
             var x = await LoadAsync(db, c!, g, cfg, http.RequestAborted);
             return await ListAsync(db, x, now, http.RequestAborted);
         });
