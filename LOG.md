@@ -20,7 +20,8 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 **Learned:** SQLite couldn't open a database file in the Claude scratch folder (error 14); a git-ignored `*.db` in `app/src/Compicasa.Api` works for the browser test. The previous review's "group homes scores twice" was overstated: the second scoring runs only on homes over the budget.
 **Open or blocked:** F-043; F-040, F-033, F-037, F-014 as before. Feedback and contact messages on account deletion stay with B-039.
 **Saved and checked:** `dotnet test` 118 of 118 (113 before); browser test 99 of 99 against a fresh local database; project files checked with `git status` and `git diff` against what was written.
-**Next session should start with:** 1. If pushed, check the run and, after 05:00, that the crawl log ends `Partial = False` with no drop in homes. 2. B-052 with B-027, B-039, B-041, B-072.
+**After the closing report:** Sam: "push" (recorded in F-043). Pushed `2e51894`; run 45586114130 passed (test, deploy); live: `/healthz/ready` 200, `/api/browse` and `/api/inbox/count` 401 signed out, service worker still session31 (no front-end change this session). This follow-up commit is not pushed.
+**Next session should start with:** 1. After the next 05:00 crawl, check that the crawl log ends `Partial = False` with no drop in homes. 2. B-052 with B-027, B-039, B-041, B-072.
 
 ## 2026-11-24 · Session 31: in-app feedback
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Product and Legal & Compliance; the CEO for D-052
