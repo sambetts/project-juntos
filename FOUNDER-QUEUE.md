@@ -4,20 +4,22 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-047 · Watch the front-page story, then push to `main` (deploys B-087, with F-046) · by 2026-11-27
+### F-047 · Watch the front-page story, then push to `main` (deploys B-087, with F-046) · CLOSED 2026-11-26: pushed
 **Why:** a push deploys (D-041). It brings the story you asked for (D-055): how Compicasa works in four steps, to live in or to rent out, in Spanish and English. `main` also holds the tooltips (F-046), so one push deploys both.
 **Options:** watch the preview first, then push; or ask for changes. The preview is four clips in `preview35\index.html` in the Copilot session's `files` folder, or the local site at http://localhost:5235, signed out.
 **Recommendation:** watch one clip of each purpose, then push both. Front end only: no database or API change. Browser test 117 of 117.
 **Update 2026-11-26:** you watched the clips and asked for a thumbs-up instead of hearts, in the story and anywhere on the site for people (D-056). Done (B-089) and the four clips are re-made: the match is at about 9 to 11 seconds.
 **Suggested date:** 2026-11-27.
 **If no answer:** committed, not deployed.
+**ANSWER (Sam, 2026-11-26, in GitHub Copilot CLI):** "Merge into main". In reply to the closing report after B-089, which asked him to push `main`. The session branch was already in the local `main`, so this is read as approval to push `main` to GitHub, which deploys the story (B-087), the thumbs-up (B-089) and the tooltips (F-046), and nothing else.
 
-### F-046 · Push the match-score tooltips to `main` (deploys B-085) · by 2026-11-27
+### F-046 · Push the match-score tooltips to `main` (deploys B-085) · CLOSED 2026-11-26: pushed with F-047
 **Why:** a push deploys (D-041). It brings what you asked for: tooltips on the score ring and on each "Why X%?" bar saying what you and the other person have in common (places, home type, how long, shared priorities) and how each part counts. Others' lifestyle answers stay private.
 **Options:** push now; or look locally first (`dotnet run` in `app/src/Compicasa.Api`, invite code `local-test`, open a person's *Más*).
 **Recommendation:** push now. One small API addition (the shared-priority ids, already public); no database change. 118 .NET tests and 107 of 107 browser checks pass.
 **Suggested date:** 2026-11-27.
 **If no answer:** committed, not deployed.
+**ANSWER (Sam, 2026-11-26, in GitHub Copilot CLI):** "Merge into main", given for F-047. That push also carries this item's commit (94f3ca4), as the closing report said. Approval to push only.
 
 ### F-045 · Fix the browser test's two known problems and push · CLOSED 2026-11-25: approved in chat
 **Why:** Session 33 found the "only saved homes" check flaky (B-084) and repeated local runs failing on the contact form's 5-an-hour limit.
