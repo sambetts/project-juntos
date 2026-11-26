@@ -4,19 +4,21 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-049 · Push the story's «Para vivir» switch icon without a heart (B-089) · by 2026-11-27
+### F-049 · Push the story's «Para vivir» switch icon without a heart (B-089) · CLOSED 2026-11-26: pushed
 **Why:** a push deploys (D-041). Checking the story live after the F-047 push, I found one heart I had missed: the house icon on the story's «Para vivir» / "To live in" switch had a heart inside it. You asked for no heart symbols in the animations (D-056), so it's now a person at home. My earlier search went by icon names, which is why it slipped through. I've now checked every icon in the front end, and there are no other hearts.
 **Options:** push now; or look first at http://localhost:5235, signed out. `main` also holds Session 36's reworded text (F-048), committed before this fix, so one push of `main` deploys both.
 **Recommendation:** push now. Two front-end files change (`story.js`, service worker `session35c`). Browser test 117 of 117, and I've looked at screenshots of both purposes.
 **Suggested date:** 2026-11-27.
 **If no answer:** committed, not deployed, and the live switch keeps the heart.
+**ANSWER (Sam, 2026-11-26, in GitHub Copilot CLI):** chose "Yes, push both now" when asked "Shall I push?". The question said that pushing `main` deploys this item and F-048 (Session 36's reworded public text), and also carries Session 36's one-line AGENTS.md change. Approval to push `main` as it stood, with this record, and nothing else.
 
-### F-048 · Push the reworded public text to `main` (deploys B-090)
+### F-048 · Push the reworded public text to `main` (deploys B-090) · CLOSED 2026-11-26: pushed with F-049
 **Why:** a push deploys (D-041). You asked for the public site's text to sound less machine-written. Thirteen strings changed in Spanish and English: mainly the front page's "How it works" line, one FAQ answer, the "What we are not" list and two lines of the guide.
 **Options:** push now; or look first (`dotnet run` in `app/src/Compicasa.Api`, signed out) and ask for changes.
 **Recommendation:** push now. Text only, no code, API or database change. Browser test 117 of 117.
 **Suggested date:** 2026-11-27.
 **If no answer:** committed, not deployed.
+**ANSWER (Sam, 2026-11-26, in GitHub Copilot CLI):** "Yes, push both now", given for F-049, whose question named this item. Approval to push only.
 
 ### F-047 · Watch the front-page story, then push to `main` (deploys B-087, with F-046) · CLOSED 2026-11-26: pushed
 **Why:** a push deploys (D-041). It brings the story you asked for (D-055): how Compicasa works in four steps, to live in or to rent out, in Spanish and English. `main` also holds the tooltips (F-046), so one push deploys both.
