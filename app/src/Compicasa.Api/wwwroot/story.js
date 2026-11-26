@@ -83,7 +83,9 @@ const IC={
   pie:'M-.8-4.4A4.4 4.4 0 1 0 3.6 0H-.8ZM1-1.8V-6A4.2 4.2 0 0 1 5.2-1.8Z',
   check:'M-3.2.2L-1 2.4L3.4-2.2',
   person:'M2-3.6A2 2 0 1 1-2-3.6A2 2 0 1 1 2-3.6ZM-4 5.4Q-4 .2 0 .2Q4 .2 4 5.4',
-  heart:'M0 4.6C-4.6 1.6-5.6-1-4.4-2.9C-3.2-4.6-1-4.4 0-2.4C1-4.4 3.2-4.6 4.4-2.9C5.6-1 4.6 1.6 0 4.6Z'
+  // a thumbs-up, never a heart: this isn't a dating site (D-056); thumbL is its mirror image
+  thumb:'M-4.98-.96H-2.72V4.76H-4.98ZM-1.95-.74L-.25-4.26A1.04 1.04 0 0 1 1.68-3.6L1.29-1.35H3.88A1.1 1.1 0 0 1 4.98-.03L4.21 3.66A1.32 1.32 0 0 1 2.89 4.76H-1.95Z',
+  thumbL:'M4.98-.96H2.72V4.76H4.98ZM1.95-.74L.25-4.26A1.04 1.04 0 0 0-1.68-3.6L-1.29-1.35H-3.88A1.1 1.1 0 0 0-4.98-.03L-4.21 3.66A1.32 1.32 0 0 0-2.89 4.76H1.95Z'
 };
 function icon(parent,name,x,y,cls,sc,sw){
   return el('path',{d:IC[name],transform:'translate('+x+' '+y+')'+(sc&&sc!==1?' scale('+sc+')':''),class:cls||'st-ic sT','stroke-width':sw||1.4},parent);
@@ -195,16 +197,16 @@ function ch2(S){
   [2,3].forEach((j,i)=>{const w=chipW(ch.s[j]),k=Math.min(1,150/w),n=node(L.fly,{x:170,y:128,s:.3,o:0});
     chip(el('g',k<1?{transform:'scale('+r3(k)+')'}:null,n.el),ch.s[j],ch.ic[j],w);
     to(n,8.35+.12*i,.55,{x:i?245:95,y:182,s:1,o:1},'out');fades.push(n);});
-  // mutual interest: a line from each side meets in the middle
+  // mutual interest: a line and a thumbs-up from each side meet in the middle
   [[95,9],[245,9.35]].forEach(([x,at])=>{
     const mid=(170+x)/2,half=Math.abs(170-x)/2;
     [[170,x<170?180:0],[x,x<170?0:180]].forEach(([x0,rot])=>{
       const h=node(L.links,{x:x0,y:128,r:rot,sx:0},'path',{d:'M0 0H1',class:'sC','stroke-width':2.4,'stroke-linecap':'butt'});
       to(h,at,.45,{sx:half});fades.push(h);
-      const hh=node(L.fly,{x:x0,y:128,s:0},'path',{d:IC.heart,class:'fC'});
+      const hh=node(L.fly,{x:x0,y:128,s:0},'path',{d:x0<mid?IC.thumb:IC.thumbL,class:'fC'});
       to(hh,at,.15,{s:.8},'out');to(hh,at,.45,{x:mid});to(hh,at+.45,.15,{o:0,s:.4},'in');
     });
-    const big=node(L.fly,{x:mid,y:128,s:0},'path',{d:IC.heart,class:'fC'});
+    const big=node(L.fly,{x:mid,y:128,s:0},'path',{d:IC.thumb,class:'fC'});
     to(big,at+.45,.4,{s:1.5},'back');fades.push(big);
   });
   // everyone says yes

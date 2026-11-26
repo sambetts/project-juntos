@@ -556,7 +556,7 @@ function cardActions(x){
   const p=x.person,st=x.state,inDraft=S.draft.indexOf(p.id)>=0,sim=p.isDemo?` <span class="hint">${t('simReply')}</span>`:'';
   if(inDraft)return `<span class="status ok">${t('inDraft')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="remove" data-id="${esc(p.id)}">${t('remove')}</button>`;
   if(st==='passed')return `<span class="status wait">${t('passedS')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
-  if(st==='none')return `<button type="button" class="btn small" data-action="pass" data-id="${esc(p.id)}">${t('pass')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="like" data-id="${esc(p.id)}">${t('like')}</button>`;
+  if(st==='none')return `<button type="button" class="btn small" data-action="pass" data-id="${esc(p.id)}">${t('pass')}</button><span class="spacer"></span><button type="button" class="btn small primary" data-action="like" data-id="${esc(p.id)}">${ICONS.thumb}${t('like')}</button>`;
   if(st==='mutual')return `<span class="status ok">${t('mutualS')}${sim}</span><span class="spacer"></span><a class="btn small" href="#chat-${esc(p.id)}">${esc(t('msgBtn'))}</a><button type="button" class="btn small primary" data-action="add" data-id="${esc(p.id)}">${t('addGroup')}</button>`;
   if(st==='waiting')return `<span class="status wait">${t('waitingS')}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
   return `<span class="status wait">${t('likedNo')}${sim}</span><span class="spacer"></span><button type="button" class="btn small ghost" data-action="undo" data-id="${esc(p.id)}">${t('undo')}</button>`;
@@ -567,7 +567,7 @@ function personCard(x){
   const p=x.person,s=x.score.total,cls=s>=80?'hi':(s>=65?'mid':'lo'),st=x.state;
   const bio=p.bio?tx(p.bio):'';
   const chip=(c,good)=>`<span class="chip ${good?'good':'warn'}">${good?'✓':'⚑'} ${esc(M(c))}</span>`;
-  const top=(x.likedMe?`<span class="chip liked">${esc(t('likedYou'))}</span>`:'')+x.clicks.slice(0,2).map(c=>chip(c,true)).join('')+x.talks.slice(0,1).map(c=>chip(c,false)).join('');
+  const top=(x.likedMe?`<span class="chip liked">${ICONS.thumb}${esc(t('likedYou'))}</span>`:'')+x.clicks.slice(0,2).map(c=>chip(c,true)).join('')+x.talks.slice(0,1).map(c=>chip(c,false)).join('');
   return `<article class="card pcard${st==='passed'?' passed':''}">
 <div class="phead">${avatar(p.id,46,p.color,p.name)}<div class="pwho"><div class="pname">${esc(p.name)}${p.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''}</div><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls} tipped" data-p="${s}" role="img" tabindex="0" aria-label="${esc(t('ringAria',s)+'. '+ringTip(x))}" data-tip="${esc(ringTip(x))}"><b>${s}%</b></div></div>
 ${bio?`<p class="bio clamp">${esc(bio)}</p>`:''}
@@ -658,7 +658,7 @@ ${x.clicks.length?`<h4>${esc(t('clickH'))}</h4><div class="chips">${x.clicks.map
 ${x.talks.length?`<h4>${esc(t('talkH'))}</h4><div class="chips">${x.talks.map(c=>`<span class="chip warn">⚑ ${esc(M(c))}</span>`).join('')}</div>`:''}
 <div class="together mt">${isLet(p)?esc(t('letTogether',line)):t('together',esc(line),esc(rest))}</div>
 <h4>${esc(t('why',s))}</h4><div class="bars">${partKeys(x.score.parts).map(k=>bar(tx(PART_LABELS[k]),x.score.parts[k],partTip(k,x))).join('')}</div><p class="hint">${esc(t('tipHint'))} ${esc(t('demoScoreHint'))}</p>
-${x.likedMe?`<p><span class="chip liked">${esc(t('likedYou'))}</span></p>`:''}
+${x.likedMe?`<p><span class="chip liked">${ICONS.thumb}${esc(t('likedYou'))}</span></p>`:''}
 <p class="safety"><button type="button" class="linkbtn" data-action="report" data-id="${esc(p.id)}">${esc(t('report'))}</button> · <button type="button" class="linkbtn" data-action="block" data-id="${esc(p.id)}">${esc(t('block'))}</button></p>
 <div class="pactions sheet-act">${cardActions(x)}</div>
 </div></dialog>`;
@@ -1456,7 +1456,9 @@ const ICONS={
   auto:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
   sun:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
   moon:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/></svg>',
-  bell:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>'
+  bell:'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
+  /* likes are a thumbs-up, never a heart: this isn't a dating site (D-056) */
+  thumb:'<svg class="ico thumb" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.2h3.8v10.3H3zM6.8 10.6l3.7-6.4a1.9 1.9 0 0 1 3.5 1.3l-.7 4h4.9a2 2 0 0 1 2 2.4l-1.4 6.6a2.4 2.4 0 0 1-2.4 2H6.8"/></svg>'
 };
 /* ---------- header menu (Session 21): profile, language, colour scheme, help ----------
    To add a setting or a place, add an item or a section in menuSections(); renderMenu() draws it.

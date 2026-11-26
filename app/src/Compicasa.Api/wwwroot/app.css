@@ -496,6 +496,7 @@ select.inline{inline-size:auto}
 /* ---------- Session 19: notifications, messages, safety, free places (B-036, B-037, B-038) ---------- */
 .row.end{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-block-start:14px}
 .chip.liked{background:var(--brand-soft);color:var(--brand);font-weight:700}
+.ico.thumb{inline-size:1.1em;block-size:1.1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;margin-inline-end:.3em}
 /* the bell in the header, with its unread count */
 .hbtn.bell{position:relative;display:inline-flex;align-items:center;justify-content:center;padding-inline:9px}
 .hbtn.bell .ico{inline-size:20px;block-size:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}

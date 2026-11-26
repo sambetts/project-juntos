@@ -364,6 +364,7 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   await shot(tag + '-3-matches-es');
 
   if (signup) {
+    ok(await js(`!!document.querySelector('[data-action="like"] svg.thumb') && !document.body.innerText.includes('♥')`), 'likes show a thumbs-up, not a heart (D-056)');
     // Like everyone, then propose the top suggested group.
     const likes = await js(`document.querySelectorAll('[data-action="like"]').length`);
     for (let i = 0; i < likes; i++) {

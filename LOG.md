@@ -2,6 +2,30 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-26 · Session 35 (continued): a thumbs-up, never a heart
+**Who:** Sam with GitHub Copilot CLI (Claude Opus 5.5), as Chief of Staff; the Builder; the Tester; the CEO for D-056
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), in the git worktree `..\project-juntos-s35` on branch `session-35-story`, fast-forwarded into `main` at the end
+**Started from:** Session 35's commit 5ed578b (not pushed, F-047). Sam watched the preview clips: "Nice except no heart symbol in the animations; this isn't a dating site. Thumbs-up instead. Same goes for anywhere else in the site; no heart symbols for people". `main` had no new commits.
+**Goals:** 1. B-089 a thumbs-up instead of hearts (new row).
+**Needs Sam:** F-047 (updated): push when happy; one push deploys B-087, B-089 and F-046.
+**Did**
+- Searched for hearts. The app had them in the story's mutual match (three places in `story.js`) and in eight strings in `i18n.js`: the like button, the «Le interesas» / "Liked you" chip and the guide, in both languages. None in the C#, CSS, HTML, tests or app icons. The retired `prototype/` page has two, but it isn't deployed, so I left it.
+- Story: a filled thumbs-up comes from each side (mirrored for the one from the right) and meets in the middle; then a big thumbs-up pops where the hearts were. The paths are my own, not taken from an icon set.
+- App: a line thumbs-up icon (`ICONS.thumb`) on the like button and on the chip, on the card and in the sheet. It's hidden from screen readers, which read the words. The four strings lose the ♥, and the guide names the thumbs-up in words. It's an SVG rather than the 👍 emoji, so it looks the same on every device and matches the other icons.
+- `app/README.md` updated; service worker `session35b`.
+- Four preview clips re-made (33.6 seconds each, the match at about 9 to 11 seconds); I checked a frame of the match in two of them.
+
+**Decided:** D-056 (Sam's rule: no heart symbols for people anywhere; a thumbs-up instead).
+**Approvals used:** D-055 and D-056 cover building and committing. Nothing pushed (F-047).
+**Learned:** the mission text in `AGENTS.md`, `README.md` and `project/charter.md` says people are matched "dating-style". That describes how matching works, not how it looks, so I left it; Sam may want other words now that he's said "this isn't a dating site".
+**Open or blocked:** F-047 and F-046 (one push); F-031, F-040, F-033, F-037 and F-014 as before.
+**Saved and checked:**
+- `node --check` passes on the five changed scripts. A search of `app/` finds ♥ only in the new test that checks it's absent.
+- Browser test 117 of 117 against a local run, with one new check: the like button has the thumbs-up and the People page has no ♥. I looked at screenshots of the story's match (phone and desktop, both purposes) and of People (phone and desktop).
+- Project files checked with `git status` and `git diff` against what was written; LOG.md saved last. RISKS.md unchanged.
+
+**Next session should start with:** as in Session 35's entry below: 1. if Sam pushed (F-047), check the run and the story live, thumbs-up included; 2. B-088 with F-031; 3. B-086.
+
 ## 2026-11-26 · Session 35: the front page's story, to live in or to rent out
 **Who:** Sam with GitHub Copilot CLI (Claude Opus 5.5), as Chief of Staff; the Builder with Product and Brand & Marketing; the Tester; the CEO for D-055
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), in the git worktree `..\project-juntos-s35` on branch `session-35-story`, fast-forwarded into `main` at the end
