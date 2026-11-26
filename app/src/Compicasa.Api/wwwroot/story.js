@@ -390,7 +390,8 @@ function finLet(S){
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const ico=(d,cls)=>'<svg class="st-ico '+(cls||'')+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+d+'"/></svg>';
 const HOUSE='M3.5 11L12 4l8.5 7M6 9.5V20h12V9.5';
-const I={live:ico(HOUSE+'M12 17.5c-2.6-1.7-3.4-3.1-2.8-4.2.6-1 2-1 2.8.1.8-1.1 2.2-1.1 2.8-.1.6 1.1-.2 2.5-2.8 4.2z'),
+/* live: someone at home, never a heart (D-056); let: a key */
+const I={live:ico(HOUSE+'M13.8 11.6a1.8 1.8 0 1 1-3.6 0a1.8 1.8 0 1 1 3.6 0zM8.4 20c.3-2.3 1.7-3.6 3.6-3.6s3.3 1.3 3.6 3.6'),
   let:ico(HOUSE+'M10.7 15.5a1.7 1.7 0 1 1-3.4 0a1.7 1.7 0 1 1 3.4 0zM10.7 15.5h5.8M15 15.5v1.7M16.5 15.5v1.3'),
   play:ico('M8 5.5v13l10.5-6.5z','st-fill st-i-play'),pause:ico('M8.5 5.5v13M15.5 5.5v13','st-i-pause'),replay:ico('M4.5 12a7.5 7.5 0 1 0 2.2-5.3M6.7 2.7v4h4','st-i-replay')};
 const st={t:0,playing:false,mode:'live',started:false,done:false,userPaused:false,auto:false,inView:false};

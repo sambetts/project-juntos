@@ -44,7 +44,14 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 - Browser test 117 of 117 against a local run, with one new check: the like button has the thumbs-up and the People page has no ♥. I looked at screenshots of the story's match (phone and desktop, both purposes) and of People (phone and desktop).
 - Project files checked with `git status` and `git diff` against what was written; LOG.md saved last. RISKS.md unchanged.
 
-**Next session should start with:** as in Session 35's entry below: 1. if Sam pushed (F-047), check the run and the story live, thumbs-up included; 2. B-088 with F-031; 3. B-086.
+**After the closing report:** Sam: "Merge into main" (recorded in F-047 and F-046). The session branch was already in the local `main`, so I pushed it: `0ef1323`, carrying the story (B-087), the thumbs-up (B-089) and the tooltips (B-085, F-046). Run 45841527609 passed (test, deploy).
+- Live: `/healthz/ready` 200 and `/api/browse` 401 signed out; service worker `session35b`; `index.html` loads `story.js`, `app.js` has the thumbs-up icon, and `i18n.js` has «Le interesas», the tooltips and «para alquilarla». No ♥ is served.
+- Screenshots of the live story on a phone (Spanish) and a desktop (English), in both purposes, show the thumbs-up match and the ending looking the same as locally.
+- They also showed a heart I had missed: the house icon on the story's «Para vivir» / "To live in" switch had a heart inside it. My search had gone by icon names, so it missed a heart drawn inside another icon. It's now a person at home (`I.live` in `story.js`), with service worker `session35c`. A check of every other icon in the front end found no heart.
+- Checks: `node --check` on both files; browser test 117 of 117 against a local run; contact sheets of the whole story in both purposes looked at. Committed. Pushing it is a new deploy, so it waits on Sam (F-049).
+- Meanwhile a parallel session (Session 36, Claude Code) committed reworded public text to `main` (B-090), with its own F-048 and service worker `session36`. I rebased onto it: my queue item became F-049, and the service worker is `session35c`, so the fix reaches phones whichever push comes first. One push of `main` now deploys both. After the rebase, the local site serves both changes, and the browser test on the combined code passes 117 of 117.
+
+**Next session should start with:** 1. If Sam pushed `main` (F-048 and F-049), check its run and the switch live (service worker `session35c`). 2. Sam to watch the story live on his phone, in both purposes. 3. B-088 with F-031, then B-086.
 
 ## 2026-11-26 · Session 35: the front page's story, to live in or to rent out
 **Who:** Sam with GitHub Copilot CLI (Claude Opus 5.5), as Chief of Staff; the Builder with Product and Brand & Marketing; the Tester; the CEO for D-055
