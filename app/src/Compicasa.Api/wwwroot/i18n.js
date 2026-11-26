@@ -319,7 +319,7 @@ Object.assign(STR.en,{
   footnote:"Preview version. Everyone you meet here is made up, and a new batch arrives every morning; please don't enter real personal details. It covers matching and space only: money, ownership shares, the co-ownership agreement and real listings come later. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health. Whether a real service may let people choose by household type is being checked with a lawyer.",
   tabHome:'3 · Groups and home',srInGroup:'groups',
   authH:'Find the people to buy a home with',
-  authLead:"A closed preview version. The people you'll meet are made up, and a new batch arrives every morning. Please don't enter real personal details: a nickname is fine.",
+  authLead:"This is a closed preview. The people you'll meet are made up, and a new batch arrives every morning. Please don't enter real personal details: a nickname is fine.",
   signIn:'Sign in',signUp:'Create an account',haveAccount:'I have an account',newHere:"I'm new",
   username:'Username',usernameHint:'3 to 32 characters: lower-case letters, numbers, dots, dashes or underscores',
   password:'Password',passwordHint:'At least 10 characters',displayName:'Name to show',displayNameHint:'A nickname is fine',
@@ -352,7 +352,7 @@ Object.assign(STR.es,{
   footnote:'Versión preliminar. Todas las personas que verás aquí son inventadas, y cada mañana llega un grupo nuevo; por favor, no introduzcas datos personales reales. Solo cubre la afinidad y el espacio: el dinero, las cuotas de propiedad, el pacto de copropiedad y los anuncios reales llegarán más adelante. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud. Un abogado está revisando si un servicio real puede permitir elegir por tipo de hogar.',
   tabHome:'3 · Grupos y casa',srInGroup:'grupos',
   authH:'Encuentra con quién comprar casa',
-  authLead:'Una versión preliminar cerrada. Las personas que conocerás son inventadas, y cada mañana llega un grupo nuevo. Por favor, no introduzcas datos personales reales: vale un apodo.',
+  authLead:'Es una versión preliminar cerrada. Las personas que conocerás son inventadas, y cada mañana llega un grupo nuevo. Por favor, no introduzcas datos personales reales: vale un apodo.',
   signIn:'Entrar',signUp:'Crear una cuenta',haveAccount:'Ya tengo cuenta',newHere:'Es mi primera vez',
   username:'Nombre de usuario',usernameHint:'De 3 a 32 caracteres: minúsculas, números, puntos, guiones o guiones bajos',
   password:'Contraseña',passwordHint:'Al menos 10 caracteres',displayName:'Nombre visible',displayNameHint:'Vale un apodo',
@@ -534,7 +534,7 @@ Object.assign(STR.es,{
 Object.assign(STR.en,{
   helpLink:'How it works',
   helpH:'How '+BRAND+' works',
-  helpLead:'A short guide to this preview version. It will change as the service grows.',
+  helpLead:'A short guide to this preview version. It will change as we add to it.',
   helpSecs:[
     {h:'The steps',items:[
       "Fill in your profile: your household, the space you need, how you live, your dealbreakers, where you want to live and the most you'd put towards the price (only you see it).",
@@ -542,9 +542,9 @@ Object.assign(STR.en,{
       'Put mutual matches into a group of up to four households (you plus three) and propose it. Everyone you invite says yes or no.',
       'When everyone has said yes, the group is formed. Under "Groups" you get a joint brief for the home you need together, and homes for sale that fit it and your budgets added up.']},
     {h:'Likes and matches',items:[
-      '"Like", the thumbs-up button, means you\'d like to explore buying with that person. "Pass" moves them out of the way. "Undo" takes back either.',
+      '"Like", the thumbs-up button, means you\'d consider buying with that person. "Pass" moves them out of the way. "Undo" takes back either.',
       "When you like a real person, they're told, and you appear first in their \"To review\" list, marked \"Liked you\" with a thumbs-up. Made-up people sometimes like you first, too.",
-      'If they like you too, you both see "✓ Mutual match". Until then, they wait under "Liked". If they pass, they quietly leave that list.',
+      'If they like you too, you both see "✓ Mutual match". Until then, they wait under "Liked". If they pass, they drop off that list and you aren\'t told.',
       "To answer a like, like them back (or pass). If they've already liked you, the match appears straight away.",
       "People who fail a dealbreaker, yours or theirs, never see each other. You don't see their reasons, and they don't see yours.",
       'Made-up people (tagged "Made up") reply at once, by a simulation of their preferences.']},
@@ -572,7 +572,7 @@ Object.assign(STR.en,{
 Object.assign(STR.es,{
   helpLink:'Cómo funciona',
   helpH:'Cómo funciona '+BRAND,
-  helpLead:'Una guía breve de esta versión preliminar. Irá cambiando a medida que crezca el servicio.',
+  helpLead:'Una guía breve de esta versión preliminar. Irá cambiando a medida que añadamos cosas.',
   helpSecs:[
     {h:'Los pasos',items:[
       'Completa tu perfil: tu hogar, el espacio que necesitas, cómo vives, lo que no es negociable para ti, dónde quieres vivir y lo máximo que pondrías para el precio (solo lo ves tú).',
@@ -580,7 +580,7 @@ Object.assign(STR.es,{
       'Reúne a tus matches mutuos en un grupo de hasta cuatro hogares (tú y tres más) y propónlo. Cada persona invitada dice que sí o que no.',
       'Cuando todo el mundo ha dicho que sí, el grupo queda formado. En «Grupos» tendréis una ficha conjunta de la casa que necesitáis y las viviendas en venta que encajan con ella y con la suma de vuestros presupuestos.']},
     {h:'«Me interesa» y matches',items:[
-      '«Me interesa», el botón con el pulgar hacia arriba, significa que te gustaría explorar comprar con esa persona. «Pasar» la aparta. «Deshacer» anula cualquiera de las dos.',
+      '«Me interesa», el botón con el pulgar hacia arriba, significa que te plantearías comprar con esa persona. «Pasar» la aparta. «Deshacer» anula cualquiera de las dos.',
       'Cuando marcas a una persona real, se le avisa, y apareces la primera en su lista «Por ver» con la etiqueta «Le interesas» y un pulgar hacia arriba. A veces, las personas inventadas también te marcan primero.',
       'Si tú también le interesas, las dos veréis «✓ Match mutuo». Hasta entonces, espera en «Te interesan». Si pasa, sale de esa lista sin más.',
       'Para responder a un «Me interesa», márcale tú también (o pasa). Si ya te había marcado, el match aparece al momento.',
@@ -1254,13 +1254,13 @@ Object.assign(STR.en,{
   lNote:'A closed preview: creating an account needs an invite code, and everyone you meet is made up.',
   lPlanCap:'A made-up example: one home, three households',lPlanHint:'Each household has its own bedroom and the rest is shared. You agree this before choosing a home.',
   lA:'Ana',lB:'Luis and Marta',lC:'You',lBed:'bedroom',lLiving:'Living and dining',lKitchen:'Kitchen',lBath:'Bathroom',lTerrace:'Terrace',
-  lHowH:'How it works',lHowLead:'First, who with. Then, which home. And how to leave, from the start.',
+  lHowH:'How it works',lHowLead:'First you find who to buy with, then which home. How anyone can leave is agreed at the start.',
   lSteps:[['Tell us how you live','Where you want to buy, and how you like to live: hours, pets, noise, working from home. We never ask about origin, religion, age or anything like that.'],
     ['Meet compatible people','See who you fit with and why. Like someone; if they like you back, you can talk. A group forms only if everyone in it says yes.'],
     ['Agree on the home you need','Together you get a shared brief: bedrooms, area, must-haves and nice-to-haves, and who has which room.'],
     ['Choose it together','Vote on homes from agencies, see a cost estimate per person and the questions to take to a lawyer and a notary.']],
-  lNotH:'What we are not',lNot:["We aren't an estate agent: we don't sell homes.","We don't lend money or promise you a mortgage.","We don't give legal, tax or financial advice.","It isn't for renting a room: this is about buying."],
-  lFaqH:'Questions',lFaq:[['Do I need to know the other people already?',"No. The idea is to help you find compatible people you haven't met yet."],
+  lNotH:'What we are not',lNot:["We aren't an estate agent: we don't sell homes.","We don't lend money or promise you a mortgage.","We don't give legal, tax or financial advice.","We don't find rooms to rent: everyone here is buying."],
+  lFaqH:'Questions',lFaq:[['Do I need to know the other people already?',"No. It's for finding compatible people you haven't met yet."],
     ['How many people are in a group?','Two to four households. A household can be one person, a couple or a family.'],
     ['What if someone wants to sell their share one day?',"It's one of the first things you talk through, before choosing a home. A lawyer should review whatever you agree."]],
   lJoinH:'Sign in or create your account'});
@@ -1275,13 +1275,13 @@ Object.assign(STR.es,{
   lNote:'Versión preliminar cerrada: para crear una cuenta hace falta un código de invitación, y todas las personas que conocerás son inventadas.',
   lPlanCap:'Ejemplo inventado: una casa, tres hogares',lPlanHint:'Cada hogar tiene su dormitorio y el resto se comparte. Lo acordáis antes de elegir casa.',
   lA:'Ana',lB:'Luis y Marta',lC:'Tú',lBed:'dormitorio',lLiving:'Salón y comedor',lKitchen:'Cocina',lBath:'Baño',lTerrace:'Terraza',
-  lHowH:'Cómo funciona',lHowLead:'Primero, con quién. Después, qué casa. Y la salida, desde el principio.',
+  lHowH:'Cómo funciona',lHowLead:'Primero encuentras con quién comprar y después elegís casa. Cómo podrá salir cada uno se acuerda desde el principio.',
   lSteps:[['Cuéntanos cómo vives','Dónde quieres comprar y cómo te gusta convivir: horarios, mascotas, ruido, teletrabajo. Nunca te preguntamos por tu origen, religión, edad ni nada parecido.'],
     ['Conoce a gente compatible','Ves con quién encajas y por qué. Si te interesa alguien y tú le interesas, podéis hablar. Un grupo solo se forma si todos dicen que sí.'],
     ['Acordad qué casa necesitáis','Tenéis una ficha común: dormitorios, zona, lo imprescindible y lo deseable, y quién se queda cada habitación.'],
     ['Elegidla juntos','Votáis viviendas de agencias y veis una estimación de lo que pondría cada uno y las preguntas para el abogado y la notaría.']],
-  lNotH:'Lo que no somos',lNot:['No somos una inmobiliaria: no vendemos viviendas.','No concedemos hipotecas ni prometemos financiación.','No damos asesoramiento legal, fiscal ni financiero.','No es para alquilar una habitación: aquí se compra.'],
-  lFaqH:'Preguntas',lFaq:[['¿Tengo que conocer ya a las otras personas?','No. La idea es ayudarte a encontrar a personas compatibles que aún no conoces.'],
+  lNotH:'Lo que no somos',lNot:['No somos una inmobiliaria: no vendemos viviendas.','No concedemos hipotecas ni prometemos financiación.','No damos asesoramiento legal, fiscal ni financiero.','No buscamos habitaciones de alquiler: aquí todo el mundo compra.'],
+  lFaqH:'Preguntas',lFaq:[['¿Tengo que conocer ya a las otras personas?','No. Sirve para encontrar a personas compatibles que aún no conoces.'],
     ['¿Cuántas personas forman un grupo?','Entre dos y cuatro hogares. Un hogar puede ser una persona, una pareja o una familia.'],
     ['¿Y si un día alguien quiere vender su parte?','Es de lo primero que habláis, antes de elegir casa. Lo que acordéis debe revisarlo un abogado.']],
   lJoinH:'Entra o crea tu cuenta'});

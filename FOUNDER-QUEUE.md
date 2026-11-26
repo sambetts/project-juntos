@@ -4,6 +4,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-048 · Push the reworded public text to `main` (deploys B-090)
+**Why:** a push deploys (D-041). You asked for the public site's text to sound less machine-written. Thirteen strings changed in Spanish and English: mainly the front page's "How it works" line, one FAQ answer, the "What we are not" list and two lines of the guide.
+**Options:** push now; or look first (`dotnet run` in `app/src/Compicasa.Api`, signed out) and ask for changes.
+**Recommendation:** push now. Text only, no code, API or database change. Browser test 117 of 117.
+**Suggested date:** 2026-11-27.
+**If no answer:** committed, not deployed.
+
 ### F-047 · Watch the front-page story, then push to `main` (deploys B-087, with F-046) · CLOSED 2026-11-26: pushed
 **Why:** a push deploys (D-041). It brings the story you asked for (D-055): how Compicasa works in four steps, to live in or to rent out, in Spanish and English. `main` also holds the tooltips (F-046), so one push deploys both.
 **Options:** watch the preview first, then push; or ask for changes. The preview is four clips in `preview35\index.html` in the Copilot session's `files` folder, or the local site at http://localhost:5235, signed out.

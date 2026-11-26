@@ -2,6 +2,26 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-26 · Session 36: humanising the public text
+**Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; Brand & Marketing for the wording; the Tester
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
+**Started from:** STATE.md after Session 35; F-047 closed (pushed, origin at 0ef1323). Sam installed the humanizer plugin and asked: "Humanise the text on the public anon site especially".
+**Goals:** 1. B-090 reword the signed-out pages' text (new row).
+**Needs Sam:** F-048 (added): push to deploy.
+**Did**
+- Read every string a signed-out visitor sees, in both languages: front page (`lHero…`, `lSteps`, `lNot`, `lFaq`), the story (`st…`), sign-in and sign-up, the guide (`helpSecs`), where homes come from (`srcSecs`), contact, `bot.html`. Most already read plainly.
+- Changed 13 strings in `app/src/Compicasa.Api/wwwroot/i18n.js`: the "How it works" lead was a row of fragments ("First, who with. Then, which home. And how to leave, from the start."), now one sentence and a second about the exit; "The idea is to help you find…" now "It's for finding…"; "It isn't for renting a room: this is about buying" now "We don't find rooms to rent: everyone here is buying"; the sign-in lead is a full sentence; the guide's "explore buying" (now "consider buying", as in its first step), "quietly leave that list" (now "drop off that list and you aren't told") and "as the service grows". Spanish to match.
+- Left the terms of use and privacy notice as they are: they are drafts waiting for a lawyer (D-009, B-013), and rewording them isn't a style call.
+- Service worker `VERSION` bumped to `session36` so phones fetch the new text.
+- Browser test against a local run: 117 passed, 0 failed.
+
+**Decided:** nothing new.
+**Approvals used:** none.
+**Learned:** the public text was mostly clean already; the tells were a tagline built from fragments, a few stock phrases and one negative contrast.
+**Open or blocked:** F-048, the push.
+**Saved and checked:** `git status` and `git diff` checked against the edits: `i18n.js` (13 lines), `sw.js`, BACKLOG.md (B-090), FOUNDER-QUEUE.md (F-048), STATE.md; this entry saved last.
+**Next session should start with:** 1. Sam's answer to F-048. 2. The top unblocked backlog item.
+
 ## 2026-11-26 · Session 35 (continued): a thumbs-up, never a heart
 **Who:** Sam with GitHub Copilot CLI (Claude Opus 5.5), as Chief of Staff; the Builder; the Tester; the CEO for D-056
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), in the git worktree `..\project-juntos-s35` on branch `session-35-story`, fast-forwarded into `main` at the end
