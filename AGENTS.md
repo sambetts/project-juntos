@@ -91,6 +91,7 @@ Sam is the founder. He has a full-time job and little time, so write in UK Engli
   - **Found:** what we learned that changes our view, and what you couldn't confirm.
   - **Next:** the first goals for the next session.
 - Requests go in FOUNDER-QUEUE.md, batched: the question, why it matters, the options, your recommendation, a suggested date and what happens if he doesn't answer. Keep each under about 120 words.
+- Whenever you mention an ID (F-, B-, D-, R-) or a next step to Sam, add a few words on what it is, for example "F-048 (push the reworded public text)". He won't remember IDs, and a bare ID makes him ask (Sam, 2026-11-26).
 - He prefers short asks with a clear recommendation, and documents with the summary first. In Build mode, a playable prototype beats a long document.
 
 ## 7. Evidence and writing
