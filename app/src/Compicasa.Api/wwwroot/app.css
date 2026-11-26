@@ -307,6 +307,12 @@ input[type=search]{inline-size:100%;padding:9px 12px;border-radius:10px;border:1
 .hbar .track{block-size:12px;border-radius:0 4px 4px 0;background:var(--surface-2);overflow:hidden}
 .hbar .track i{display:block;block-size:100%;background:var(--brand);border-radius:0 4px 4px 0}
 .charttip{position:fixed;z-index:30;pointer-events:none;background:var(--text);color:var(--bg);font-size:12.5px;font-weight:600;padding:6px 9px;border-radius:8px;box-shadow:var(--shadow);max-inline-size:280px}
+/* B-085: a match score and its bars explain themselves on hover, tap or focus */
+.charttip{line-height:1.4}
+.tipped{cursor:help}
+.bar.tipped>span:first-child{text-decoration:underline dotted;text-underline-offset:3px}
+.tipped:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:6px}
+.ring.tipped:focus-visible{border-radius:50%}
 /* home cards */
 .homes{grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr))}
 .home{background:var(--surface);transition:box-shadow .15s,border-color .15s}

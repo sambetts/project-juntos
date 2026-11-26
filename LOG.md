@@ -2,6 +2,25 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-26 · Session 34: explaining a match's score
+**Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Product and the Tester
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)
+**Started from:** Session 33 (front-end review deployed). Sam asked about a "buy to rent out" model and whether a session had covered it: it had, Session 26 (B-063, D-047); F-031 (mission wording) still open. He asked what "time horizon" means (how long each person plans to keep the home, in three bands), then: "We should add tooltips to explain what person X and me have in common; that score included". No new answers in the queue; no dropped session.
+**Goals:** 1. B-085 match-score tooltips (new row).
+**Needs Sam:** F-046 (new): push to deploy; recommend yes.
+**Did**
+- B-085: tooltips on the score ring (person card and sheet) listing each part's score and weight, and on each "Why X%?" bar: how you live (the five questions; their answers stay private), where and what (the places and home types you both chose), time horizon (your band and theirs, and how bands score; worded for renting out too), shared priorities. Shown on mouse hover, tap and keyboard focus, hidden on scroll and Escape, and in a hidden span for screen readers. Inside the person sheet the tooltip moves into the open dialog, which otherwise covers it. Spanish and English strings; `LET_WEIGHTS` added to the client to match `Catalogue.LetWeights`.
+- API: `/api/matches` sends `score.both`, the shared-priority ids (already public through each profile's needs). Lifestyle sliders are still never sent.
+- Tests: three new browser checks; service worker bumped to `session34`.
+- Proposed B-086: plain words instead of "Horizonte".
+
+**Decided:** nothing needing a decision record (a reversible prototype change on Sam's request).
+**Approvals used:** none needed for building and committing; nothing pushed.
+**Learned:** at phone size the headless browser's tab has no window focus, so `focus()` moves focus without a `focusin` event; the check now taps (the phone path) and tests focus only where the page has focus. `dotnet run` was refused ("Access is denied" starting the .exe) in this environment; `dotnet bin/Debug/net10.0/Compicasa.Api.dll` worked.
+**Open or blocked:** F-046; F-031, F-040, F-033, F-037, F-014 as before.
+**Saved and checked:** `dotnet test` 118 of 118; browser test 107 of 107 against a fresh local run; screenshots of the tooltip over the sheet at phone and desktop size looked at; project files checked with `git status` and `git diff` against what was written; LOG.md saved last.
+**Next session should start with:** 1. If F-046 was pushed, check the run and the tooltips live. 2. B-086. 3. B-052 with B-027, B-039, B-041, B-072.
+
 ## 2026-11-25 · Session 33: front-end review
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Product and Brand & Marketing; the Tester; the CEO for D-054
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

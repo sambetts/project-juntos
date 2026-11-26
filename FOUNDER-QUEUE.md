@@ -4,6 +4,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-046 · Push the match-score tooltips to `main` (deploys B-085) · by 2026-11-27
+**Why:** a push deploys (D-041). It brings what you asked for: tooltips on the score ring and on each "Why X%?" bar saying what you and the other person have in common (places, home type, how long, shared priorities) and how each part counts. Others' lifestyle answers stay private.
+**Options:** push now; or look locally first (`dotnet run` in `app/src/Compicasa.Api`, invite code `local-test`, open a person's *Más*).
+**Recommendation:** push now. One small API addition (the shared-priority ids, already public); no database change. 118 .NET tests and 107 of 107 browser checks pass.
+**Suggested date:** 2026-11-27.
+**If no answer:** committed, not deployed.
+
 ### F-045 · Fix the browser test's two known problems and push · CLOSED 2026-11-25: approved in chat
 **Why:** Session 33 found the "only saved homes" check flaky (B-084) and repeated local runs failing on the contact form's 5-an-hour limit.
 **ANSWER (Sam, 2026-11-25, in Claude Code):** "Fix it all and push when done". In reply to the Session 33 report after the F-044 deploy, whose open items were B-084 and the contact-limit note: approval to fix those and push the result to `main` only.

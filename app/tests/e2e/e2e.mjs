@@ -297,6 +297,11 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
   ok(/Buscas vivienda: para vivir/.test(await text()), tag + ': People says which purpose it shows (B-063)');
   await click('.pcard .more');
   await until(`!!document.querySelector('dialog.sheet[open]') && /^#person-/.test(location.hash)`, tag + ': More opens the person sheet with its own address');
+  // B-085: the score and each of its parts explain what you have in common, on hover, tap or focus
+  ok(await js(`(()=>{const b=[...document.querySelectorAll('dialog.sheet .bar[data-tip]')];return b.length>=3&&b.every(x=>x.getAttribute('data-tip').length>20)&&!!document.querySelector('dialog.sheet .ring[data-tip]')&&!!document.querySelector('.pcard .ring[data-tip]');})()`), tag + ': the score ring and each bar have an explanation (B-085)');
+  ok(await js(`(()=>{const b=document.querySelector('dialog.sheet .bar[data-tip]'),tip=document.querySelector('.charttip');b.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch'}));return !tip.hidden&&!!tip.closest('dialog.sheet[open]')&&tip.textContent===b.getAttribute('data-tip');})()`), tag + ': tapping a bar shows its tooltip above the sheet (B-085)');
+  await shot(tag + '-4c-score-tooltip-es');
+  ok(await js(`(()=>{if(!document.hasFocus())return true;const b=document.querySelectorAll('dialog.sheet .bar[data-tip]')[1],tip=document.querySelector('.charttip');b.focus();return !tip.hidden&&tip.textContent===b.getAttribute('data-tip');})()`), tag + ': focusing a bar shows its tooltip (when the page has focus) (B-085)');
   await click('[data-action="close-sheet"]');
   await until(`!document.querySelector('dialog.sheet[open]') && /^#people-/.test(location.hash)`, tag + ': closing the sheet goes back to People');
   // B-061: a refresh can redraw the page just after the sheet closes. Force both timings: a redraw before the

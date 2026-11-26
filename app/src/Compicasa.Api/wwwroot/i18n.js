@@ -93,6 +93,7 @@ const SLIDERS=[
   {id:'meals',label:{en:'Meals',es:'Comidas'},lo:{en:'Own thing',es:'Cada cual a su aire'},hi:{en:'Cook and eat together',es:'Cocinar y comer en compañía'},w:0.15}
 ];
 const WEIGHTS={lifestyle:0.50,place:0.20,plans:0.20,home:0.10};
+const LET_WEIGHTS={place:0.40,plans:0.40,home:0.20}; /* buying to rent out (B-063); mirrors Catalogue.LetWeights */
 const PART_LABELS={lifestyle:{en:'How you live',es:'Forma de vivir'},place:{en:'Where & what',es:'Dónde y qué'},plans:{en:'Time horizon',es:'Horizonte'},home:{en:'Shared priorities',es:'Prioridades comunes'}};
 const ACCESS_FEATURES=['lift','stepfree'];
 const NUM_FIELDS=['bedrooms','kids','cars','maxHouseholds','sleep','tidy','social','guests','meals'];
@@ -1284,3 +1285,26 @@ Object.assign(STR.es,{
     ['¿Cuántas personas forman un grupo?','Entre dos y cuatro hogares. Un hogar puede ser una persona, una pareja o una familia.'],
     ['¿Y si un día alguien quiere vender su parte?','Es de lo primero que habláis, antes de elegir casa. Lo que acordéis debe revisarlo un abogado.']],
   lJoinH:'Entra o crea tu cuenta'});
+/* Tooltips on a match's score (B-085): what you and the other person have in common, and how each part counts */
+Object.assign(STR.en,{
+  tipRing:(s,l)=>s+'% compatible, made up of: '+l+'. A demo score with uncalibrated weights.',
+  tipPart:(label,v,w)=>label.toLowerCase()+' '+v+'% (counts '+w+'%)',
+  tipCounts:w=>'Counts for '+w+'% of the score.',
+  tipLife:'How close your answers are on daily rhythm, tidiness, home atmosphere, guests and meals. Their answers stay private, as yours do.',
+  tipPlace:(areas,types)=>'Places you both picked: '+areas+'. Type of home you both want: '+types+'. The places count more than the type.',
+  tipPlans:(let_,mine,name,theirs)=>(let_?'How long each of you would keep the home':'How long each of you plans to live there')+'. You: '+mine+'; '+name+': '+theirs+'. The same answer scores 100%, the next one along 60%, opposite ends 20%.',
+  tipHome:l=>'Priorities you both have: '+l+'. Must-haves you share count most.',
+  tipHomeNone:'No priorities in common yet, so this part sits at a neutral 75%.',
+  tipHint:'Hover over or tap a bar to see what you have in common.'
+});
+Object.assign(STR.es,{
+  tipRing:(s,l)=>s+'% de compatibilidad, a partir de: '+l+'. Puntuación de demo con pesos sin calibrar.',
+  tipPart:(label,v,w)=>label.toLowerCase()+' '+v+'% (pesa un '+w+'%)',
+  tipCounts:w=>'Pesa un '+w+'% en la puntuación.',
+  tipLife:'Lo parecidas que son vuestras respuestas sobre ritmo diario, orden, ambiente en casa, visitas y comidas. Sus respuestas son privadas, como las tuyas.',
+  tipPlace:(areas,types)=>'Sitios que habéis elegido los dos: '+areas+'. Tipo de vivienda que queréis los dos: '+types+'. La zona pesa más que el tipo.',
+  tipPlans:(let_,mine,name,theirs)=>(let_?'Cuánto tiempo mantendría cada uno la vivienda':'Cuánto tiempo piensa vivir allí cada uno')+'. Tú: '+mine+'; '+name+': '+theirs+'. La misma respuesta puntúa un 100%, la contigua un 60% y los extremos opuestos un 20%.',
+  tipHome:l=>'Prioridades que tenéis los dos: '+l+'. Pesan más los imprescindibles que compartís.',
+  tipHomeNone:'Aún no tenéis prioridades en común, así que esta parte queda en un 75% neutro.',
+  tipHint:'Pasa el ratón por una barra o tócala para ver qué tenéis en común.'
+});

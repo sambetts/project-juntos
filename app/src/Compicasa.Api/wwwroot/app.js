@@ -112,7 +112,24 @@ function avatar(id,size,color,name){
   const c=isMe(id)?ME_COLOR:(color||colorOf(id)),n=name||dn(id);
   return `<span class="avatar" data-bg="${esc(c)}" data-sz="${size}" aria-hidden="true">${esc(initials(n))}</span>`;
 }
-function bar(label,v){const pct=Math.round(v*100);return `<div class="bar"><span>${esc(label)}</span><div class="track"><div class="fill" data-w="${pct}"></div></div><span>${pct}%</span></div>`;}
+function bar(label,v,tip){const pct=Math.round(v*100);return `<div class="bar${tip?' tipped':''}"${tip?` data-tip="${esc(tip)}" tabindex="0"`:''}><span>${esc(label)}</span><div class="track"><div class="fill" data-w="${pct}"></div></div><span>${pct}%</span>${tip?`<span class="sr">${esc(tip)}</span>`:''}</div>`;}
+/* Tooltips on a match's score (B-085): what you and they have in common, part by part. Only what their profile
+   already shows (areas, types, horizon, priorities); their lifestyle answers stay private, as yours do. */
+function partTip(k,x){
+  const me=S.profile,p=x.person,w=Math.round((isLet(p)?LET_WEIGHTS:WEIGHTS)[k]*100),counts=' '+t('tipCounts',w);
+  const both=(a,b)=>(a||[]).filter(v=>(b||[]).indexOf(v)>=0);
+  if(k==='lifestyle')return t('tipLife')+counts;
+  if(k==='home'){const b=(x.score.both||[]).map(f=>featLabel(f).toLowerCase());return (b.length?t('tipHome',listAnd(b)):t('tipHomeNone'))+counts;}
+  if(!me)return t('tipCounts',w);
+  if(k==='place'){const ar=both(me.areas,p.areas).map(areaLabel),ty=both(me.types,p.types).map(v=>typeLabel(v).toLowerCase());
+    return t('tipPlace',ar.length?listAnd(ar):'—',ty.length?listAnd(ty):'—')+counts;}
+  if(k==='plans')return t('tipPlans',isLet(p),horizonLabel(me.horizon),p.name,horizonLabel(p.horizon))+counts;
+  return t('tipCounts',w);
+}
+function ringTip(x){
+  const w=isLet(x.person)?LET_WEIGHTS:WEIGHTS;
+  return t('tipRing',x.score.total,partKeys(x.score.parts).map(k=>t('tipPart',tx(PART_LABELS[k]),Math.round(x.score.parts[k]*100),Math.round(w[k]*100))).join('; '));
+}
 function kp(v,k){return `<div class="kpi"><div class="v">${v}</div><div class="k">${k}</div></div>`;}
 function radioGroup(field,opts,val,label){
   return `<div class="field"><span class="label">${esc(label)}</span><div class="seg" role="radiogroup" aria-label="${esc(label)}">${opts.map(o=>`<label class="opt"><input type="radio" name="f-${field}" data-field="${field}" value="${esc(o.id)}"${String(o.id)===String(val)?' checked':''}>${esc(o.label)}</label>`).join('')}</div></div>`;
@@ -552,7 +569,7 @@ function personCard(x){
   const chip=(c,good)=>`<span class="chip ${good?'good':'warn'}">${good?'✓':'⚑'} ${esc(M(c))}</span>`;
   const top=(x.likedMe?`<span class="chip liked">${esc(t('likedYou'))}</span>`:'')+x.clicks.slice(0,2).map(c=>chip(c,true)).join('')+x.talks.slice(0,1).map(c=>chip(c,false)).join('');
   return `<article class="card pcard${st==='passed'?' passed':''}">
-<div class="phead">${avatar(p.id,46,p.color,p.name)}<div class="pwho"><div class="pname">${esc(p.name)}${p.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''}</div><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls}" data-p="${s}" role="img" aria-label="${esc(t('ringAria',s))}"><b>${s}%</b></div></div>
+<div class="phead">${avatar(p.id,46,p.color,p.name)}<div class="pwho"><div class="pname">${esc(p.name)}${p.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''}</div><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls} tipped" data-p="${s}" role="img" tabindex="0" aria-label="${esc(t('ringAria',s)+'. '+ringTip(x))}" data-tip="${esc(ringTip(x))}"><b>${s}%</b></div></div>
 ${bio?`<p class="bio clamp">${esc(bio)}</p>`:''}
 ${top?`<div class="chips">${top}</div>`:''}
 <a class="quiet more" href="#person-${esc(p.id)}">${esc(t('moreAbout'))}</a>
@@ -634,13 +651,13 @@ function personSheet(){
   const tg=x.together,line=t('homeLine',homeType(tg.types),tg.beds),rest=t('bathsN',tg.baths)+(tg.cars?' · '+t('parkingN',tg.cars):'');
   const bio=p.bio?tx(p.bio):'';
   return `<dialog class="sheet" id="person-sheet" aria-labelledby="sheet-h"><div class="sheet-in">
-<div class="phead">${avatar(p.id,52,p.color,p.name)}<div class="pwho"><h2 id="sheet-h" class="pname">${esc(p.name)}${p.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''}</h2><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls}" data-p="${s}" role="img" aria-label="${esc(t('ringAria',s))}"><b>${s}%</b></div><button type="button" class="btn small ghost xbtn" data-action="close-sheet" aria-label="${esc(t('close'))}">✕</button></div>
+<div class="phead">${avatar(p.id,52,p.color,p.name)}<div class="pwho"><h2 id="sheet-h" class="pname">${esc(p.name)}${p.isDemo?` <span class="demo">${esc(t('demoTag'))}</span>`:''}</h2><div class="psub">${esc(hhLabel(p))}</div></div><div class="ring ${cls} tipped" data-p="${s}" role="img" tabindex="0" aria-label="${esc(t('ringAria',s)+'. '+ringTip(x))}" data-tip="${esc(ringTip(x))}"><b>${s}%</b></div><button type="button" class="btn small ghost xbtn" data-action="close-sheet" aria-label="${esc(t('close'))}">✕</button></div>
 ${bio?`<p class="bio">${esc(bio)}</p>`:''}
 <div class="facts">${facts.map(f=>`<span class="fact">${esc(f)}</span>`).join('')}</div>
 ${x.clicks.length?`<h4>${esc(t('clickH'))}</h4><div class="chips">${x.clicks.map(c=>`<span class="chip good">✓ ${esc(M(c))}</span>`).join('')}</div>`:''}
 ${x.talks.length?`<h4>${esc(t('talkH'))}</h4><div class="chips">${x.talks.map(c=>`<span class="chip warn">⚑ ${esc(M(c))}</span>`).join('')}</div>`:''}
 <div class="together mt">${isLet(p)?esc(t('letTogether',line)):t('together',esc(line),esc(rest))}</div>
-<h4>${esc(t('why',s))}</h4><div class="bars">${partKeys(x.score.parts).map(k=>bar(tx(PART_LABELS[k]),x.score.parts[k])).join('')}</div><p class="hint">${esc(t('demoScoreHint'))}</p>
+<h4>${esc(t('why',s))}</h4><div class="bars">${partKeys(x.score.parts).map(k=>bar(tx(PART_LABELS[k]),x.score.parts[k],partTip(k,x))).join('')}</div><p class="hint">${esc(t('tipHint'))} ${esc(t('demoScoreHint'))}</p>
 ${x.likedMe?`<p><span class="chip liked">${esc(t('likedYou'))}</span></p>`:''}
 <p class="safety"><button type="button" class="linkbtn" data-action="report" data-id="${esc(p.id)}">${esc(t('report'))}</button> · <button type="button" class="linkbtn" data-action="block" data-id="${esc(p.id)}">${esc(t('block'))}</button></p>
 <div class="pactions sheet-act">${cardActions(x)}</div>
@@ -1362,16 +1379,29 @@ function matchesToolbar(){
 </div>`;
 }
 
-/* One tooltip for every chart mark: follows the pointer, shows the mark's data-tip */
+/* One tooltip for everything with a data-tip (chart marks, match scores): follows a mouse; a tap or keyboard focus
+   shows it above the element. Inside an open dialog it moves into the dialog, which sits above the page (B-085). */
 const tipEl=document.createElement('div');tipEl.className='charttip';tipEl.setAttribute('role','tooltip');tipEl.hidden=true;document.body.appendChild(tipEl);
-document.addEventListener('pointermove',e=>{
-  const el=e.target.closest&&e.target.closest('[data-tip]');
-  if(!el){if(!tipEl.hidden)tipEl.hidden=true;return;}
+function showTip(el,cx,cy,below){
+  const host=el.closest('dialog[open]')||document.body;if(tipEl.parentNode!==host)host.appendChild(tipEl);
   tipEl.textContent=el.getAttribute('data-tip');tipEl.hidden=false;
-  const r=tipEl.getBoundingClientRect(),x=Math.min(window.innerWidth-r.width-8,Math.max(8,e.clientX-r.width/2)),y=e.clientY-r.height-14<8?e.clientY+18:e.clientY-r.height-14;
+  const r=tipEl.getBoundingClientRect(),x=Math.min(window.innerWidth-r.width-8,Math.max(8,cx-r.width/2)),y=cy-r.height-14<8?below+8:cy-r.height-14;
   tipEl.style.left=x+'px';tipEl.style.top=y+'px';
+}
+function tipAtEl(el){const r=el.getBoundingClientRect();showTip(el,r.left+r.width/2,r.top+6,r.bottom);}
+const tipTarget=e=>e.target.closest&&e.target.closest('[data-tip]');
+document.addEventListener('pointermove',e=>{
+  if(e.pointerType==='touch')return;
+  const el=tipTarget(e);
+  if(!el){if(!tipEl.hidden)tipEl.hidden=true;return;}
+  showTip(el,e.clientX,e.clientY,e.clientY+10);
 });
-document.addEventListener('pointerleave',()=>{tipEl.hidden=true;});
+document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;const el=tipTarget(e);if(el)tipAtEl(el);else tipEl.hidden=true;});
+document.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch')tipEl.hidden=true;});
+document.addEventListener('focusin',e=>{const el=tipTarget(e);if(el&&el===e.target)tipAtEl(el);else tipEl.hidden=true;});
+document.addEventListener('focusout',()=>{tipEl.hidden=true;});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!tipEl.hidden){tipEl.hidden=true;}});
+window.addEventListener('scroll',()=>{tipEl.hidden=true;},{passive:true,capture:true});
 async function loadHomes(gid){
   loadShortlist(gid);
   S.homes={gid:gid,loading:true};

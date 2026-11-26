@@ -37,7 +37,7 @@ public static class Views
                 return new
                 {
                     person = PublicProfile.From(x.P, c.IsDemo(x.P.Id)),
-                    score = new { total = x.Ex.Score.Total, parts = x.Ex.Score.Parts },
+                    score = new { total = x.Ex.Score.Total, parts = x.Ex.Score.Parts, both = x.Ex.Score.Both }, // both: shared priorities, already public (B-085)
                     clicks = x.Ex.Clicks,
                     talks = x.Ex.Talks,
                     together = new { beds = hb.Beds, baths = hb.Baths, cars = hb.Cars, types = hb.Types },
