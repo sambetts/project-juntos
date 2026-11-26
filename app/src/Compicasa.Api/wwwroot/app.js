@@ -245,7 +245,7 @@ function viewLanding(){
 <section class="lhero"><div><h2>${esc(t('lHeroH'))}</h2><p class="lead">${esc(t('lHeroLead'))}</p>
 <div class="lctas"><button type="button" class="btn primary" data-action="land-auth" data-id="signup">${esc(t('lCtaUp'))}</button><button type="button" class="btn" data-action="land-auth" data-id="signin">${esc(t('lCtaIn'))}</button></div>
 <p class="lnote">${esc(t('lNote'))}</p></div>
-<figure class="lplan">${landingPlan()}<figcaption><span class="lkey"><i class="h-a"></i>${esc(t('lA'))}</span><span class="lkey"><i class="h-b"></i>${esc(t('lB'))}</span><span class="lkey"><i class="h-c"></i>${esc(t('lC'))}</span><p class="hint">${esc(t('lPlanCap'))}. ${esc(t('lPlanHint'))}</p></figcaption></figure></section>
+${window.Story?'<figure class="lplan story" id="story"></figure>':`<figure class="lplan">${landingPlan()}<figcaption><span class="lkey"><i class="h-a"></i>${esc(t('lA'))}</span><span class="lkey"><i class="h-b"></i>${esc(t('lB'))}</span><span class="lkey"><i class="h-c"></i>${esc(t('lC'))}</span><p class="hint">${esc(t('lPlanCap'))}. ${esc(t('lPlanHint'))}</p></figcaption></figure>`}</section>
 <section class="lsec"><h2>${esc(t('lHowH'))}</h2><p class="lead">${esc(t('lHowLead'))}</p><ol class="lsteps">${how}</ol></section>
 <section class="ljoin">${viewAuth(true)}
 <div class="lnot lsec"><h2>${esc(t('lNotH'))}</h2><ul>${t('lNot').map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
@@ -1530,6 +1530,7 @@ function render(){
   const views={browse:viewBrowse,home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
   app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():S.view==='contact'?viewContact():S.view==='inbox'?viewInbox():S.view==='feedback'?viewFeedback():viewLegal(S.view)):(!S.me?viewLanding():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
   applyStyles(app);
+  if(window.Story)Story.mount(app);
   if(document.getElementById('hx-results'))updateHomes();
   drawCharts(app);
   renderBar();

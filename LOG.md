@@ -2,6 +2,43 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-26 · Session 35: the front page's story, to live in or to rent out
+**Who:** Sam with GitHub Copilot CLI (Claude Opus 5.5), as Chief of Staff; the Builder with Product and Brand & Marketing; the Tester; the CEO for D-055
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), in the git worktree `..\project-juntos-s35` on branch `session-35-story`, fast-forwarded into `main` at the end
+**Started from:** Session 34 (tooltips, committed, waiting on F-046). A parallel Claude Code session committed it to `main` as this one started. Sam sent a screenshot of the front page: "The animation on the homepage is very basic. It's supposed to be an animation to show how the process works, for someone who's not seen it before. A wow factor. Think hard about how to make it better - English and Spanish. Give me a plan first". No new answers in the queue; no dropped session.
+**Goals:** 1. B-087 the front page's story animation (new row).
+**Needs Sam:** F-047 (new): watch the preview, then push; that push deploys F-046 too. Recommend yes.
+**Did**
+- Plan: three concepts in a form. Sam chose A (one continuous scene), playing once, the budget moment included, and a local preview before any push. Then: "Houses can be bought to rent also, not necesarily live. Include both modes in the animation". Renting out was already in the product (B-063, D-047); only the front page didn't say so. In a second form he chose one story per play with a switch, and renting out in the opening line. Recorded in D-055.
+- B-087: `wwwroot/story.js` (new) draws one SVG stage with a moving camera:
+  - the choice of purpose;
+  - the four steps: your profile; compatible people, a mutual match and everyone saying yes; the joint brief with the exit agreed while a plan draws itself; homes filtered by the group's budget, a hidden vote and «¡Acordada!»;
+  - an ending: each household in its bedroom, or tenants in the home and the rent shared as agreed.
+- The rent-out story has its own profile, match reasons, brief and lawyer questions, as in the product.
+- Controls and access: a switch, a pause button, chapter buttons, captions in both languages and a screen-reader summary; with reduced motion it shows the ending.
+- Other files: strings in `i18n.js`, CSS in `app.css`, the hook in `app.js` (with the old plan as a fallback), `index.html`, service worker `session35`.
+- Opening line: «para vivir en ella o para alquilarla» / "to live in or to rent out".
+- Checks: I looked at screenshots at 390 px, 360 px and desktop width, in both languages, themes and purposes. Three overlaps fixed: a disc over the «L», «Inquilinos» on the door's arc, and a coin that read as «0».
+- Browser test: 9 new story checks, 116 of 116. They cover the opening line, playing in view, pause, a chapter jump, the switch keeping its place, the end offer and focus, a language switch mid-story, no sideways scroll and the reduced-motion ending.
+- Four preview clips (animated WebP, 30 seconds each) made for Sam, outside the repository.
+- Proposed B-088: the rest of the front page in both purposes.
+
+**Decided:** D-055 (Sam's choices). Its length was corrected from about 25 to about 30 seconds once built.
+**Approvals used:** D-055 covers building and committing. Nothing pushed (F-047).
+**Learned:**
+- Headless Edge reports `prefers-reduced-motion: reduce`, so plain screenshots show only the still ending; the clips and the test set it through CDP.
+- The language buttons live inside the header menu.
+- In this tool, a long file write in the same reply as long reasoning was lost twice; smaller writes worked.
+- The smallest labels render at about 10.4 px on a 360 px phone. I left them, since the caption carries the meaning.
+
+**Open or blocked:** F-047 and F-046 (one push); F-031, F-040, F-033, F-037 and F-014 as before.
+**Saved and checked:**
+- `node --check` passes on the four scripts; `dotnet build` gives 0 warnings; ITP check 77 of 77; browser test 116 of 116 against a local run.
+- Project files checked with `git status` and `git diff` against what was written; LOG.md saved last.
+- RISKS.md unchanged (no row affected).
+
+**Next session should start with:** 1. If Sam pushed (F-047): check the run and the story live, signed out, on a phone and a desktop. 2. B-088 with F-031. 3. B-086, then B-052 with B-027, B-039, B-041 and B-072.
+
 ## 2026-11-26 · Session 34: explaining a match's score
 **Who:** Sam with Claude Code (Opus 5.5), as Chief of Staff; the Builder with Product and the Tester
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022)

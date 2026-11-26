@@ -4,6 +4,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-047 · Watch the front-page story, then push to `main` (deploys B-087, with F-046) · by 2026-11-27
+**Why:** a push deploys (D-041). It brings the story you asked for (D-055): how Compicasa works in four steps, to live in or to rent out, in Spanish and English. `main` also holds the tooltips (F-046), so one push deploys both.
+**Options:** watch the preview first, then push; or ask for changes. The preview is four clips in `preview35\index.html` in the Copilot session's `files` folder, or the local site at http://localhost:5235, signed out.
+**Recommendation:** watch one clip of each purpose, then push both. Front end only: no database or API change. Browser test 116 of 116.
+**Suggested date:** 2026-11-27.
+**If no answer:** committed, not deployed.
+
 ### F-046 · Push the match-score tooltips to `main` (deploys B-085) · by 2026-11-27
 **Why:** a push deploys (D-041). It brings what you asked for: tooltips on the score ring and on each "Why X%?" bar saying what you and the other person have in common (places, home type, how long, shared priorities) and how each part counts. Others' lifestyle answers stay private.
 **Options:** push now; or look locally first (`dotnet run` in `app/src/Compicasa.Api`, invite code `local-test`, open a person's *Más*).

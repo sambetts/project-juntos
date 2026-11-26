@@ -121,6 +121,46 @@ async function submitAndExpect(re, label) {
   await until(`document.getElementById('auth-error')?.textContent.length>0`, label);
   ok(re.test(await authError()), label + ' (in Spanish): ' + await authError());
 }
+// The front page's story (B-087, D-055): plays when in view, pauses, jumps to a chapter, switches purpose, offers the
+// other story at the end, keeps its place across a language switch, and shows the finished home still with reduced motion.
+{
+  await size(390, 844, true);
+  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
+  await send('Page.navigate', { url: base + '/' });
+  await until(`!!document.querySelector('#story .st-svg')`, 'story renders on the front page');
+  ok(/para vivir en ella o para alquilarla/.test(await js(`document.querySelector('.lhero .lead')?.textContent||''`)), 'front page: the opening line covers renting out');
+  await js(`document.getElementById('story').scrollIntoView({block:'center'});1`);
+  await until(`Story.state().playing&&Story.state().t>.3`, 'story plays when it comes into view');
+  const playLabel = () => js(`document.querySelector('#story .st-play').getAttribute('aria-label')`);
+  const before = await playLabel();
+  await click('#story .st-play');
+  ok(!(await js('Story.state().playing')) && (await playLabel()) !== before, 'story: the play button pauses and relabels');
+  await click('#story [data-st-ch="2"]');
+  ok(await js(`(s=>s.playing&&s.t>=13&&s.t<14)(Story.state())&&document.querySelector('#story [data-st-ch="2"]').getAttribute('aria-current')==='step'`), 'story: chapter 3 jumps there and plays');
+  await click('#story [data-st-mode="let"]');
+  ok(await js(`(s=>s.mode==='let'&&s.t>=13)(Story.state())&&document.querySelector('#story [data-st-mode="let"]').getAttribute('aria-pressed')==='true'`), 'story: the switch changes purpose and keeps its place');
+  await js('Story.pause();Story.seek(Story.state().end);1');
+  ok(await js(`(b=>!!b&&b.offsetParent!==null&&/vivir/.test(b.textContent))(document.querySelector('#story .st-inv'))`), 'story: the end offers the other purpose');
+  await click('#story .st-inv');
+  ok(await js(`(s=>s.mode==='live'&&s.playing&&s.t<1)(Story.state())&&document.activeElement===document.querySelector('#story .st-play')`), 'story: the offer plays the other story and moves focus to play');
+  await js('Story.pause();Story.seek(20);1');
+  await click('#menu-btn');
+  await click('#menu [data-action="lang"][data-id="en"]');
+  await until(`document.documentElement.lang==='en'&&!!document.querySelector('#story .st-svg')`, 'story: switch to English');
+  ok(await js(`Math.abs(Story.state().t-20)<.01&&/Choose it together/.test(document.querySelector('#story .st-cap').textContent)`), 'story: a language switch keeps its place and translates the caption');
+  ok(await js(`document.documentElement.scrollWidth <= window.innerWidth + 1`), 'story: no sideways scrolling');
+  if (await js(`document.getElementById('menu').hidden`)) await click('#menu-btn');
+  await click('#menu [data-action="lang"][data-id="es"]');
+  await until(`document.documentElement.lang==='es'`, 'story: back to Spanish');
+  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+  await send('Page.navigate', { url: 'about:blank' });
+  await send('Page.navigate', { url: base + '/' });
+  await until(`!!document.querySelector('#story .st-svg')`, 'story renders with reduced motion');
+  await sleep(600);
+  ok(await js(`(s=>s.t===s.end&&!s.playing)(Story.state())`), 'story: with reduced motion it shows the finished home, still');
+  await send('Emulation.setEmulatedMedia', { features: [] });
+}
+
 for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false, 'desktop']]) {
   await size(w, h, mobile);
   await send('Network.clearBrowserCookies');
