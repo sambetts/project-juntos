@@ -51,7 +51,13 @@ Newest first. Add an entry at the end of every session (`templates/session-hando
 - Checks: `node --check` on both files; browser test 117 of 117 against a local run; contact sheets of the whole story in both purposes looked at. Committed. Pushing it is a new deploy, so it waits on Sam (F-049).
 - Meanwhile a parallel session (Session 36, Claude Code) committed reworded public text to `main` (B-090), with its own F-048 and service worker `session36`. I rebased onto it: my queue item became F-049, and the service worker is `session35c`, so the fix reaches phones whichever push comes first. One push of `main` now deploys both. After the rebase, the local site serves both changes, and the browser test on the combined code passes 117 of 117.
 
-**Next session should start with:** 1. If Sam pushed `main` (F-048 and F-049), check its run and the switch live (service worker `session35c`). 2. Sam to watch the story live on his phone, in both purposes. 3. B-088 with F-031, then B-086.
+**Then:** Sam chose "Yes, push both now" (recorded in F-049 and F-048, commit 1d32eee). Meanwhile Session 36 had added a second commit to `main`: 7ecf1d5, one line in AGENTS.md section 6 (say what an ID is whenever you mention one to Sam). The question named it, and it went in the same push.
+- Pushed `0ef1323..1d32eee`. Run 45849752272 passed (test, deploy, wait until ready).
+- Live: `/healthz/ready` 200. All nine text files in `wwwroot` (HTML, scripts, styles, manifest) are served exactly as in the repository, so the live site has the person-at-home switch icon, service worker `session35c` and Session 36's new "How it works" line. None has a heart symbol or heart emoji.
+- Screenshots of the live story (phone in Spanish, desktop in English, both purposes, at 2 and 9.8 seconds): the «Para vivir» switch shows a person at home, «Para alquilar» a key, and the match shows the thumbs-up. The only console messages are the usual 401 from `/api/me` when signed out and the deprecated `apple-mobile-web-app-capable` tag.
+- This records-only commit stays local, after the push. It changes no `app/` file, so pushing it deploys nothing; it can go with the next push Sam approves.
+
+**Next session should start with:** 1. Sam to watch the story live on his phone, signed out, in both purposes and languages. 2. B-088 (the rest of the front page for both purposes) with F-031 (mission wording for renting out), then B-086 (plain words for "Horizonte").
 
 ## 2026-11-26 · Session 35: the front page's story, to live in or to rent out
 **Who:** Sam with GitHub Copilot CLI (Claude Opus 5.5), as Chief of Staff; the Builder with Product and Brand & Marketing; the Tester; the CEO for D-055
