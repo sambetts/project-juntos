@@ -4,11 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-051 · Push `main` to deploy Session 37's fixes to the new address (B-091, B-093) · by 2026-11-28
+### F-051 · Push `main` to deploy Session 37's fixes to the new address (B-091, B-093) · CLOSED 2026-11-27: pushed
 **Why:** the site now runs at https://compicasa.azurewebsites.net on the code that was live before (D-057). The push brings the sign-up and wizard fixes (the "Invite code" label, the browser's language, Tristan's three points, no «unknown» name) and points GitHub's deploy at the new web app (`app.yml`); until then a push to `main` is the only way in, so nothing else is affected. Tests: 118 .NET, browser test 123 of 123 locally.
 **Options:** A) push now; B) look first at a local run.
 **Recommendation:** A. Then update your bookmark and the installed app to the new address, and give Tristan the new link: the old one no longer exists.
 **If no answer:** the fixes wait; the live site keeps working on the earlier code.
+**ANSWER (Sam, 2026-11-27, in Claude Code):** "Push the changes and lets see them". Approval to push `main` as it stands, with this record, only.
 
 ### F-050 · Delete the old web app and database server after the move to production names (D-057, D-058) · CLOSED 2026-11-27: approved in chat
 The old web app `app-compicasa-prod-25yr5` (stopped) and the old SQL server `sql-compicasa-uksouth-25yr5` (its database moved to Basic to wake it, so about €0.18 a day) were left after the database was copied to `sql-compicasa-prod` and the site moved to `https://compicasa.azurewebsites.net`. Recommendation: delete both now.
