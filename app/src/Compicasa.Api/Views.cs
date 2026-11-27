@@ -15,7 +15,7 @@ public static class Views
     static string State(Community c, string id) =>
         c.IPassed(id) ? "passed" : !c.ILike(id) ? "none" : c.TheyLikeMe(id) ? "mutual" : c.IsDemo(id) ? "noMatch" : "waiting";
 
-    public static object Matches(Community c)
+    public static object Matches(Community c, int earlyBelow = 0)
     {
         var ok = new List<(Profile P, Explanation Ex)>();
         var hidden = new List<(Profile P, HardResult H)>();
@@ -47,6 +47,10 @@ public static class Views
             }),
             hidden = hidden.Select(x => new { person = PersonOf(c, x.P), reasons = x.H.Reasons }),
             mutualCount = mutuals.Count,
+            // D-059: few real compatible people left to meet (not passed), so People and Home lead with the early-days card
+            // instead of a count. Made-up people never count; demoPeople says whether any are on (the closed preview).
+            early = ok.Count(x => !c.IsDemo(x.P.Id) && !c.IPassed(x.P.Id)) < earlyBelow,
+            demoPeople = c.Others.Values.Any(o => o.Account.IsDemo),
             likedCount = c.MyReactions.Count(r => r.Value == ReactionKind.Like),
             suggestions = suggestions.Select(g =>
             {

@@ -52,7 +52,8 @@ public class SocialTests : IClassFixture<AppFactory>
         await Like(a, bId);
 
         await Like(b, aId);
-        Assert.Equal(["match"], await Kinds(a));
+        // Newest first; Bea finished signing up after Ana, so Ana was also told someone compatible had joined (D-059).
+        Assert.Equal(["match", "nearby"], await Kinds(a));
         Assert.Equal(HttpStatusCode.NoContent, (await a.PostAsync("/api/inbox/read", null)).StatusCode);
         Assert.Equal(0, (await Count(a)).GetProperty("alerts").GetInt32());
     }

@@ -482,7 +482,7 @@ function viewDash(){
     else if(c.matches&&!g.open.length)next=[t('dn_group',c.matches),t('dn_groupBtn'),'#groups',2];
     else if(ps.score<60)next=[t('dn_profile'),t('dn_profileBtn'),'#profile',0];
     else if(c.review)next=[t('dn_review',c.review),t('dn_reviewBtn'),'#people-review',1];
-    else next=[t('dn_wait'),'','',g.open.length?2:1];
+    else next=[t(S.matches&&!S.matches.demoPeople?'dn_waitReal':'dn_wait'),'','',g.open.length?2:1];
   }
   const now=next?next[3]:-1;
   /* the profile counts as done once the next step has moved past it, so the stepper never shows step 4 as current with step 1 undone (B-083) */
@@ -507,7 +507,7 @@ ${missing.length?'':`<p class="hint">${esc(t('scoreAll'))}</p>`}</section>`;
 <p class="mt"><a class="btn small ghost" href="#houses">${esc(t('brAll'))}</a></p>${g.formed?`<p class="mt"><a class="btn small" href="${groupHash(g.formed,'homes')}">${esc(t('dashHomesGroup'))}</a></p>`:''}`;
   }
   return `<header class="phead2"><div><h2>${esc(t('dashH',u.name||''))}</h2><p class="hint">${esc(t('dashLead'))}</p></div></header>
-${nextBox}
+${nextBox}${earlyCard()}
 <section class="mb"><h3 class="sr">${esc(t('dashStepsH'))}</h3>${stepper}</section>
 <div class="dash-grid">${scoreCard}<section class="card dash-homes"><h3>${esc(t('dashHomesH'))}</h3>${homes}</section></div>`;
 }
@@ -598,19 +598,25 @@ function peopleSub(){if(S.ps)return S.ps;const c=peopleCounts();return c.review|
 function subTabs(items,cur,attr,label){
   return `<nav class="subtabs" aria-label="${esc(label)}">${items.map(x=>x[3]?`<span class="stab off" aria-disabled="true">${esc(x[1])} <small>${esc(x[3])}</small></span>`:`<a class="stab" href="${x[4]}" ${attr}="${x[0]}"${x[0]===cur?' aria-current="page"':''}>${esc(x[1])}${x[2]!=null?` <span class="n">${x[2]}</span>`:''}</a>`).join('')}</nav>`;
 }
+/* D-059: while few real compatible people are left to meet, say so plainly instead of leading with a small count */
+function earlyCard(){
+  const m=S.matches;if(!m||!m.early)return '';
+  return `<section class="card early" aria-labelledby="early-h"><h3 id="early-h">${esc(t('earlyH'))}</h3><p>${esc(t('earlyLead'))}</p>${m.demoPeople?`<p class="hint">${esc(t('earlyDemo'))}</p>`:''}<p class="hint">${esc(t('earlyMeanwhile'))}</p><p class="row"><a class="btn small" href="#profile">${esc(t('earlyProfile'))}</a><a class="btn small ghost" href="#houses">${esc(t('earlyHomes'))}</a></p></section>`;
+}
 function viewMatches(){
   const m=S.matches;if(!m)return `<p class="lead">${esc(t('loading'))}</p>`;
   const all=m.compatible,c=peopleCounts(),ps=peopleSub(),med=median(all.map(x=>x.score.total));
   const likedN=all.filter(x=>x.likedMe).length;
-  const summary=[t('sumCompat',all.length),med!=null?t('sumMedian',Math.round(med)):'',ps==='review'&&likedN?t('likedYouN',likedN):''].filter(Boolean).join(' · ');
+  /* early days: no headline count or median (D-059) */
+  const summary=[m.early?'':t('sumCompat',all.length),!m.early&&med!=null?t('sumMedian',Math.round(med)):'',ps==='review'&&likedN?t('likedYouN',likedN):''].filter(Boolean).join(' · ');
   const purpose=S.profile?`<p class="purposeline"><span class="pill">${esc(t('peoplePurpose',purposeLabel(S.profile.purpose)))}</span> <a class="quiet" href="#profile" data-action="open-sec" data-id="purpose">${esc(t('purposeChange'))}</a></p>`:'';
-  const head=`<header class="phead2"><div><h2>${t('peopleH')}</h2><p class="hint">${esc(summary)} · <a href="#help" class="quiet">${esc(t('howScore'))}</a></p>${purpose}</div></header>
+  const head=`<header class="phead2"><div><h2>${t('peopleH')}</h2><p class="hint">${summary?esc(summary)+' · ':''}<a href="#help" class="quiet">${esc(t('howScore'))}</a></p>${purpose}</div></header>
 ${subTabs([['review',t('ps_review'),c.review],['liked',t('ps_liked'),c.liked],['matches',t('ps_matches'),c.matches]].map(x=>x.concat(['','#people-'+x[0]])),ps,'data-ps',t('peopleH'))}`;
   /* the one next step on this page: a group, once you have a mutual match */
   const next=ps==='matches'&&c.matches?`<div class="nextstep"><span>${esc(m.suggestions.length?t('nextGroups',m.suggestions.length):t('nextAddToGroup'))}</span>${m.suggestions.length?`<a class="btn small primary" href="#groups">${esc(t('nextGroupsBtn'))}</a>`:''}</div>`:'';
   const passedTitle=ps==='passed'?`<p class="crumb"><a class="linkbtn" href="#people-review">← ${esc(t('backToReview'))}</a></p><h3>${esc(t('passedH',c.passed))}</h3>`:'';
   const tail=ps==='review'?[c.passed?`<a class="quiet" href="#people-passed">${esc(t('seePassed',c.passed))}</a>`:'',m.hidden.length?`<details class="quietbox"><summary>${esc(t('hiddenN',m.hidden.length))} <span class="hint">${t('seeWhy')}</span></summary><ul class="clean mt">${m.hidden.map(h=>`<li>${avatar(h.person.id,32,h.person.color,h.person.name)}<div><b>${esc(h.person.name)}</b> <span class="hint">· ${esc(hhLabel(h.person))}</span><div class="who">${esc(h.reasons.map(M).join(' · '))}</div></div></li>`).join('')}</ul></details>`:''].filter(Boolean):[];
-  return `${head}${next}${passedTitle}
+  return `${head}${next}${ps==='review'?earlyCard():''}${passedTitle}
 ${c[ps]>3?matchesToolbar():''}
 <div id="mx-results">${matchesResults()}</div>${tail.length?`<div class="tail mt">${tail.join('')}</div>`:''}${personSheet()}`;
 }
@@ -795,7 +801,7 @@ function when(iso){
   return d.toLocaleDateString(locale(),{day:'numeric',month:'short'});
 }
 function noteLink(n){
-  if(n.kind==='like')return '#person-'+n.actor;
+  if(n.kind==='like'||n.kind==='nearby')return '#person-'+n.actor;
   if(n.kind==='match')return '#chat-'+n.actor;
   if(n.group&&n.groupOpen&&SL_NOTES.indexOf(n.kind)>=0)return '#group-'+n.group+'-shortlist';
   return n.group&&n.groupOpen?'#group-'+n.group:'';
@@ -1365,7 +1371,7 @@ function matchesResults(){
   }
   /* twelve at a time, like the homes */
   const shown=sel.slice(0,f.show),more=sel.length-shown.length;
-  const grid=sel.length?`<div class="grid people">${shown.map(personCard).join('')}</div>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-people">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`:`<div class="card empty"><p>${esc(all.length?t('mfNone'):t('psEmpty_'+ps))}</p>${!all.length&&ps!=='review'&&S.matches.compatible.some(x=>x.state==='none')?`<a class="btn" href="#people-review">${esc(t('psGoReview'))}</a>`:''}</div>`;
+  const grid=sel.length?`<div class="grid people">${shown.map(personCard).join('')}</div>${more>0?`<p class="center mt"><button type="button" class="btn" data-action="more-people">${esc(t('moreHomes',Math.min(12,more),more))}</button></p>`:''}`:`<div class="card empty"><p>${esc(all.length?t('mfNone'):t('psEmpty_'+ps+(ps==='review'&&!m.demoPeople?'Real':'')))}</p>${!all.length&&ps!=='review'&&S.matches.compatible.some(x=>x.state==='none')?`<a class="btn" href="#people-review">${esc(t('psGoReview'))}</a>`:''}</div>`;
   return `${chart}${filtered?`<p class="hint" aria-live="polite">${esc(t('mfShown',sel.length,all.length))}</p>`:''}${grid}`;
 }
 function updateMatches(){const el=document.getElementById('mx-results');if(!el)return;el.innerHTML=matchesResults();applyStyles(el);drawCharts(el);}

@@ -2,6 +2,27 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-27 · Session 38: early days, with few people at launch
+**Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; Product for the spec; the CEO for D-059 and the strategy line; the Builder and the Tester; Validation for R-013
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
+**Started from:** STATE.md after Session 37; no new answers in the queue. Sam: "what do we do with the fact there'll be very few users on there when we launch? How can we make it less obvious?" I answered in chat (no fakes; rounds; no counts; useful alone; groups who know each other; small as a feature; concentrate). Sam: "Make this happen. It's important we get it right".
+**Goals:** 1. B-096 the design. 2. B-097 build it. 3. B-075 bring your own co-buyers: spec, build if time.
+**Needs Sam:** F-053 (added): push to deploy. F-052 (added): plan the first promotion as a dated burst.
+**Did**
+- B-096 (Product, CEO): `product/2026-11-27-early-days.md`. Changed one thing from my chat answer, and said so to Sam: fixed rounds dropped for the open app (making people wait for a date when someone is already there thins the pool); the timing benefit comes from a launch window instead (F-052). Strategy section 4 said "show newcomers honestly how many compatible people are near them"; amended by D-059 to an early-days card without the number, and checklist item 12 (made-up people off) added. R-013 updated (Validation).
+- Found while reading: the release had no plan for the made-up people, who would have met real users at launch. That is now the `People:Demo` switch.
+- B-097 (Builder): `DemoData.Enabled`, `RemoveAllAsync` (shares `ForgetAsync` with the daily refresh); `Program.cs` loads or removes made-up people by the setting; `Views.Matches` gives `early` and `demoPeople`; `Api.NotifyNearbyAsync` on first finishing the wizard (`NoteKind.Nearby`, at most 3 unread); `earlyCard` on People and Home, no count or median while early; `n_nearby`, `psEmpty_reviewReal`, `dn_waitReal` and the card's strings in Spanish and English; service worker `session38`; `app/README.md`.
+- Tests: `EarlyDaysTests.cs` (5 new; `AppFactory` now takes extra settings through `Configure`); one SocialTests assertion updated, since Ana is now also told Bea joined. 128 of 128. Browser test against a local run: first run 120 of 123 (the three homes time-outs Session 37 also saw on a fresh database), second run 123 of 123. A scratch Playwright check with `People__Demo=false`, Spanish and English: card on People and Home, the notice and its link to the newcomer's card, no script errors; its three failures were the test's own (people left from an earlier run took the English pass past the threshold, which is correct) and one real finding, below.
+- B-075: spec in the note (row 5); not built. The row now lists the details Product must settle first.
+- Records: D-059; B-096, B-097 done; B-075 moved to the top; B-098 to B-101 proposed; F-052, F-053; STATE.md.
+
+**Decided:** D-059 (CEO, on Sam's instruction).
+**Approvals used:** none. Sam's "Make this happen" covered the design and the build in this repository; the push is F-053.
+**Learned:** with made-up people off, the preview's ribbon still says «Todas las personas son inventadas» (B-098, release wording). `psEmpty_liked` has said likes are private since D-039 made them visible (B-100). Not confirmed: the Spanish consumer-law point in the note is an Assumption, and the FTC example is from memory.
+**Open or blocked:** F-053 the push; B-075 next.
+**Saved and checked:** `git status` and `git diff` read against these edits (18 files plus the new note and test file); STATE.md's Session in progress cleared; this entry saved last.
+**Next session should start with:** 1. F-053: if pushed, check the run and the card live. 2. B-075, Product first. 3. B-100.
+
 ## 2026-11-27 · Session 37 (continued): pushed and checked live
 **Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; the Builder and the Tester
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`

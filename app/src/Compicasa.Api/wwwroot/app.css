@@ -398,6 +398,10 @@ a.tab{text-decoration:none}
 /* the one next step on a page */
 .nextstep{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--teal-soft);border-radius:12px;padding:10px 14px;margin-block-end:16px;font-weight:600}
 .nextstep span{flex:1;min-inline-size:200px}
+/* early days (D-059): few real people to meet yet */
+.card.early{border-inline-start:4px solid var(--teal);margin-block-end:16px}
+.card.early h3{margin-block:0 6px}
+.card.early .row{display:flex;flex-wrap:wrap;gap:10px;margin-block:10px 0}
 .quietbox{border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:var(--surface)}
 .quietbox summary{font-weight:600;font-size:14px}
 .tail{display:grid;gap:12px}

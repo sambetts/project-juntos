@@ -96,6 +96,8 @@ public static class NoteKind
     public const string Like = "like";
     /// <summary>A real person you liked liked you back.</summary>
     public const string Match = "match";
+    /// <summary>A real person compatible with you both ways has just finished signing up (D-059; the actor is the newcomer).</summary>
+    public const string Nearby = "nearby";
     public const string Invite = "invite";
     public const string Accepted = "accepted";
     public const string Declined = "declined";

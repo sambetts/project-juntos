@@ -74,8 +74,10 @@ public static partial class Api
             var p = a.ReadProfile();
             if (p.Name.Trim().Length == 0) return Error("badName");
             if (p.Areas.Count == 0 || p.Types.Count == 0) return Error("profileIncomplete");
+            var first = a.OnboardedAt is null;
             a.OnboardedAt ??= clock.GetUtcNow();
             await db.SaveChangesAsync();
+            if (first) await NotifyNearbyAsync(db, a, clock.GetUtcNow(), http.RequestAborted);
             return Results.Ok(Accounts.Me(a));
         });
 
@@ -92,11 +94,11 @@ public static partial class Api
             return Results.Ok(p);
         });
 
-        me.MapGet("/matches", async (HttpContext http, AppDb db) =>
+        me.MapGet("/matches", async (HttpContext http, AppDb db, IConfiguration cfg) =>
         {
             var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
             var c = await Community.LoadAsync(db, a, http.RequestAborted);
-            return Results.Ok(Views.Matches(c));
+            return Results.Ok(Views.Matches(c, EarlyBelow(cfg)));
         });
 
         me.MapPut("/reactions/{id}", async (string id, ReactionRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
@@ -355,6 +357,28 @@ public static partial class Api
 
     /// <summary>Tells a real person about a like (B-037): "liked you" if they haven't answered, "match" if they had
     /// already liked the viewer. Taking a like back removes the unread notice.</summary>
+    /// <summary>Below this many real compatible people left to meet, People and Home show the early-days card (D-059). An Assumption to tune.</summary>
+    public static int EarlyBelow(IConfiguration cfg) => Math.Max(0, cfg.GetValue("People:EarlyBelow", 5));
+
+    /// <summary>Most unread "someone compatible joined" notices one person holds at once, so a busy day can't flood them.</summary>
+    public const int MaxNearbyUnread = 3;
+
+    /// <summary>
+    /// A real person has just finished signing up: tell every real person compatible with them both ways (D-059). These
+    /// are exactly the people who will see the newcomer in People, so the notice reveals nothing new. Blocks are respected.
+    /// </summary>
+    static async Task NotifyNearbyAsync(AppDb db, Account newcomer, DateTimeOffset now, CancellationToken ct)
+    {
+        var c = await Community.LoadAsync(db, newcomer, ct);
+        var them = c.Others.Values.Where(o => !o.Account.IsDemo && Matching.Hard(c.Me, o.Profile).Ok).Select(o => o.Account.Id).ToList();
+        if (them.Count == 0) return;
+        var full = (await db.Notifications.AsNoTracking().Where(n => them.Contains(n.AccountId) && n.Kind == NoteKind.Nearby && n.ReadAt == null)
+            .GroupBy(n => n.AccountId).Select(g => new { g.Key, N = g.Count() }).ToListAsync(ct))
+            .Where(x => x.N >= MaxNearbyUnread).Select(x => x.Key).ToHashSet();
+        foreach (var id in them.Where(id => !full.Contains(id))) await Notes.AddAsync(db, id, NoteKind.Nearby, newcomer.Id, null, now, ct);
+        await db.SaveChangesAsync(ct);
+    }
+
     static async Task NotifyReactionAsync(AppDb db, Community c, string to, string kind, DateTimeOffset now, CancellationToken ct)
     {
         await db.Notifications.Where(n => n.AccountId == to && n.ActorId == c.Viewer.Id && n.ReadAt == null

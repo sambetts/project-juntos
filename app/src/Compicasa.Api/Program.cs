@@ -44,7 +44,7 @@ builder.Services.AddDbContext<AppDb>(o =>
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<DemoData>();
-if (cfg.GetValue("Demo:RefreshDaily", true)) builder.Services.AddHostedService<DemoRefreshWorker>();
+if (cfg.GetValue("Demo:RefreshDaily", true) && DemoData.Enabled(cfg)) builder.Services.AddHostedService<DemoRefreshWorker>();
 
 builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 
@@ -134,14 +134,18 @@ Browse.Map(app);
 app.MapGet("/bot", (IWebHostEnvironment env) => Results.File(Path.Combine(env.WebRootPath, "bot.html"), "text/html; charset=utf-8"));
 app.MapFallbackToFile("index.html");
 
-// Create or migrate the schema (D-034), load the 14 made-up profiles and today's generated batch before taking traffic.
+// Create or migrate the schema (D-034), load the 14 made-up profiles and today's generated batch (or remove them all, D-059) before taking traffic.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDb>();
     await Schema.PrepareAsync(db, app.Logger);
     var demo = scope.ServiceProvider.GetRequiredService<DemoData>();
-    await demo.EnsureSeedsAsync();
-    await demo.RefreshIfDueAsync();
+    if (DemoData.Enabled(app.Configuration))
+    {
+        await demo.EnsureSeedsAsync();
+        await demo.RefreshIfDueAsync();
+    }
+    else await demo.RemoveAllAsync(); // the public release (D-059): real people only
     await DemoHomes.EnsureAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>(), app.Configuration);
 
     // Crawl one agency by hand and exit (D-035): dotnet run -- crawl tecnocasa [--Crawl:Max=200] [--Crawl:DelaySeconds=3]

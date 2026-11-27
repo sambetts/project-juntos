@@ -20,6 +20,39 @@ public sealed class DemoData(AppDb db, TimeProvider clock, ILogger<DemoData> log
         return DateOnly.FromDateTime(madrid.AddHours(-RefreshHour).DateTime);
     }
 
+    /// <summary>
+    /// Made-up people are on unless "People:Demo" is false (D-059). Off for the public release: real people then meet
+    /// only real people, and every made-up person, with their likes, groups and messages, is removed at start-up.
+    /// </summary>
+    public static bool Enabled(IConfiguration cfg) => !string.Equals(cfg["People:Demo"], "false", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Removes every made-up person and anything that involves them (D-059). Returns how many were removed.</summary>
+    public async Task<int> RemoveAllAsync(CancellationToken ct = default)
+    {
+        var count = 0;
+        await Transactions.RunAsync(db, async () =>
+        {
+            count = await ForgetAsync(await db.Accounts.Where(a => a.Kind != AccountKind.User).Select(a => a.Id).ToListAsync(ct), ct);
+            // No stamp, no cached copy: DemoProfiles reads the (now empty) list from the database.
+            await db.DemoStates.ExecuteDeleteAsync(ct);
+        }, ct);
+        if (count > 0) log.LogInformation("Made-up people are off (People:Demo=false); {Removed} made-up profiles removed", count);
+        return count;
+    }
+
+    /// <summary>Deletes these made-up accounts with their reactions, conversations and groups. Call inside a transaction.</summary>
+    async Task<int> ForgetAsync(List<string> ids, CancellationToken ct)
+    {
+        if (ids.Count == 0) return 0;
+        await db.Reactions.Where(r => ids.Contains(r.FromId) || ids.Contains(r.ToId)).ExecuteDeleteAsync(ct);
+        var groupIds = await db.GroupMembers.Where(m => ids.Contains(m.AccountId)).Select(m => m.GroupId).Distinct().ToListAsync(ct);
+        await Threads.ForgetAsync(db, ids, groupIds, ct);
+        await db.GroupMembers.Where(m => groupIds.Contains(m.GroupId)).ExecuteDeleteAsync(ct);
+        await db.Groups.Where(g => groupIds.Contains(g.Id)).ExecuteDeleteAsync(ct);
+        await db.Accounts.Where(a => ids.Contains(a.Id)).ExecuteDeleteAsync(ct);
+        return ids.Count;
+    }
+
     public async Task EnsureSeedsAsync(CancellationToken ct = default)
     {
         var existing = await db.Accounts.Where(a => a.Kind == AccountKind.Seed).ToDictionaryAsync(a => a.Id, ct);
@@ -49,15 +82,7 @@ public sealed class DemoData(AppDb db, TimeProvider clock, ILogger<DemoData> log
         await Transactions.RunAsync(db, async () =>
         {
             stale = await db.Accounts.Where(a => a.Kind == AccountKind.Generated && !a.Id.StartsWith(prefix)).Select(a => a.Id).ToListAsync(ct);
-            if (stale.Count > 0)
-            {
-                await db.Reactions.Where(r => stale.Contains(r.FromId) || stale.Contains(r.ToId)).ExecuteDeleteAsync(ct);
-                var groupIds = await db.GroupMembers.Where(m => stale.Contains(m.AccountId)).Select(m => m.GroupId).Distinct().ToListAsync(ct);
-                await Threads.ForgetAsync(db, stale, groupIds, ct);
-                await db.GroupMembers.Where(m => groupIds.Contains(m.GroupId)).ExecuteDeleteAsync(ct);
-                await db.Groups.Where(g => groupIds.Contains(g.Id)).ExecuteDeleteAsync(ct);
-                await db.Accounts.Where(a => stale.Contains(a.Id)).ExecuteDeleteAsync(ct);
-            }
+            await ForgetAsync(stale, ct);
 
             var have = await db.Accounts.Where(a => a.Id.StartsWith(prefix)).Select(a => a.Id).ToListAsync(ct);
             foreach (var p in DemoGenerator.Batch(day).Where(p => !have.Contains(p.Id)))

@@ -11,7 +11,7 @@ using Microsoft.Extensions.Time.Testing;
 namespace Compicasa.Tests;
 
 /// <summary>An app on a throwaway SQLite file, with a fixed invite code and a clock the test controls.</summary>
-public sealed class AppFactory : WebApplicationFactory<Program>
+public class AppFactory : WebApplicationFactory<Program>
 {
     public const string Invite = "test-invite";
     readonly string _db = Path.Combine(Path.GetTempPath(), $"compicasa-test-{Guid.NewGuid():N}.db");
@@ -27,7 +27,11 @@ public sealed class AppFactory : WebApplicationFactory<Program>
         // Tests change homes and read them back at once; HomeIndex's copy has its own test.
         builder.UseSetting("Homes:CacheSeconds", "0");
         builder.ConfigureServices(s => s.AddSingleton<TimeProvider>(Clock));
+        Configure(builder);
     }
+
+    /// <summary>Extra settings for a variant of the app (for example made-up people off, D-059).</summary>
+    protected virtual void Configure(IWebHostBuilder builder) { }
 
     public HttpClient Browser()
     {

@@ -4,6 +4,18 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-053 · Push `main` to deploy the early-days changes (B-097, D-059) · by 2026-12-01
+**Why:** the early-days card, the "someone compatible joined" notice and the switch for made-up people are built and tested (128 .NET tests, browser test 123 of 123). A push to `main` deploys them (D-041).
+**What changes live:** made-up people stay on (the switch is only used at release), so the preview looks the same, except that your People and Home pages will show «Aún estamos empezando», with a line saying the made-up people are there to try it out, because there are fewer than 5 real people. Anyone who finishes signing up is announced to compatible real people.
+**Recommendation:** push.
+**If no answer:** it stays local; nothing breaks.
+
+### F-052 · Launch in one burst: a dated launch window for Madrid · by 2026-12-12, before any promotion
+**Why:** with few people, timing matters as much as numbers: people who join weeks apart never meet while they're keen (D-059, `product/2026-11-27-early-days.md`, row 7).
+**Options:** A) put the first promotion into two or three weeks in Madrid, to live in, with every channel at once (press, community groups, people inviting friends) · B) a steady trickle as channels come up.
+**Recommendation:** A. The date can wait until the release checklist (F-033) is met; this only asks you to plan the promotion as a burst.
+**If no answer:** we plan for A and ask again before any public step, which is yours anyway.
+
 ### F-051 · Push `main` to deploy Session 37's fixes to the new address (B-091, B-093) · CLOSED 2026-11-27: pushed
 **Why:** the site now runs at https://compicasa.azurewebsites.net on the code that was live before (D-057). The push brings the sign-up and wizard fixes (the "Invite code" label, the browser's language, Tristan's three points, no «unknown» name) and points GitHub's deploy at the new web app (`app.yml`); until then a push to `main` is the only way in, so nothing else is affected. Tests: 118 .NET, browser test 123 of 123 locally.
 **Options:** A) push now; B) look first at a local run.
