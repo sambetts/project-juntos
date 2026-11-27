@@ -6,5 +6,9 @@
   if(th==='light'||th==='dark')d.setAttribute('data-theme',th);
   var m=document.querySelector('meta[name="color-scheme"]');
   if(m)m.setAttribute('content',th==='light'||th==='dark'?th:'light dark');
-  if(lg==='en')d.setAttribute('lang','en');
+  /* No saved choice: the browser's languages, in order of preference; Spanish (or Catalan, Galician, Basque) gives
+     Spanish, anything else English (Session 37). app.js uses the same rule. */
+  if(lg!=='en'&&lg!=='es'){lg='en';var ls=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'']);
+    for(var i=0;i<ls.length;i++){var c=String(ls[i]||'').toLowerCase().split('-')[0];if(c==='en'){break;}if(c==='es'||c==='ca'||c==='gl'||c==='eu'){lg='es';break;}}}
+  d.setAttribute('lang',lg);
 })();

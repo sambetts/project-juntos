@@ -141,8 +141,9 @@ function checkGroup(field,label,opts,vals){
    or where you opened it. The checkboxes are the same multi field as any other, so saving is unchanged. */
 const OPEN_REGIONS=new Set();
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.getAttribute&&d.getAttribute('data-region')){if(d.open)OPEN_REGIONS.add(d.getAttribute('data-region'));else OPEN_REGIONS.delete(d.getAttribute('data-region'));}},true);
+function inWizard(){return !!(S.me&&!S.view&&!S.me.onboarded);}
 function areaPicker(vals){
-  const chosen=AREAS.filter(a=>vals.indexOf(a.id)>=0);
+  const chosen=inWizard()?[]:AREAS.filter(a=>vals.indexOf(a.id)>=0);
   const sorted=REGIONS.slice(0,1).concat(REGIONS.slice(1).sort((a,b)=>tx(a.label).localeCompare(tx(b.label),LANG)));
   const groups=sorted.map(r=>{
     const n=r.areas.filter(a=>vals.indexOf(a.id)>=0).length,open=n>0||OPEN_REGIONS.has(r.id)||(!vals.length&&r.id==='mad');
@@ -154,7 +155,7 @@ function areasChosenText(chosen){return chosen.length?t('areasChosen',listAnd(ch
 /* Ticking a box saves without redrawing (focus stays put), so the summary and counts are updated in place */
 function refreshAreaPicker(vals){
   const h=document.getElementById('areas-chosen');if(!h)return;
-  h.textContent=areasChosenText(AREAS.filter(a=>vals.indexOf(a.id)>=0));
+  if(inWizard())renderBar();else h.textContent=areasChosenText(AREAS.filter(a=>vals.indexOf(a.id)>=0));
   document.querySelectorAll('details.region').forEach(d=>{const r=REGIONS.find(x=>x.id===d.getAttribute('data-region'));if(!r)return;
     const n=r.areas.filter(a=>vals.indexOf(a.id)>=0).length,sum=d.querySelector('summary'),old=sum.querySelector('.pill');
     if(old)old.remove();if(n)sum.insertAdjacentHTML('beforeend',areaCount(n));});
@@ -182,10 +183,10 @@ function applyStyles(root){
 
 /* ---------- presets (from the prototype) ---------- */
 const PRESETS={
-  family:{label:{en:'Family wanting half a house',es:'Familia que busca media casa'},v:{purpose:'live',household:'family',adults:2,kids:2,bedrooms:3,privateBath:true,cars:1,pets:[],acceptsPets:true,smoking:'no',acceptsSmoking:'outside',
+  family:{label:{en:'A family of four',es:'Una familia de cuatro'},v:{purpose:'live',household:'family',adults:2,kids:2,bedrooms:3,privateBath:true,cars:1,pets:[],acceptsPets:true,smoking:'no',acceptsSmoking:'outside',
     sleep:2,tidy:4,social:2,guests:2,meals:2,wfh:true,horizon:'10+',areas:['north','city'],types:['house'],
     needs:{parking:'must',garden:'must',schools:'must',quiet:'nice',pool:'nice',storage:'nice'},open:['family','singleParent'],maxHouseholds:2}},
-  room:{label:{en:'Just a room, open to anyone',es:'Solo una habitación, con quien sea'},v:{purpose:'live',household:'single',adults:1,kids:0,bedrooms:1,privateBath:false,cars:0,pets:[],acceptsPets:true,smoking:'no',acceptsSmoking:'outside',
+  room:{label:{en:'Someone on their own',es:'Una persona sola'},v:{purpose:'live',household:'single',adults:1,kids:0,bedrooms:1,privateBath:false,cars:0,pets:[],acceptsPets:true,smoking:'no',acceptsSmoking:'outside',
     sleep:3,tidy:3,social:3,guests:3,meals:3,wfh:false,horizon:'5-9',areas:['centre','city','north','south','east'],types:['flat','house'],
     needs:{transport:'must'},open:['single','couple','family','singleParent'],maxHouseholds:4}}
 };
@@ -195,7 +196,7 @@ const NUM_FIELDS=['bedrooms','kids','cars','maxHouseholds','sleep','tidy','socia
 function consentFields(){
   const inv=S.config&&S.config.invite;
   const terms=`${esc(t('termsPre'))}<a href="/#terms" target="_blank" rel="noopener">${esc(t('termsLink'))}</a>${esc(t('termsMid'))}<a href="/#privacy" target="_blank" rel="noopener">${esc(t('privacyLink'))}</a>`;
-  return `${inv?`<div class="field"><label for="a-invite">${esc(t('invite'))}</label><input id="a-invite" name="inviteCode" autocomplete="off" autocapitalize="none" spellcheck="false" required><p class="hint">${esc(t('inviteHint'))}</p></div>`:''}
+  return `${inv?`<div class="field"><label for="a-invite">${esc(t('inviteCode'))}</label><input id="a-invite" name="inviteCode" autocomplete="off" autocapitalize="none" spellcheck="false" required><p class="hint">${esc(t('inviteHint'))}</p></div>`:''}
 <div class="field consent"><label class="check"><input type="checkbox" id="a-adult" name="adult" required><span>${esc(t('adultLabel'))}</span></label>
 <label class="check"><input type="checkbox" id="a-terms" name="terms" required><span>${terms}</span></label></div>`;
 }
@@ -1513,9 +1514,12 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.menuOpen){e.preve
 function renderBar(){
   const bar=document.getElementById('actionbar');
   let h='';
-  if(S.me&&!S.view&&!S.me.onboarded){
-    const last=S.wiz===wizSteps().length-1,save=S.save?`<span class="hint" role="status">${esc(t(S.save))}</span>`:'';
-    h=`<button type="button" class="btn" data-action="wiz-back"${S.wiz===0?' disabled':''}>${esc(t('wizBack'))}</button>${save}<span class="spacer"></span><button type="button" class="btn primary" data-action="${last?'wiz-finish':'wiz-next'}">${esc(last?t('wizFinish'):t('wizNext'))}</button>`;
+  if(inWizard()){
+    const steps=wizSteps(),last=S.wiz===steps.length-1,save=S.save?`<span class="hint" role="status">${esc(t(S.save))}</span>`:'';
+    /* the places step: a running count here, since the list is long (Tristan's review, Session 37) */
+    const nAreas=steps[S.wiz]&&steps[S.wiz].id==='where'&&S.profile?S.profile.areas.length:-1;
+    const count=nAreas>=0?`<span class="hint wiz-count" role="status">${esc(t('areasN',nAreas))}</span>`:'';
+    h=`<button type="button" class="btn" data-action="wiz-back"${S.wiz===0?' disabled':''}>${esc(t('wizBack'))}</button>${count}${save}<span class="spacer"></span><button type="button" class="btn primary" data-action="${last?'wiz-finish':'wiz-next'}">${esc(last?t('wizFinish'):t('wizNext'))}</button>`;
   }else if(inApp()&&S.tab==='matches'&&S.draft.length){
     h=`<div class="stat draft-who">${S.draft.map(id=>avatar(id,28)).join('')}<span>${esc(t('draftBar',1+S.draft.length))}</span></div><span class="spacer"></span><button type="button" class="btn small ghost" data-action="clear-draft">${t('clearDraft')}</button><button type="button" class="btn small" data-action="preview" data-id="${esc(S.draft.join(','))}">${t('previewDraft')}</button><button type="button" class="btn small primary" data-action="propose" data-id="${esc(S.draft.join(','))}">${t('propose')}</button>`;
   }
@@ -1897,9 +1901,15 @@ document.addEventListener('click',async e=>{
     case 'delete-account':if(window.confirm(t('deleteConfirm'))){try{await api('DELETE','/api/me');S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];render();}catch(err){toast(errText(err));}}break;
   }
 });
-/* ---------- start: Spanish unless the viewer chose English; #lang= overrides both ---------- */
+/* ---------- start: the viewer's saved choice, else the browser's languages (Spanish, Catalan, Galician or Basque
+   before English gives Spanish; otherwise English, Session 37); #lang= overrides both ---------- */
+function browserLang(){
+  const ls=navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||''];
+  for(const l of ls){const c=String(l||'').toLowerCase().split('-')[0];if(c==='en')return 'en';if(['es','ca','gl','eu'].indexOf(c)>=0)return 'es';}
+  return 'en';
+}
 let saved=null;try{saved=localStorage.getItem(LANG_KEY);}catch(e){}
-setLang(saved==='en'?'en':'es');
+setLang(saved==='en'||saved==='es'?saved:browserLang());
 try{const h=new URLSearchParams((location.hash||'').replace(/^#/,''));const lg=h.get('lang');if(lg==='en'||lg==='es')setLang(lg);}catch(e){}
 document.documentElement.setAttribute('lang',LANG); /* so the start-up screen speaks the chosen language before the first render */
 applyTheme();

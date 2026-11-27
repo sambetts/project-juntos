@@ -104,6 +104,20 @@ async function voteCheck(tag) {
 async function size(w, h, mobile) { await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: mobile ? 2 : 1, mobile }); }
 
 await send('Runtime.enable'); await send('Log.enable'); await send('Page.enable');
+// The browser's languages decide the first language (Session 37): run as a Spanish browser, then check the rule.
+const userAgent = (await send('Browser.getVersion')).result.userAgent;
+const browserLangs = langs => send('Emulation.setUserAgentOverride', { userAgent, acceptLanguage: langs });
+{
+  for (const [langs, want] of [['en-GB,en', 'en'], ['fr-FR,fr', 'en'], ['ca-ES,ca', 'es'], ['en-US,es-ES', 'en'], ['es-ES,es', 'es']]) {
+    await browserLangs(langs);
+    await send('Page.navigate', { url: base + '/' });
+    await until(`document.readyState==='complete'&&!!document.querySelector('#app .boot')===false`, 'page loads for ' + langs);
+    await js(`localStorage.removeItem('compicasa-lang');1`);
+    await send('Page.reload');
+    await until(`document.readyState==='complete'&&!document.querySelector('#app .boot')`, 'page reloads for ' + langs);
+    ok(await js('document.documentElement.lang') === want, `a browser set to ${langs} opens in ${want}`);
+  }
+}
 
 // Words that must not appear on a screen in the other language (a leak check, as in the prototype tests).
 const EN_ONLY = /\b(Sign in|Your profile|Matches|Like|Pass|households|Proof of concept)\b/;
@@ -234,7 +248,8 @@ for (const [w, h, mobile, tag] of [[390, 844, true, 'phone'], [1280, 900, false,
         ok(await js(`document.querySelectorAll('details.region').length === 19`), 'area picker lists the 19 regions');
         ok(await js(`document.querySelector('details.region[data-region="mad"]').open`), 'area picker opens Madrid');
         await js(`(() => { document.querySelector('details.region[data-region="and"]').open = true; document.querySelector('input[data-field="areas"][value="p41"]').click(); })()`);
-        await until(`/Has elegido:.*Sevilla/.test(document.body.innerText) && document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'a province outside Madrid can be chosen and saved');
+        await until(`/6 sitios elegidos/.test(document.querySelector('#actionbar')?.innerText) && document.querySelector('#actionbar')?.innerText.includes('Guardado')`, 'a province outside Madrid can be chosen and saved, counted in the footer');
+        ok(!/Has elegido:/.test(await text()), 'the wizard counts places in the footer rather than listing them above');
         await shot(tag + '-2-wizard-7-areas-es');
         ok(await js(`document.querySelector('details.region[data-region="and"]').open && /1/.test(document.querySelector('details.region[data-region="and"] summary').textContent)`), 'its region stays open with a count');
         await js(`document.querySelector('input[data-field="areas"][value="p41"]').click()`);
