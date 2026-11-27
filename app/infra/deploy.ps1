@@ -18,6 +18,7 @@ param(
   [string]$InviteCode,  # sets the code, for example to keep the old one when the web app is rebuilt
   [string]$ExternalIdAuthority,  # with -ExternalIdClientId: the External ID settings, when the web app is rebuilt
   [string]$ExternalIdClientId,
+  [string]$WebApp = 'compicasa',  # the web app, and so the address <name>.azurewebsites.net (D-057)
   [switch]$OwnPlan  # create an App Service plan in rg-compicasa-prod instead of using BuildSyncProd: for another subscription (B-073)
 )
 $ErrorActionPreference = 'Stop'
@@ -32,17 +33,18 @@ if ($Infra) {
   $me = Invoke-Az account get-access-token --resource-type ms-graph --subscription $Subscription --query accessToken -o tsv
   $user = Invoke-RestMethod -Headers @{ Authorization = "Bearer $me" } -Uri 'https://graph.microsoft.com/v1.0/me?$select=id,userPrincipalName'
 
+  # Settings are kept from the web app itself or, the first time under a new name (D-057), from the one it replaces.
+  $names = @(az webapp list -g $rg --subscription $Subscription --query '[].name' -o tsv 2>$null)
+  $existingWeb = if ($names -contains $WebApp) { $WebApp } else { $names | Select-Object -First 1 }
   # Keep the existing invite code unless asked for a new one.
   $invite = $InviteCode
-  if (-not $invite -and -not $NewInviteCode) {
-    $existing = az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv 2>$null
-    if ($existing) { $invite = ((az webapp config appsettings list -g $rg -n $existing --subscription $Subscription -o json 2>$null) | ConvertFrom-Json | Where-Object name -eq 'Auth__InviteCode').value }
+  if (-not $invite -and -not $NewInviteCode -and $existingWeb) {
+    $invite = ((az webapp config appsettings list -g $rg -n $existingWeb --subscription $Subscription -o json 2>$null) | ConvertFrom-Json | Where-Object name -eq 'Auth__InviteCode').value
   }
   # Keep the External ID settings that external-id.ps1 wrote (D-033).
   # Keep any agencies the crawler was told to leave alone (D-035).
   # Keep who may see the release funnel (B-074).
   $authority = $ExternalIdAuthority; $clientId = $ExternalIdClientId; $stopped = ''; $admins = ''
-  $existingWeb = az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv 2>$null
   if ($existingWeb) {
     $settings = az webapp config appsettings list -g $rg -n $existingWeb --subscription $Subscription -o json 2>$null | ConvertFrom-Json
     if (-not $authority) { $authority = ($settings | Where-Object name -eq 'Auth__External__Authority').value }
@@ -58,7 +60,7 @@ if ($Infra) {
 
   $out = Invoke-Az deployment sub create --subscription $Subscription -l $Location -n compicasa-prod-$Location `
     --template-file (Join-Path $PSScriptRoot 'main.bicep') `
-    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "externalIdAuthority=$authority" "externalIdClientId=$clientId" "homesStopped=$stopped" "adminAccountIds=$admins" $(if ($OwnPlan) { 'planId=' }) `
+    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "webAppName=$WebApp" "externalIdAuthority=$authority" "externalIdClientId=$clientId" "homesStopped=$stopped" "adminAccountIds=$admins" $(if ($OwnPlan) { 'planId=' }) `
     --query properties.outputs -o json | ConvertFrom-Json
   $web = $out.webAppName.value; $sqlServer = $out.sqlServer.value; $db = $out.database.value
   Write-Host "Web app: $web  SQL: $sqlServer/$db"
@@ -100,7 +102,7 @@ $sqlText
 
 if ($App) {
   Write-Host '== App'
-  $web = Invoke-Az webapp list -g $rg --subscription $Subscription --query '[0].name' -o tsv
+  $web = $WebApp
   # Production signs people in through External ID only (D-034): local password accounts are for developers.
   # Read the settings as JSON: a JMESPath filter here came back empty from PowerShell on 2026-11-22.
   $mode = ((Invoke-Az webapp config appsettings list -g $rg -n $web --subscription $Subscription -o json) | ConvertFrom-Json | Where-Object name -eq 'Auth__Mode').value

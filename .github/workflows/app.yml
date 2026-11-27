@@ -17,7 +17,7 @@ permissions:
 
 env:
   RESOURCE_GROUP: rg-compicasa-prod
-  WEB_APP: app-compicasa-prod-25yr5
+  WEB_APP: compicasa
   DOTNET_NOLOGO: true
 
 jobs:

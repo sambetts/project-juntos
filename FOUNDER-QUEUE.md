@@ -4,6 +4,16 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-051 · Push `main` to deploy Session 37's fixes to the new address (B-091, B-093) · by 2026-11-28
+**Why:** the site now runs at https://compicasa.azurewebsites.net on the code that was live before (D-057). The push brings the sign-up and wizard fixes (the "Invite code" label, the browser's language, Tristan's three points, no «unknown» name) and points GitHub's deploy at the new web app (`app.yml`); until then a push to `main` is the only way in, so nothing else is affected. Tests: 118 .NET, browser test 123 of 123 locally.
+**Options:** A) push now; B) look first at a local run.
+**Recommendation:** A. Then update your bookmark and the installed app to the new address, and give Tristan the new link: the old one no longer exists.
+**If no answer:** the fixes wait; the live site keeps working on the earlier code.
+
+### F-050 · Delete the old web app and database server after the move to production names (D-057, D-058) · CLOSED 2026-11-27: approved in chat
+The old web app `app-compicasa-prod-25yr5` (stopped) and the old SQL server `sql-compicasa-uksouth-25yr5` (its database moved to Basic to wake it, so about €0.18 a day) were left after the database was copied to `sql-compicasa-prod` and the site moved to `https://compicasa.azurewebsites.net`. Recommendation: delete both now.
+**ANSWER (Sam, 2026-11-27, in Claude Code):** chose "Delete both now (Recommended)" when asked "Delete them now?". Approval to delete those two resources (the old SQL server with its database) only.
+
 ### F-049 · Push the story's «Para vivir» switch icon without a heart (B-089) · CLOSED 2026-11-26: pushed
 **Why:** a push deploys (D-041). Checking the story live after the F-047 push, I found one heart I had missed: the house icon on the story's «Para vivir» / "To live in" switch had a heart inside it. You asked for no heart symbols in the animations (D-056), so it's now a person at home. My earlier search went by icon names, which is why it slipped through. I've now checked every icon in the front end, and there are no other hearts.
 **Options:** push now; or look first at http://localhost:5235, signed out. `main` also holds Session 36's reworded text (F-048), committed before this fix, so one push of `main` deploys both.

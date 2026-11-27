@@ -276,7 +276,7 @@ public sealed class Robots
 /// </summary>
 public sealed class Crawl(AppDb db, TimeProvider clock, ILogger log, HttpClient http, TimeSpan delay)
 {
-    public const string UserAgent = "CompicasaBot/0.1 (+https://app-compicasa-prod-25yr5.azurewebsites.net/bot; facts and a link to the advert only)";
+    public const string UserAgent = "CompicasaBot/0.1 (+https://compicasa.azurewebsites.net/bot; facts and a link to the advert only)";
 
     /// <summary><c>Partial</c>: a sitemap couldn't be read, so nothing was marked gone this run.</summary>
     public sealed record Result(int Listed, int Fetched, int Stored, int Unchanged, int Skipped, int Gone, int Blocked, bool Partial = false);

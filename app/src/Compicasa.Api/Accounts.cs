@@ -123,7 +123,11 @@ public static class Accounts
         if (ticket is null) return (null, "noAccount");
         var mail = NormaliseEmail(email);
         if (mail is not null && await db.Accounts.AnyAsync(x => x.Email == mail, ct)) return (null, "emailTaken");
-        a = NewUser(mail, (name ?? "").Trim(), now, ticket);
+        // Since Session 37 sign-up doesn't ask for a display name (the wizard's first step does), and External ID then
+        // sends "unknown": start with an empty name rather than show that.
+        var shown = (name ?? "").Trim();
+        if (shown.Equals("unknown", StringComparison.OrdinalIgnoreCase)) shown = "";
+        a = NewUser(mail, shown, now, ticket);
         a.ExternalId = externalId;
         db.Accounts.Add(a);
         await db.SaveChangesAsync(ct);

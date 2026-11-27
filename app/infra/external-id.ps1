@@ -8,14 +8,17 @@
      monthly active users; no premium add-ons (SMS, ID checks) are used.
   2. You sign in to the new tenant once (a browser opens). Whoever creates the tenant is its administrator.
   3. An app registration for the web app: ID tokens only, no client secret.
-  4. A sign-up and sign-in flow: email and password, the email confirmed by a one-time code, and a name to show.
+  4. A sign-up and sign-in flow: email and password, the email confirmed by a one-time code. No name is asked for:
+     the app's first wizard step asks for it (Tristan's review, Session 37).
   5. The web app's settings: Auth__Mode=External and the tenant's details.
+  6. Company branding on the sign-in pages: logos, colours and a line of text in Spanish and English (branding/).
   Needs the Azure CLI signed in to the subscription, and PowerShell 7.
 #>
 param(
   [string]$Subscription = '81209232-7da9-4f81-b984-7ab0bd3dcfb3',
   [string]$IdentityGroup = 'rg-compicasa-identity',
   [string]$AppGroup = 'rg-compicasa-prod',
+  [string]$WebApp = 'compicasa',          # the web app (D-057)
   [string]$Prefix = 'compicasa',          # the tenant's domain prefix
   [string]$DisplayName = 'Compicasa',
   [string]$Country = 'ES'                 # decides where the tenant's data lives: Spain → Europe
@@ -61,7 +64,7 @@ function Send-Graph($method, $path, $body) { Invoke-RestMethod -Method $method -
 
 # ---------- 3. the app registration ----------
 Write-Host '== App registration'
-$host_ = Invoke-Az webapp list -g $AppGroup --subscription $Subscription --query '[0].defaultHostName' -o tsv
+$host_ = Invoke-Az webapp show -g $AppGroup -n $WebApp --subscription $Subscription --query defaultHostName -o tsv
 $site = "https://$host_"
 $web = @{
   redirectUris = @("$site/signin-oidc", 'https://localhost:7005/signin-oidc')
@@ -103,15 +106,23 @@ if (-not $flow) {
     onInteractiveAuthFlowStart = @{ '@odata.type' = '#microsoft.graph.onInteractiveAuthFlowStartExternalUsersSelfServiceSignUp'; isSignUpAllowed = $true }
     onAttributeCollection = @{ '@odata.type' = '#microsoft.graph.onAttributeCollectionExternalUsersSelfServiceSignUp'
       attributes = @(
-        @{ id = 'email'; displayName = 'Email Address'; description = 'Email address of the user'; userFlowAttributeType = 'builtIn'; dataType = 'string' },
-        @{ id = 'displayName'; displayName = 'Display Name'; description = 'Display Name of the User.'; userFlowAttributeType = 'builtIn'; dataType = 'string' })
+        @{ id = 'email'; displayName = 'Email Address'; description = 'Email address of the user'; userFlowAttributeType = 'builtIn'; dataType = 'string' })
       attributeCollectionPage = @{ views = @(@{ inputs = @(
         @{ attribute = 'email'; label = 'Email Address'; inputType = 'text'; hidden = $true; editable = $false; writeToDirectory = $true; required = $true
-           validationRegEx = '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$' },
-        @{ attribute = 'displayName'; label = 'Display Name'; inputType = 'text'; hidden = $false; editable = $true; writeToDirectory = $true; required = $true
-           validationRegEx = '^.{1,40}$' }) }) }
+           validationRegEx = '^[a-zA-Z0-9.!#$%&''*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$' }) }) }
     }
   }
+}
+# A flow made before Session 37 also asked for a display name, straight before the app's own name step. Graph won't
+# drop an attribute from a flow, so it stays declared but hidden and optional: nobody is asked for it.
+$dn = $flow.onAttributeCollection.attributeCollectionPage.views.inputs | Where-Object attribute -eq 'displayName'
+if ($dn -and -not $dn.hidden) {
+  $page = $flow.onAttributeCollection.attributeCollectionPage
+  foreach ($v in $page.views) { foreach ($in in $v.inputs) { if ($in.attribute -eq 'displayName') { $in.hidden = $true; $in.required = $false } } }
+  Send-Graph Patch "/identity/authenticationEventsFlows/$($flow.id)" @{
+    '@odata.type' = '#microsoft.graph.externalUsersSelfServiceSignUpEventsFlow'
+    onAttributeCollection = @{ '@odata.type' = '#microsoft.graph.onAttributeCollectionExternalUsersSelfServiceSignUp'; attributeCollectionPage = $page } } | Out-Null
+  Write-Host 'Display name no longer asked at sign-up'
 }
 $linked = (Get-Graph "/identity/authenticationEventsFlows/$($flow.id)/conditions/applications/includeApplications").value | Where-Object appId -eq $app.appId
 if (-not $linked) {
@@ -122,7 +133,28 @@ Write-Host "Flow $($flow.id)"
 
 # ---------- 5. point the web app at it ----------
 Write-Host '== Web app settings'
-$webName = Invoke-Az webapp list -g $AppGroup --subscription $Subscription --query '[0].name' -o tsv
+$webName = $WebApp
 Invoke-Az webapp config appsettings set -g $AppGroup -n $webName --subscription $Subscription -o none --settings `
   Auth__Mode=External "Auth__External__Authority=$authority" "Auth__External__ClientId=$($app.appId)"
 Write-Host "Done. Authority $authority, client $($app.appId). Deploy the app with deploy.ps1 -App."
+
+# ---------- 6. company branding on the sign-in pages (Session 37) ----------
+# The images come from branding/make.py (drawn from the app's icon). Default texts are English; es-ES is Spanish.
+Write-Host '== Sign-in page branding'
+$org = (Get-Graph '/organization').value[0].id
+$brand = @{ backgroundColor = '#f5f6fa'
+  signInPageText = 'Compicasa: find people to buy a home with in Spain. Preview version, closed: you need an invite code.'
+  usernameHintText = 'you@example.com' }
+# The Spanish localisation goes first: creating one also creates the default branding when none exists yet,
+# which PATCH alone won't do (it answers "not found").
+$es = @{ signInPageText = 'Compicasa: encuentra con quién comprar una casa en España. Versión preliminar, cerrada: necesitas un código de invitación.'; usernameHintText = 'tu@ejemplo.com' }
+$have = try { (Get-Graph "/organization/$org/branding/localizations").value | Where-Object id -eq 'es-ES' } catch { $null }
+if ($have) { Send-Graph Patch "/organization/$org/branding/localizations/es-ES" $es | Out-Null }
+else { Send-Graph Post "/organization/$org/branding/localizations" ($es + @{ id = 'es-ES' }) | Out-Null }
+Invoke-RestMethod -Method Patch -Headers ($h + @{ 'Accept-Language' = '0' }) -Uri "$graph/organization/$org/branding" -Body ($brand | ConvertTo-Json -Depth 5 -Compress) | Out-Null
+$branding = Join-Path $PSScriptRoot 'branding'
+foreach ($p in @(@('bannerLogo', 'banner-logo.png', 'image/png'), @('squareLogo', 'square-logo.png', 'image/png'), @('squareLogoDark', 'square-logo.png', 'image/png'),
+                 @('favicon', 'favicon.png', 'image/png'), @('customCSS', 'sign-in.css', 'text/css'))) {
+  Invoke-RestMethod -Method Put -Headers @{ Authorization = $h.Authorization; 'Content-Type' = $p[2] } -Uri "$graph/organization/$org/branding/localizations/0/$($p[0])" -InFile (Join-Path $branding $p[1]) | Out-Null
+}
+Write-Host 'Branding set (default English, es-ES Spanish)'

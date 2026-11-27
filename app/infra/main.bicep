@@ -1,6 +1,6 @@
 // Compicasa PoC, hosted as production (D-027, D-028), in UK South (D-036): the web app runs on the existing
 // App Service plan BuildSyncProd (Windows, P1v2, its own resource group), with the daily homes crawl as a WebJob;
-// the database on the Azure SQL free offer. One environment, one resource group (recreated in UK South, 2026-11-22).
+// the database on Azure SQL Basic (D-058; the free offer ran out). One environment, one resource group (recreated in UK South, 2026-11-22).
 // Deploy with app/infra/deploy.ps1. No passwords exist: the app reaches Azure SQL with its managed identity,
 // and the database accepts Entra ID sign-in only.
 targetScope = 'subscription'
@@ -8,7 +8,7 @@ targetScope = 'subscription'
 @description('Region for every resource: where the BuildSyncProd plan is (D-036).')
 param location string = 'uksouth'
 
-@description('Region for the database; the same as the web app unless the free offer is refused there.')
+@description('Region for the database; the same as the web app unless a tier is refused there.')
 param sqlLocation string = location
 
 @description('Region of the resource group record (metadata only).')
@@ -29,6 +29,9 @@ param adminAccountIds string = ''
 @description('Short name used in resource names.')
 param name string = 'compicasa'
 
+@description('The web app, and so the address <name>.azurewebsites.net (D-057).')
+param webAppName string = name
+
 @description('Entra ID object id of the database administrator (a person, for set-up and support only).')
 param sqlAdminObjectId string
 
@@ -44,7 +47,7 @@ param externalIdAuthority string = ''
 param externalIdClientId string = ''
 
 @description('Monthly budget alert for the resource group, in the billing currency.')
-param monthlyBudget int = 5
+param monthlyBudget int = 10 // D-058: the Basic database is about EUR 5.49 a month
 
 @description('First day of the budget period (first of a month, YYYY-MM-01).')
 param budgetStart string = '2026-11-01'
@@ -73,6 +76,7 @@ module app 'resources.bicep' = {
     homesStopped: homesStopped
     adminAccountIds: adminAccountIds
     name: name
+    webAppName: webAppName
     tags: tags
     sqlAdminObjectId: sqlAdminObjectId
     sqlAdminLogin: sqlAdminLogin

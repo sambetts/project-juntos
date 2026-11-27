@@ -22,9 +22,12 @@ param externalIdClientId string = ''
 param monthlyBudget int
 param budgetStart string
 
-var suffix = substring(uniqueString(resourceGroup().id), 0, 5)
+// Production names, without a random suffix (D-057): the web app's name is the site's address, name.azurewebsites.net.
+// Web app and SQL server names are global across Azure; if one is taken in another subscription, pass webAppName.
+@description('The web app, and so the address <name>.azurewebsites.net (D-057).')
+param webAppName string = name
 var dbName = 'sqldb-${name}'
-var sqlServerName = 'sql-${name}-${sqlLocation}-${suffix}'
+var sqlServerName = 'sql-${name}-prod'
 
 // ---------- monitoring ----------
 resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -50,7 +53,7 @@ resource insights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-// ---------- database: Azure SQL free offer, Entra ID sign-in only (D-030) ----------
+// ---------- database: Azure SQL Basic (D-058), Entra ID sign-in only ----------
 resource sql 'Microsoft.Sql/servers@2023-08-01-preview' = {
   name: sqlServerName
   location: sqlLocation
@@ -81,15 +84,11 @@ resource db 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
   name: dbName
   location: sqlLocation
   tags: tags
-  // The free offer: serverless, 100,000 vCore-seconds and 32 GB a month at no charge. If the allowance runs out
-  // it pauses until next month instead of billing. Refused in Spain Central on 2026-11-22, hence another region.
-  sku: { name: 'GP_S_Gen5_2', tier: 'GeneralPurpose', family: 'Gen5', capacity: 2 }
+  // Basic (5 DTU, 2 GB), always on, about EUR 5.49 a month before VAT (D-058). The free offer (D-030) ran out after
+  // four and a half days: the app used about 22,000 of its 100,000 vCore-seconds a day, and the database paused.
+  sku: { name: 'Basic', tier: 'Basic' }
   properties: {
-    useFreeLimit: true
-    freeLimitExhaustionBehavior: 'AutoPause'
-    autoPauseDelay: 60
-    minCapacity: json('0.5')
-    maxSizeBytes: 34359738368
+    maxSizeBytes: 2147483648
     requestedBackupStorageRedundancy: 'Local'
     zoneRedundant: false
   }
@@ -97,7 +96,7 @@ resource db 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {
 
 // ---------- plan: the shared BuildSyncProd (D-036), or one of its own when planId is empty (B-073, a move to another subscription) ----------
 resource ownPlan 'Microsoft.Web/serverfarms@2023-12-01' = if (empty(planId)) {
-  name: 'asp-${name}-prod-${suffix}'
+  name: 'asp-${name}-prod'
   location: location
   tags: tags
   kind: 'app'
@@ -108,7 +107,7 @@ var farmId = empty(planId) ? ownPlan.id : planId
 
 // ---------- web app: ASP.NET Core API + PWA, Windows, on the shared BuildSyncProd plan (D-036) ----------
 resource web 'Microsoft.Web/sites@2023-12-01' = {
-  name: 'app-${name}-prod-${suffix}'
+  name: webAppName
   location: location
   tags: tags
   kind: 'app'

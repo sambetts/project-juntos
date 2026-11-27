@@ -1,0 +1,6 @@
+/* Session 37: the Compicasa brand colour on Entra External ID's sign-in pages (company branding, custom CSS).
+   Class names from Microsoft's CSS template for the sign-in page; colours from wwwroot/app.css (--brand). */
+.ext-button.ext-primary { background-color: #b3370e; border-color: #b3370e; color: #ffffff; }
+.ext-button.ext-primary:hover, .ext-button.ext-primary:focus { background-color: #922c0b; border-color: #922c0b; }
+.ext-sign-in-box { border-radius: 16px; }
+.ext-sign-in-box a, .ext-footer-item { color: #b3370e; }

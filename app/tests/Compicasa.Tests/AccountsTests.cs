@@ -47,6 +47,10 @@ public class AccountsTests : IClassFixture<AppFactory>
         Assert.Null(dup);
         Assert.Equal("emailTaken", dupErr);
         Assert.Equal("externalFailed", (await Accounts.FromExternalAsync(db, null, "x@example.com", "X", ATicket, Now)).Error);
+
+        // Sign-up no longer asks for a name (Session 37), so External ID sends "unknown": the wizard starts empty.
+        var (noName, _) = await Accounts.FromExternalAsync(db, Guid.NewGuid().ToString(), "sin.nombre@example.com", "unknown", ATicket, Now);
+        Assert.Equal("", noName!.ReadProfile().Name);
     }
 
     [Fact]
