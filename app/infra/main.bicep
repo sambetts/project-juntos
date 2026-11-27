@@ -93,3 +93,5 @@ output webAppName string = app.outputs.webAppName
 output url string = app.outputs.url
 output sqlServer string = app.outputs.sqlServer
 output database string = app.outputs.database
+output testUrl string = app.outputs.testUrl
+output testDatabase string = app.outputs.testDatabase

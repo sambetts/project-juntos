@@ -67,7 +67,8 @@ Write-Host '== App registration'
 $host_ = Invoke-Az webapp show -g $AppGroup -n $WebApp --subscription $Subscription --query defaultHostName -o tsv
 $site = "https://$host_"
 $web = @{
-  redirectUris = @("$site/signin-oidc", 'https://localhost:7005/signin-oidc')
+  # The test slot (D-060) signs in through the same app registration.
+  redirectUris = @("$site/signin-oidc", "https://$WebApp-test.azurewebsites.net/signin-oidc", 'https://localhost:7005/signin-oidc')
   logoutUrl = "$site/signout-callback-oidc"
   implicitGrantSettings = @{ enableIdTokenIssuance = $true; enableAccessTokenIssuance = $false }
 }

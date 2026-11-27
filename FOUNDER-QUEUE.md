@@ -4,11 +4,12 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-053 · Push `main` to deploy the early-days changes (B-097, D-059) · by 2026-12-01
-**Why:** the early-days card, the "someone compatible joined" notice and the switch for made-up people are built and tested (128 .NET tests, browser test 123 of 123). A push to `main` deploys them (D-041).
-**What changes live:** made-up people stay on (the switch is only used at release), so the preview looks the same, except that your People and Home pages will show «Aún estamos empezando», with a line saying the made-up people are there to try it out, because there are fewer than 5 real people. Anyone who finishes signing up is announced to compatible real people.
-**Recommendation:** push.
-**If no answer:** it stays local; nothing breaks.
+### F-053 · Put the early-days changes live (B-097, D-059) · by 2026-12-01
+**Why:** the early-days card, the "someone compatible joined" notice and the switch for made-up people are built and tested (123 .NET tests, browser test 123 of 123), and since D-060 they're already on the test slot, https://compicasa-test.azurewebsites.net, for you to try.
+**Two steps now (D-060):** 1) push `main` to GitHub: that deploys to the test slot only; 2) in GitHub, Actions > App > Run workflow (branch `main`, target `production`) to put it on the live site.
+**What changes live:** made-up people stay on, so the preview looks the same, except that People and Home show «Aún estamos empezando» with a line saying the made-up people are there to try it out. Anyone who finishes signing up is announced to compatible real people.
+**Recommendation:** try it on the test slot, then do both steps.
+**If no answer:** it stays on the test slot; nothing breaks.
 
 ### F-052 · Launch in one burst: a dated launch window for Madrid · by 2026-12-12, before any promotion
 **Why:** with few people, timing matters as much as numbers: people who join weeks apart never meet while they're keen (D-059, `product/2026-11-27-early-days.md`, row 7).

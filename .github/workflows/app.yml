@@ -1,5 +1,7 @@
-# The PoC's CI/CD (B-030): tests on every push and pull request; a push to main that changes the app
-# publishes it to Azure, as `app/infra/deploy.ps1 -App` does. Azure sign-in is OpenID Connect through the
+# The PoC's CI/CD (B-030, D-060): tests on every push and pull request. A push to main that changes the app
+# deploys it to the test slot (https://compicasa-test.azurewebsites.net: made-up people and homes, its own
+# database). Production deploys only by hand: Actions > App > Run workflow on main, target "production".
+# Azure sign-in is OpenID Connect through the
 # app registration "compicasa-github-deploy": no stored secret, allowed only from main of this repository,
 # and its only role is Website Contributor on the web app. The infrastructure (Bicep, database access)
 # still deploys from a machine with `deploy.ps1 -Infra`.
@@ -11,6 +13,12 @@ on:
   pull_request:
     paths: ['app/**', '.github/workflows/app.yml']
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'Where to deploy main: the test slot, or production (the live site)'
+        type: choice
+        options: [test, production]
+        default: test
 
 permissions:
   contents: read
@@ -18,6 +26,8 @@ permissions:
 env:
   RESOURCE_GROUP: rg-compicasa-prod
   WEB_APP: compicasa
+  # Pushes go to the test slot; only a manual run with target production deploys the live site (D-060).
+  TARGET: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'test' }}
   DOTNET_NOLOGO: true
 
 jobs:
@@ -49,10 +59,11 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: windows-latest
     timeout-minutes: 20
-    # One deploy at a time; a newer push waits for the one running
+    # One deploy at a time per target; a newer push waits for the one running
     concurrency:
-      group: deploy-prod
+      group: deploy-${{ github.event_name == 'workflow_dispatch' && inputs.target || 'test' }}
       cancel-in-progress: false
+    # No GitHub environment here: one would change the sign-in subject that compicasa-github-deploy trusts (main only).
     permissions:
       id-token: write
       contents: read
@@ -65,17 +76,23 @@ jobs:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      - name: Production signs in through External ID only (D-034)
+      - name: Signs in through External ID only (D-034)
         shell: pwsh
         run: |
-          $mode = ((az webapp config appsettings list -g $env:RESOURCE_GROUP -n $env:WEB_APP -o json) | ConvertFrom-Json | Where-Object name -eq 'Auth__Mode').value
-          if ($mode -ne 'External') { throw 'The web app is not set up for External ID sign-in (D-034): not deploying.' }
-      - name: Deploy
-        run: az webapp deploy -g ${{ env.RESOURCE_GROUP }} -n ${{ env.WEB_APP }} --src-path app.zip --type zip --restart true --track-status false -o none
+          $slot = if ($env:TARGET -eq 'production') { @() } else { @('--slot', $env:TARGET) }
+          $mode = ((az webapp config appsettings list -g $env:RESOURCE_GROUP -n $env:WEB_APP @slot -o json) | ConvertFrom-Json | Where-Object name -eq 'Auth__Mode').value
+          if ($mode -ne 'External') { throw "$env:TARGET is not set up for External ID sign-in (D-034): not deploying." }
+      - name: Deploy to ${{ env.TARGET }}
+        shell: pwsh
+        run: |
+          $slot = if ($env:TARGET -eq 'production') { @() } else { @('--slot', $env:TARGET) }
+          az webapp deploy -g $env:RESOURCE_GROUP -n $env:WEB_APP @slot --src-path app.zip --type zip --restart true --track-status false -o none
+          if ($LASTEXITCODE -ne 0) { throw 'deploy failed' }
       - name: Wait until ready
         shell: pwsh
         run: |
-          $url = "https://$(az webapp show -g $env:RESOURCE_GROUP -n $env:WEB_APP --query defaultHostName -o tsv)/healthz/ready"
+          $slot = if ($env:TARGET -eq 'production') { @() } else { @('--slot', $env:TARGET) }
+          $url = "https://$(az webapp show -g $env:RESOURCE_GROUP -n $env:WEB_APP @slot --query defaultHostName -o tsv)/healthz/ready"
           # The free database may be paused, so the first start can take a minute or two
           for ($i = 0; $i -lt 30; $i++) {
             try { $r = Invoke-WebRequest $url -TimeoutSec 30 -SkipHttpErrorCheck; if ($r.StatusCode -eq 200) { "Ready: $url"; exit 0 } } catch {}

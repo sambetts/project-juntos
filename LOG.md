@@ -2,6 +2,27 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-27 · Session 38 (continued): a test slot, and production deploys by hand
+**Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; the Builder for Azure and the workflow; the CEO for D-060
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
+**Started from:** the Session 38 entry below. Sam: "create a new app-service slot in the app service for testing, and enable fake people there. Then update the CI/CD so it's the test slot that gets auto-deploy and the production slot is deployed manually from GH actions."
+**Goals:** 1. B-102 the test slot. 2. B-102 the workflow.
+**Needs Sam:** F-053 rewritten for two steps (push, then a manual production run).
+**Did**
+- D-060 recorded with Sam's words before acting. The slot gets its own database: sharing the live one would let made-up people, migrations and a second crawl touch live data.
+- Bicep (`resources.bicep`, `main.bicep`): slot `test` (same P1v2 plan, no extra cost; Always On off), `sqldb-compicasa-test` on the Azure SQL free offer with `freeLimitExhaustionBehavior: AutoPause` (it can pause, never bill), `People__Demo`, `Homes__Demo` and `Demo__RefreshDaily` on, `WEBJOBS_STOPPED=1`, and `slotConfigNames` so the database and switches stay with each slot. `deploy.ps1 -Infra` ran: the slot, the database (Online, free offer confirmed), and database users for `compicasa` (live) and `compicasa/slots/test` (test database only). Production's settings re-applied unchanged; live `/healthz/ready` 200 afterwards.
+- External ID: the slot's `/signin-oidc` added to the app registration's redirect list through Graph, with the tenant sign-in cached from Session 37 (no MFA needed); `external-id.ps1` keeps it.
+- `.github/workflows/app.yml`: pushes deploy to the test slot; a manual run (`workflow_dispatch`, target `test` or `production`) deploys production. No GitHub `environment:`, which would change the sign-in subject the deploy identity trusts. The identity's Website Contributor role on the web app reaches the slot (checked with `--include-inherited`). `deploy.ps1 -App -Slot test` added.
+- Deployed local `main` (Session 38's early days, not yet on GitHub) to the slot from this machine; tests passed first. Browser test against the slot: 30 of 30, up to the hand-over to External ID; the slot serves service worker session38, production still session37.
+- **Correction to the entry below:** the .NET test count is 123 (118 + 5 new), not 128. Fixed in STATE, BACKLOG and F-053.
+
+**Decided:** D-060 (Sam's instruction; database and settings by the CEO). It amends D-041.
+**Approvals used:** Sam's chat instruction of 2026-11-27 (D-060): create the slot, change CI/CD. Not used for: pushing to GitHub or deploying production.
+**Learned:** slots inherit the web app's role assignments. Not confirmed: made-up people seen on the slot after signing in (the browser test stops at External ID); the free database's monthly use without the crawl.
+**Open or blocked:** F-053. The workflow change itself goes to GitHub with Sam's next push, and its first run deploys to the test slot.
+**Saved and checked:** `git status` and `git diff` read against these edits (10 files); this entry saved last.
+**Next session should start with:** 1. After Sam's push, check the run went to the test slot. 2. F-053's production run, if he's done it. 3. B-075.
+
 ## 2026-11-27 · Session 38: early days, with few people at launch
 **Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; Product for the spec; the CEO for D-059 and the strategy line; the Builder and the Tester; Validation for R-013
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
