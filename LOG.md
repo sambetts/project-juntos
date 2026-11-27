@@ -2,6 +2,24 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-27 · Session 37 (continued): pushed and checked live
+**Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; the Builder and the Tester
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
+**Started from:** the Session 37 entry below. Sam: "We don't need Azure FD, but it is recommended. Push the changes and lets see them".
+**Goals:** 1. F-051 push and check live.
+**Needs Sam:** nothing new.
+**Did**
+- Recorded Sam's go (F-051) and his Front Door note (B-094, Reported: check Microsoft Learn before choosing); pushed `main` (1d32eee..5d6a9c1).
+- Run 46000060086: tests passed; the deploy's Azure sign-in failed twice with "No subscriptions found". **Correction to the entry below:** the role I gave `compicasa-github-deploy` on the new web app used its application ID as the principal, so it attached to no one. Removed it and gave Website Contributor to the service principal's object ID (`az ad sp show --id <appId> --query id`); the third attempt deployed.
+- Live: ready; service worker session37; `app.js`, `i18n.js`, `theme.js`, `sw.js`, `story.js`, `app.css` and `index.html` match the repository; the browser test against the live site passed 30 of 30, including the five browser-language cases and the hand-over to External ID.
+
+**Decided:** nothing new.
+**Approvals used:** F-051, 2026-11-27, push `main` only.
+**Learned:** `az role assignment list --scope` shows the principal ID it was given, even one that matches nobody; check with `--assignee <appId> --all`.
+**Open or blocked:** nothing for this item. This record is a local commit, not pushed (records only, so it deploys nothing).
+**Saved and checked:** `git status` and `git diff` checked against these edits (LOG, STATE, BACKLOG); this entry saved last.
+**Next session should start with:** 1. Tomorrow's 05:00 crawl on the new app and the database's DTU use. 2. B-088 and B-086, or B-095.
+
 ## 2026-11-27 · Session 37: production names, a Basic database, branded sign-in and Tristan's review
 **Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; the Builder for the app and Azure; the CEO for D-057 and D-058; the Tester for the sign-up run
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
