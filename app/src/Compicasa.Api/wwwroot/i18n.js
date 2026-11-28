@@ -7,7 +7,9 @@ const BRAND='Compicasa';
 let LANG='es';
 function setLang(l){LANG=l==='en'?'en':'es';return LANG;}
 function tx(v){return v&&typeof v==='object'?(v[LANG]!==undefined?v[LANG]:v.es):(v===undefined?'':v);}
-function t(k){const v=STR[LANG][k]!==undefined?STR[LANG][k]:STR.es[k];return typeof v==='function'?v.apply(null,Array.prototype.slice.call(arguments,1)):v;}
+/* With made-up people off (People:Demo=false, D-059), a string with a real-people version, key + '_r', uses it (B-098). Set from /api/config. */
+let REAL_ONLY=false;
+function t(k){if(REAL_ONLY&&(STR[LANG][k+'_r']!==undefined||STR.es[k+'_r']!==undefined))k+='_r';const v=STR[LANG][k]!==undefined?STR[LANG][k]:STR.es[k];return typeof v==='function'?v.apply(null,Array.prototype.slice.call(arguments,1)):v;}
 function pl(n,one,many){return n+' '+(n===1?one:many);}
 
 const MAX_BEDROOMS=6;
@@ -1390,3 +1392,40 @@ Object.assign(STR.es,{
     'Vuestras respuestas se convierten en la ficha de la vivienda para alquilar: la zona, tres dormitorios, quién la gestiona, cómo se reparten rentas y gastos y la salida pactada.',
     'El grupo ve viviendas de agencias que encajan con la ficha y con su presupuesto total, vota sin ver los votos de nadie hasta que todo el mundo ha votado y recibe lo que podría costar a cada uno y las preguntas del alquiler para el abogado. Al final, los propietarios la alquilan y se reparten las rentas como acordaron.']
 });
+
+/* Session 39 (B-098): real-people wording, used when made-up people are off (People:Demo=false, D-059; see t()).
+   Honest about being early: everyone here is real, and there are few of us yet. Approved by Sam in chat, 2026-11-28. */
+Object.assign(STR.en,{
+  ribbonH_r:'Preview',ribbonShort_r:"Everyone here is real. We're just starting.",
+  ribbonText_r:"Everyone here is a real person, and we're just starting. Be respectful, and keep contact details out of your profile.",
+  footnote_r:"Preview version. Everyone you meet here is a real person. Matching never uses protected traits such as age, sex, origin, religion, sexual orientation or health, and household type never filters anyone out. Money, ownership shares and the co-ownership agreement come later. Nothing here is legal, tax or financial advice.",
+  authLead_r:"This is a preview version. Everyone you'll meet is a real person, and we're just starting. A nickname is fine as your name to show.",
+  lNote_r:"A preview version that's just starting: everyone you meet here is a real person, and there are only a few of us so far.",
+  legalDraft_r:'Draft, pending legal review.',
+  tProposed_r:'Group proposed. Everyone you invited will answer themselves.',
+  matchesLead2_r:n=>n+' compatible '+(n===1?'person':'people')+", best first. Like the ones you'd consider; they answer themselves."
+});
+Object.assign(STR.es,{
+  ribbonH_r:'Versión de prueba',ribbonShort_r:'Todas las personas son reales. Acabamos de empezar.',
+  ribbonText_r:'Todas las personas que verás aquí son reales, y acabamos de empezar. Trata a todo el mundo con respeto y no pongas datos de contacto en tu perfil.',
+  footnote_r:'Versión preliminar. Todas las personas que verás aquí son reales. La afinidad nunca usa rasgos protegidos como la edad, el sexo, el origen, la religión, la orientación sexual o la salud, y el tipo de hogar nunca deja fuera a nadie. El dinero, las cuotas de propiedad y el pacto de copropiedad llegarán más adelante. Nada de lo que verás aquí es asesoramiento legal, fiscal ni financiero.',
+  authLead_r:'Es una versión preliminar. Todas las personas que conocerás son reales, y acabamos de empezar. Como nombre visible, vale un apodo.',
+  lNote_r:'Una versión preliminar que acaba de empezar: todas las personas que conocerás aquí son reales, y de momento somos pocos.',
+  legalDraft_r:'Borrador, pendiente de revisión legal.',
+  tProposed_r:'Grupo propuesto. Cada persona invitada responderá por sí misma.',
+  matchesLead2_r:n=>(n===1?'1 persona compatible':n+' personas compatibles')+', de más a menos afín. Marca «Me interesa» en las que te plantearías; cada una responde por sí misma.'
+});
+/* The terms' first line and the guide without the made-up people's lines (B-098) */
+(function(){
+  const first={en:BRAND+' is a preview version that helps people find others to buy a home with. Everyone you meet here is a real person.',
+    es:BRAND+' es una versión preliminar que ayuda a encontrar personas con quienes comprar casa. Todas las personas que verás aquí son reales.'};
+  const swap={en:[[' Made-up people sometimes like you first, too.',''],[' Made-up people reply with scripted lines.',''],
+      ['Drafts to agencies are only for made-up homes.','There is no draft email to agencies yet.']],
+    es:[[' A veces, las personas inventadas también te marcan primero.',''],[' Las personas inventadas responden con frases guionizadas.',''],
+      ['Los borradores para agencias solo están disponibles con viviendas inventadas.','Todavía no hay borradores de correo para agencias.']]};
+  const drop=/^(Made-up people \(|Las personas inventadas \()/;
+  ['en','es'].forEach(l=>{
+    STR[l].termsBody_r=[first[l]].concat(STR[l].termsBody.slice(1));
+    STR[l].helpSecs_r=STR[l].helpSecs.map(s=>({h:s.h,items:s.items.filter(x=>!drop.test(x)).map(x=>swap[l].reduce((a,c)=>a.split(c[0]).join(c[1]),x))}));
+  });
+})();

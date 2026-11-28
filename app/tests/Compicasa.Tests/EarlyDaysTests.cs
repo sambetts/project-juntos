@@ -56,6 +56,16 @@ public class EarlyDaysTests
     }
 
     [Fact]
+    public async Task Config_tells_the_front_end_whether_made_up_people_are_on()
+    {
+        // B-098: the front end picks its real-people wording from this flag.
+        using var real = new RealOnlyFactory();
+        Assert.False((await real.Browser().GetFromJsonAsync<JsonElement>("/api/config")).GetProperty("demo").GetBoolean());
+        using var demo = new AppFactory();
+        Assert.True((await demo.Browser().GetFromJsonAsync<JsonElement>("/api/config")).GetProperty("demo").GetBoolean());
+    }
+
+    [Fact]
     public async Task Turning_made_up_people_off_removes_them_with_their_likes()
     {
         using var app = new AppFactory();

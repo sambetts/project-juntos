@@ -4,12 +4,13 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-053 · Put the early-days changes live (B-097, D-059) · by 2026-12-01
+### F-053 · Put the early-days changes live (B-097, D-059) · CLOSED 2026-11-28: deployed to production, made-up people off there (D-061)
 **Why:** the early-days card, the "someone compatible joined" notice and the switch for made-up people are built and tested (123 .NET tests, browser test 123 of 123), and since D-060 they're already on the test slot, https://compicasa-test.azurewebsites.net, for you to try.
 **Two steps now (D-060):** 1) push `main` to GitHub: that deploys to the test slot only; 2) in GitHub, Actions > App > Run workflow (branch `main`, target `production`) to put it on the live site.
 **What changes live:** made-up people stay on, so the preview looks the same, except that People and Home show «Aún estamos empezando» with a line saying the made-up people are there to try it out. Anyone who finishes signing up is announced to compatible real people.
 **Recommendation:** try it on the test slot, then do both steps.
 **If no answer:** it stays on the test slot; nothing breaks.
+**ANSWER (Sam, 2026-11-28, in Claude Code):** "Do it all. I want prod slot to be as close as possible to ready for real use." In reply to being told that production still had made-up people and that turning them off meant deploying Session 38, rewording the made-up-people text (B-098) and setting `People__Demo=false`. Approval, for 2026-11-28 only, to: push `main`; run the App workflow with target production; approve and ship B-098's wording; set `People__Demo=false` on the production web app and in the Bicep. Not an approval to remove the invite code or `noindex`, or anything else on the release checklist (F-033). Recorded as D-061.
 
 ### F-052 · Launch in one burst: a dated launch window for Madrid · by 2026-12-12, before any promotion
 **Why:** with few people, timing matters as much as numbers: people who join weeks apart never meet while they're keen (D-059, `product/2026-11-27-early-days.md`, row 7).

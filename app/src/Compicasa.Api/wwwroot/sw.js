@@ -1,7 +1,7 @@
 /* Service worker: caches the app shell so the app opens fast and installs on phones.
    It never caches /api: people, likes and groups always come fresh from the server. Bump VERSION on each release. */
 'use strict';
-const VERSION = 'compicasa-shell-2026-11-27-session38';
+const VERSION = 'compicasa-shell-2026-11-28-session39';
 const SHELL = ['/', '/index.html', '/app.css', '/theme.js', '/i18n.js', '/story.js', '/app.js', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png'];
 
 self.addEventListener('install', e => {

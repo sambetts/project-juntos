@@ -1653,6 +1653,7 @@ async function enter(me){
 }
 async function start(){
   try{S.config=await api('GET','/api/config');}catch(e){S.config={auth:'local',invite:true,terms:''};}
+  REAL_ONLY=S.config.demo===false;
   readHash();
   if(parseRoute(location.hash))S.startRoute=location.hash;
   let me=null;try{me=await api('GET','/api/me');}catch(e){}

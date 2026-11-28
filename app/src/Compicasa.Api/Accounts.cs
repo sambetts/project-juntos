@@ -220,6 +220,8 @@ public static class Accounts
             auth = external ? "external" : "local",
             invite = !string.IsNullOrWhiteSpace(cfg["Auth:InviteCode"]),
             terms = Legal.TermsVersion,
+            // Made-up people on or off (D-059): off, the front end uses its real-people wording (B-098)
+            demo = DemoData.Enabled(cfg),
         }));
 
         var auth = app.MapGroup("/api/auth").RequireRateLimiting("auth");
