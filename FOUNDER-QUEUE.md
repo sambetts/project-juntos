@@ -4,7 +4,7 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
-### F-056 · Put Session 39's moderation, deletion and new terms live (D-062) · by 2026-11-30
+### F-056 · Put Session 39's moderation, deletion and new terms live (D-062) · by 2026-11-30 · CLOSED 2026-11-28: Sam in Claude Code: "Push/deploy all". Covers pushing `main` (test slot) and the production run for commit 8e3bbfd and its records, that day only
 **Why:** the work is committed locally but not pushed. Your 2026-11-28 approval (F-053) covered only that earlier push. It includes a database migration (six new columns, one new table; nothing removed).
 **Ask:** say "push and deploy". I then push `main` (which deploys the test slot), check it there, then run the production deploy and check it live.
 **Recommendation:** go ahead; tests pass (130 .NET, 126 browser) and the back office and suspended screens were checked in a browser.
