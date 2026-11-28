@@ -2,6 +2,23 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-28 · Session 39 (deploy): moderation, deletion and terms live
+**Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; the Builder for the deploy
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
+**Started from:** the entry below. Sam: "Push/deploy all".
+**Goals:** 1. F-056 push and deploy commit 8e3bbfd, and check it.
+**Needs Sam:** F-054 (run `erase-signins.ps1`) and F-055 (sign off the texts and DPIA), both open.
+**Did**
+- Recorded Sam's words in FOUNDER-QUEUE.md (F-056 closed) and committed (d929652), then pushed `main`: run 46175425154 deployed the test slot (success; `/api/config` there `demo:true`, terms `2026-11-28-draft`, service worker session39b).
+- Ran the App workflow with target production: run 46175773793, success. Live: `/api/config` `demo:false`, terms `2026-11-28-draft`; `/api/me/export` and `/api/admin/reports` 401 signed out; app.js, i18n.js and app.css identical to the repository; no cookies signed out; headless Edge showed the new terms, privacy notice and guide line in Spanish and English with no script errors. The app serving after start-up means migration `Moderation` applied.
+
+**Decided:** nothing new.
+**Approvals used:** F-056, Sam 2026-11-28 in Claude Code: "Push/deploy all".
+**Learned:** the live privacy notice says the External ID record is removed "at the latest within a day"; that's true only once F-054 has run. Next session softens the line if F-054 is still open on 2026-12-05.
+**Open or blocked:** F-054, F-055.
+**Saved and checked:** STATE.md and FOUNDER-QUEUE.md changes compared with what was written; `git status` after the commit. Push confirmed in the closing report.
+**Next session should start with:** 1. Check F-054; after it, `#reports` should say the removal is set up. 2. B-075 bring your own co-buyers. 3. B-104 retention checks in the portal.
+
 ## 2026-11-28 · Session 39 (continued): moderation, full deletion, data download, terms and DPIA
 **Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; the Builder for code and infrastructure; Legal & Compliance for the terms, privacy notice and DPIA; the Tester for the browser test; the CEO for D-062
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
