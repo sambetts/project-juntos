@@ -4,6 +4,24 @@ Agents add requests here. Sam replies by writing **ANSWER:** under an item. The 
 
 ## Open
 
+### F-056 · Put Session 39's moderation, deletion and new terms live (D-062) · by 2026-11-30
+**Why:** the work is committed locally but not pushed. Your 2026-11-28 approval (F-053) covered only that earlier push. It includes a database migration (six new columns, one new table; nothing removed).
+**Ask:** say "push and deploy". I then push `main` (which deploys the test slot), check it there, then run the production deploy and check it live.
+**Recommendation:** go ahead; tests pass (130 .NET, 126 browser) and the back office and suspended screens were checked in a browser.
+**If no answer:** nothing changes on the live site.
+
+### F-054 · Run one script so deleted accounts' sign-ins are removed at External ID (B-039) · by 2026-12-05
+**Why:** when someone deletes their account, the app now also deletes their sign-in record at External ID (their email and password there). It needs permission in the External ID tenant, which only you, as its administrator, can give, with your MFA sign-in.
+**Ask:** run `! pwsh app/infra/erase-signins.ps1` here. A browser opens for the External ID tenant; sign in as its admin. It creates an app registration with permission to delete users, puts a 12-month secret straight into the web app's settings (never printed or saved) and switches the CLI back to the subscription.
+**Recommendation:** run it. Put a reminder for 2027-11 to run it again before the secret expires.
+**If no answer:** deletions still remove everything in our database; the sign-in records wait in a queue, and `#reports` shows how many.
+
+### F-055 · Read and sign off the new terms, privacy notice and impact assessment (B-072, B-052, B-027) · by 2026-12-05
+**Why:** you're the data controller (D-050). The terms now cover moderation, reasons and appeals; the privacy notice covers everything the app holds; `research/2026-11-28-dpia.md` is the impact assessment and record of processing. Both texts are drafts («Borrador, pendiente de revisión legal») and go live with F-056 (the deploy).
+**Ask:** read `#terms` and `#privacy` (on the live site once deployed) and the DPIA's summary; say "signed off", or what to change. Also: will you publish a target time for answering reports (for example "within 48 hours")?
+**Recommendation:** sign off; no published target time until you know your week, but aim for 48 hours.
+**If no answer:** the drafts stay live; release checklist item 5 stays open on your sign-off.
+
 ### F-053 · Put the early-days changes live (B-097, D-059) · CLOSED 2026-11-28: deployed to production, made-up people off there (D-061)
 **Why:** the early-days card, the "someone compatible joined" notice and the switch for made-up people are built and tested (123 .NET tests, browser test 123 of 123), and since D-060 they're already on the test slot, https://compicasa-test.azurewebsites.net, for you to try.
 **Two steps now (D-060):** 1) push `main` to GitHub: that deploys to the test slot only; 2) in GitHub, Actions > App > Run workflow (branch `main`, target `production`) to put it on the live site.

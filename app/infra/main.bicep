@@ -46,6 +46,12 @@ param inviteCode string
 param externalIdAuthority string = ''
 param externalIdClientId string = ''
 
+@description('Removing sign-in records at External ID when an account is deleted (B-039), set by erase-signins.ps1: the tenant ID, and the client ID and secret of its app registration.')
+param externalIdTenantId string = ''
+param eraseClientId string = ''
+@secure()
+param eraseClientSecret string = ''
+
 @description('Monthly budget alert for the resource group, in the billing currency.')
 param monthlyBudget int = 10 // D-058: the Basic database is about EUR 5.49 a month
 
@@ -75,6 +81,9 @@ module app 'resources.bicep' = {
     planSku: planSku
     homesStopped: homesStopped
     adminAccountIds: adminAccountIds
+    externalIdTenantId: externalIdTenantId
+    eraseClientId: eraseClientId
+    eraseClientSecret: eraseClientSecret
     name: name
     webAppName: webAppName
     tags: tags

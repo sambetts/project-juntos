@@ -836,3 +836,13 @@ footer.note details p{margin-block-start:6px;max-inline-size:80ch}
 @media (max-width:520px){.story.lplan{padding:10px}.story{gap:10px}.story .st-mode{font-size:14px;gap:6px;padding-inline:6px}.story .st-cap{font-size:14.5px}}
 .ribbon .rs{display:none}
 @media (max-width:720px){.ribbon{font-size:12.5px}.ribbon .wrap{flex-wrap:nowrap;gap:8px;padding-block:5px}.ribbon .rl{display:none}.ribbon .rs{display:inline;flex:1;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ribbon b,.ribbon a{white-space:nowrap}}
+
+/* 15. Session 39 (B-039, B-041): deleting the account, the suspended screen, the back office */
+.dangerbox{border-color:var(--warn);background:var(--warn-bg)}
+.dangerbox h4{color:var(--warn);margin-top:0}
+.btn.danger{color:var(--warn);border-color:var(--warn)}
+.facts{display:grid;grid-template-columns:minmax(8em,max-content) 1fr;gap:6px 16px;margin:0}
+.facts dt{font-weight:600;color:var(--muted)}
+.facts dd{margin:0}
+@media (max-width:560px){.facts{grid-template-columns:1fr}.facts dd{margin-bottom:8px}}
+.modmsgs li{display:block;padding:6px 0;border-bottom:1px solid var(--border)}

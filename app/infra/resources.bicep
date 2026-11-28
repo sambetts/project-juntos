@@ -19,6 +19,11 @@ param inviteCode string
 @description('Sign-in through Entra External ID (D-033), set by external-id.ps1. Empty means local accounts, which is for developers only (D-034).')
 param externalIdAuthority string = ''
 param externalIdClientId string = ''
+@description('Removing sign-in records at External ID (B-039), from erase-signins.ps1.')
+param externalIdTenantId string = ''
+param eraseClientId string = ''
+@secure()
+param eraseClientSecret string = ''
 param monthlyBudget int
 param budgetStart string
 
@@ -155,6 +160,9 @@ resource web 'Microsoft.Web/sites@2023-12-01' = {
         { name: 'Auth__Mode', value: empty(externalIdClientId) ? 'Local' : 'External' }
         { name: 'Auth__External__Authority', value: externalIdAuthority }
         { name: 'Auth__External__ClientId', value: externalIdClientId }
+        { name: 'Auth__External__TenantId', value: externalIdTenantId }
+        { name: 'Auth__Erase__ClientId', value: eraseClientId }
+        { name: 'Auth__Erase__ClientSecret', value: eraseClientSecret }
         { name: 'Demo__RefreshDaily', value: 'true' }
         { name: 'Homes__Stopped', value: homesStopped }
         { name: 'Admin__AccountIds', value: adminAccountIds }
@@ -200,6 +208,9 @@ resource test 'Microsoft.Web/sites/slots@2023-12-01' = if (testSlot) {
         { name: 'Auth__Mode', value: empty(externalIdClientId) ? 'Local' : 'External' }
         { name: 'Auth__External__Authority', value: externalIdAuthority }
         { name: 'Auth__External__ClientId', value: externalIdClientId }
+        { name: 'Auth__External__TenantId', value: externalIdTenantId }
+        { name: 'Auth__Erase__ClientId', value: eraseClientId }
+        { name: 'Auth__Erase__ClientSecret', value: eraseClientSecret }
         // Made-up people and homes on (D-060), whatever production does at release (D-059).
         { name: 'People__Demo', value: 'true' }
         { name: 'Demo__RefreshDaily', value: 'true' }

@@ -46,6 +46,8 @@ public static class Accounts
         name = a.ReadProfile().Name,
         onboarded = a.OnboardedAt is not null,
         conduct = a.ConductAcceptedAt is not null,
+        // A suspended account sees its statement of reasons instead of the app (B-041, DSA art. 17).
+        suspension = Moderation.Statement(a),
     };
 
     public static string? NormaliseEmail(string? raw)
@@ -70,10 +72,22 @@ public static class Accounts
     }
 
     public static async Task SignInAsync(HttpContext http, Account a) =>
-        await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, Principal(a), new AuthenticationProperties { IsPersistent = true });
+        await http.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, Principal(a, http.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow()),
+            new AuthenticationProperties { IsPersistent = true });
 
-    static ClaimsPrincipal Principal(Account a) =>
-        new(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, a.Id)], CookieAuthenticationDefaults.AuthenticationScheme));
+    /// <summary>When this sign-in happened, kept in the cookie: deleting the account needs a recent one (B-039).
+    /// The cookie's own issue time moves on as it slides, so it can't be used.</summary>
+    public const string SignedInAtClaim = "signed_in_at";
+    public static readonly TimeSpan RecentSignIn = TimeSpan.FromMinutes(10);
+
+    static ClaimsPrincipal Principal(Account a, DateTimeOffset now) =>
+        new(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, a.Id),
+            new Claim(SignedInAtClaim, now.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture))],
+            CookieAuthenticationDefaults.AuthenticationScheme));
+
+    /// <summary>Did this person sign in within the last few minutes?</summary>
+    public static bool SignedInRecently(ClaimsPrincipal u, DateTimeOffset now) =>
+        long.TryParse(u.FindFirstValue(SignedInAtClaim), out var at) && now - DateTimeOffset.FromUnixTimeSeconds(at) <= RecentSignIn;
 
     static Account NewUser(string? email, string name, DateTimeOffset now, Ticket t)
     {
@@ -176,6 +190,8 @@ public static class Accounts
                 if (ctx.Properties.Items.TryGetValue("lang", out var lang)) ctx.ProtocolMessage.UiLocales = lang == "en" ? "en" : "es";
                 // prompt=create opens External ID's "Create account" page (Verified 2026-11-22 in a fresh browser).
                 if (ctx.Properties.Items.ContainsKey("ticket")) ctx.ProtocolMessage.Prompt = "create";
+                // Before deleting an account (B-039): ask for the password again even if External ID remembers them.
+                else if (ctx.Properties.Items.ContainsKey("reauth")) ctx.ProtocolMessage.Prompt = "login";
                 return Task.CompletedTask;
             };
             o.Events.OnTokenValidated = async ctx =>
@@ -196,7 +212,7 @@ public static class Accounts
                     return;
                 }
                 // Keep only our own account ID in the cookie; nothing else from the token is stored.
-                ctx.Principal = Principal(a);
+                ctx.Principal = Principal(a, clock.GetUtcNow());
                 ctx.Properties.IsPersistent = true;
                 ctx.Properties.RedirectUri = "/";
             };
@@ -267,10 +283,11 @@ public static class Accounts
             });
 
             // Step 2: off to External ID (sign-up if there's a ticket, sign-in otherwise).
-            app.MapGet("/auth/external", (string? ticket, string? lang, IDataProtectionProvider dp) =>
+            app.MapGet("/auth/external", (string? ticket, string? lang, bool? reauth, IDataProtectionProvider dp) =>
             {
                 var props = new AuthenticationProperties { RedirectUri = "/" };
                 props.Items["lang"] = lang == "en" ? "en" : "es";
+                if (reauth == true) props.Items["reauth"] = "1";
                 if (!string.IsNullOrEmpty(ticket))
                 {
                     if (Unprotect(dp, ticket) is null) return Results.Redirect("/#authError=badTicket");
@@ -295,5 +312,5 @@ public static class Accounts
 /// <summary>The terms and privacy notice people accept. Drafts until the lawyer's review and B-020.</summary>
 public static class Legal
 {
-    public const string TermsVersion = "2026-11-22-draft";
+    public const string TermsVersion = "2026-11-28-draft";
 }

@@ -8,7 +8,8 @@ namespace Compicasa.Api;
 /// Feedback from signed-in people (B-081, D-052) is stored here too, with a feedback kind as its topic.</summary>
 public sealed class ContactMessage
 {
-    public static readonly string[] Topics = ["question", "problem", "report", "privacy", "other"];
+    /// <summary>"appeal": against a moderation decision (B-041, DSA art. 17(3)(f)); open to suspended accounts too.</summary>
+    public static readonly string[] Topics = ["question", "problem", "report", "privacy", "appeal", "other"];
     /// <summary>Feedback kinds (B-081): an idea, something's wrong, something I like.</summary>
     public static readonly string[] FeedbackKinds = ["idea", "wrong", "like"];
     public const int NameMax = 80, BodyMax = 3000, BodyMin = 10;

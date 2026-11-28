@@ -86,6 +86,11 @@ Then open the URL it prints and sign up with any email address and invite code `
 ## The release funnel (B-074)
 `#funnel` shows counts for the free release (`project/strategy.md` section 4): sign-ups, finished profiles, likes, matches between real people (and within 14 days), groups formed, shortlisting and agreeing on a home, for all of Spain and for Madrid, plus eight weeks of sign-ups, profiles and matches. Worked out from what the app already stores each time it's opened; made-up people never count; numbers only. It shows only to the account ids in the app setting `Admin__AccountIds` (comma-separated; `deploy.ps1` keeps it across deploys). Anyone else signed in sees a short note. Not linked from any menu. To add Sam: find his account id (`select Id from Accounts where Kind='user'` while he is the only real account), then `az webapp config appsettings set -g rg-compicasa-prod -n <web app> --settings Admin__AccountIds=<id>`.
 
+## Reports, suspensions and deletion (B-041, B-039, D-062)
+`#reports` (linked from `#funnel` and `#inbox`; admins in `Admin__AccountIds` only) lists every report, open first, with the reported conversation's last 20 messages. "No breach" closes it; "Suspend" needs one of the grounds in the terms and 20 to 1,000 characters of facts, which the person reads in their statement of reasons. A suspended account is hidden, leaves its groups and gets 403 `suspended` from every API call except those in `Moderation.UseSuspensions` (its statement, data download, deletion, sign-out, the contact form, where "Appeal" is a topic). Reporters get a notice when their report is reviewed. "Restore" lifts a suspension.
+
+People download their data from Profile (`GET /api/me/export`, one JSON file) and delete their account there after a sign-in in the last 10 minutes. Deletion also queues their External ID sign-in record in `SignInErasures`; the app deletes it through Microsoft Graph at once and retries hourly. That needs `Auth__External__TenantId`, `Auth__Erase__ClientId` and `Auth__Erase__ClientSecret`, set by `pwsh app/infra/erase-signins.ps1` (Sam signs in to the External ID tenant as its admin; the secret lasts 12 months and goes straight into the web app and test slot settings; `deploy.ps1` keeps it). `#reports` shows how many are waiting and whether it's set up. The same hourly job deletes reports about deleted accounts after 2 years.
+
 ## Moving to another subscription (B-073, D-049)
 The live app runs on Sam's Visual Studio subscription (`81209232-…`), whose credit Microsoft limits to development and testing (R-024). Sam chose to stay for now; these are the steps to move. **Not yet tried end to end:** the Bicep builds, but no move has been run, so expect to fix small things on the first one. Opening the new subscription and approving the move are Sam's.
 
@@ -100,4 +105,4 @@ The live app runs on Sam's Visual Studio subscription (`81209232-…`), whose cr
 - Deploying from GitHub Actions instead of a laptop (B-030).
 - Phones and screen readers checked by a person, and a native speaker's review of the new Spanish (B-025).
 - Native store apps, if ever needed: wrap this PWA (B-032).
-- Before any real user: the DPIA (B-027), a privacy notice, and Sam's decision.
+- Before any real user: Sam's sign-off of the DPIA and texts (`research/2026-11-28-dpia.md`, F-055) and of the release checklist (F-033).

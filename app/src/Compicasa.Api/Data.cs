@@ -37,6 +37,13 @@ public sealed class Account
     /// <summary>When they agreed to the code of conduct, asked before their first message (B-036).</summary>
     public DateTimeOffset? ConductAcceptedAt { get; set; }
     public string ProfileJson { get; set; } = "{}";
+    /// <summary>Suspended by an admin (B-041, D-062): hidden from everyone and can do nothing but read the statement of
+    /// reasons, appeal through the contact form, download their data or delete the account.</summary>
+    public DateTimeOffset? SuspendedAt { get; set; }
+    /// <summary>The ground: which rule of the terms was broken (<see cref="Moderation.Grounds"/>).</summary>
+    public string? SuspendGround { get; set; }
+    /// <summary>The facts and circumstances, as written by the admin, shown to the person (DSA art. 17(3)(b)).</summary>
+    public string? SuspendFacts { get; set; }
 
     public bool IsDemo => Kind != AccountKind.User;
     /// <summary>Visible to other people: made-up profiles always; real people once onboarded.</summary>
@@ -182,6 +189,7 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
     public DbSet<CandidateVote> CandidateVotes => Set<CandidateVote>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<SavedHome> SavedHomes => Set<SavedHome>();
+    public DbSet<SignInErasure> SignInErasures => Set<SignInErasure>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -199,6 +207,8 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
             e.Property(x => x.TermsVersion).HasMaxLength(32);
             e.HasIndex(x => x.Kind);
             e.Property(x => x.PasswordHash).HasMaxLength(200);
+            e.Property(x => x.SuspendGround).HasMaxLength(16);
+            e.Property(x => x.SuspendFacts).HasMaxLength(Moderation.FactsMax);
             e.Ignore(x => x.IsDemo);
             e.Ignore(x => x.IsListed);
         });
@@ -263,7 +273,15 @@ public sealed class AppDb(DbContextOptions<AppDb> options) : DbContext(options)
             e.Property(x => x.Thread).HasMaxLength(90);
             e.Property(x => x.Reason).HasMaxLength(16);
             e.Property(x => x.Note).HasMaxLength(1000);
+            e.Property(x => x.Outcome).HasMaxLength(12);
+            e.Property(x => x.ReviewedById).HasMaxLength(40);
             e.HasIndex(x => x.AboutId);
+        });
+        b.Entity<SignInErasure>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.ExternalId).HasMaxLength(64);
+            e.Property(x => x.LastError).HasMaxLength(200);
         });
         b.Entity<SavedHome>(e =>
         {

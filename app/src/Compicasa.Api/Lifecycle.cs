@@ -116,6 +116,10 @@ public static class NoteKind
     public const string AgreeOffer = "agreeOffer";
     /// <summary>Everyone said yes to going ahead: the group agrees on a home.</summary>
     public const string Agreed = "agreed";
+    /// <summary>A report you made was reviewed and action taken (B-041, DSA art. 16(5)); no actor, so nobody is named.</summary>
+    public const string ReportActed = "repActed";
+    /// <summary>A report you made was reviewed and no breach of the terms was found.</summary>
+    public const string ReportNoBreach = "repNoBreach";
 }
 
 /// <summary>An event in someone's in-app inbox (B-037). Only real people get them; wording lives in the front end.</summary>

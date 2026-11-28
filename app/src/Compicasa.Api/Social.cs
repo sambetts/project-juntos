@@ -45,6 +45,11 @@ public sealed class Report
     public string Reason { get; set; } = "";
     public string? Note { get; set; }
     public DateTimeOffset At { get; set; }
+    /// <summary>When an admin reviewed it (B-041); null while open.</summary>
+    public DateTimeOffset? DoneAt { get; set; }
+    /// <summary>"noBreach" or "suspended" (<see cref="Moderation.Outcomes"/>).</summary>
+    public string? Outcome { get; set; }
+    public string? ReviewedById { get; set; }
 }
 
 public sealed record MessageRequest(string? Body);

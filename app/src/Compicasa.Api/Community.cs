@@ -18,11 +18,11 @@ public sealed class Community
 
     public static async Task<Community> LoadAsync(AppDb db, Account viewer, CancellationToken ct)
     {
-        // Real people who haven't finished onboarding stay out of sight, and so does anyone either side has blocked (B-036).
+        // Real people who haven't finished onboarding, or are suspended (B-041), stay out of sight, and so does anyone either side has blocked (B-036).
         var blocked = (await db.Blocks.AsNoTracking().Where(b => b.FromId == viewer.Id || b.ToId == viewer.Id)
             .Select(b => new { b.FromId, b.ToId }).ToListAsync(ct)).Select(b => b.FromId == viewer.Id ? b.ToId : b.FromId).ToHashSet();
         // Made-up people come from memory (DemoProfiles); only real people are read each time.
-        var real = (await db.Accounts.AsNoTracking().Where(a => a.Id != viewer.Id && a.Kind == AccountKind.User && a.OnboardedAt != null).ToListAsync(ct))
+        var real = (await db.Accounts.AsNoTracking().Where(a => a.Id != viewer.Id && a.Kind == AccountKind.User && a.OnboardedAt != null && a.SuspendedAt == null).ToListAsync(ct))
             .Select(a => (Account: a, Profile: a.ReadProfile()));
         var others = (await DemoProfiles.GetAsync(db, ct)).Concat(real).Where(o => o.Account.Id != viewer.Id && !blocked.Contains(o.Account.Id))
             .ToDictionary(o => o.Account.Id, o => (o.Account, o.Profile));

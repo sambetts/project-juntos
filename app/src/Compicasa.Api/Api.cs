@@ -49,22 +49,89 @@ public static partial class Api
         me.MapGet("/me", async (HttpContext http, AppDb db) =>
             await CurrentAsync(http, db) is { } a ? Results.Ok(Accounts.Me(a)) : Results.Unauthorized());
 
-        me.MapDelete("/me", async (HttpContext http, AppDb db) =>
+        me.MapDelete("/me", async (HttpContext http, AppDb db, SignInEraser eraser, TimeProvider clock) =>
         {
             if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            // Only straight after signing in again (B-039): a borrowed, unlocked phone can't delete someone's account.
+            if (!Accounts.SignedInRecently(http.User, clock.GetUtcNow())) return Error("reauthNeeded", 409);
             // All or nothing: a failure part-way must not leave half an account behind (Session 32 code review).
             await Transactions.RunAsync(db, async () =>
             {
                 await db.Reactions.Where(x => x.FromId == a.Id || x.ToId == a.Id).ExecuteDeleteAsync();
                 await db.SavedHomes.Where(x => x.AccountId == a.Id).ExecuteDeleteAsync();
+                // Their contact messages and feedback go too (B-039); until now they kept a dangling account id.
+                await db.ContactMessages.Where(x => x.AccountId == a.Id).ExecuteDeleteAsync();
                 var created = await db.Groups.Where(g => g.CreatedById == a.Id).Select(g => g.Id).ToListAsync();
                 await Threads.ForgetAsync(db, [a.Id], created);
                 await db.GroupMembers.Where(m => created.Contains(m.GroupId) || m.AccountId == a.Id).ExecuteDeleteAsync();
                 await db.Groups.Where(g => created.Contains(g.Id)).ExecuteDeleteAsync();
                 await db.Accounts.Where(x => x.Id == a.Id).ExecuteDeleteAsync();
+                // The sign-in record at External ID goes as well, straight away if we can, otherwise by the hourly retry.
+                if (!string.IsNullOrEmpty(a.ExternalId))
+                {
+                    db.SignInErasures.Add(new SignInErasure { ExternalId = a.ExternalId, RequestedAt = clock.GetUtcNow() });
+                    await db.SaveChangesAsync();
+                }
             });
             await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (!string.IsNullOrEmpty(a.ExternalId))
+                try { await eraser.RunAsync(db, http.RequestAborted); } catch (Exception) { /* the hourly retry picks it up */ }
             return Results.NoContent();
+        });
+
+        // Download my data (B-039, GDPR arts. 15 and 20): everything we hold about the signed-in person, as one JSON file.
+        me.MapGet("/me/export", async (HttpContext http, AppDb db, TimeProvider clock) =>
+        {
+            if (await CurrentAsync(http, db) is not { } a) return Results.Unauthorized();
+            var ct = http.RequestAborted;
+            var names = new Dictionary<string, string?>();
+            async Task<string?> Name(string id)
+            {
+                if (!names.TryGetValue(id, out var n))
+                    names[id] = n = (await db.Accounts.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct))?.ReadProfile().Name;
+                return n;
+            }
+            var given = await db.Reactions.AsNoTracking().Where(r => r.FromId == a.Id).ToListAsync(ct);
+            var received = await db.Reactions.AsNoTracking().Where(r => r.ToId == a.Id && r.Kind == ReactionKind.Like).ToListAsync(ct);
+            var memberships = await db.GroupMembers.AsNoTracking().Where(m => m.AccountId == a.Id).ToListAsync(ct);
+            var gids = memberships.Select(m => m.GroupId).ToList();
+            var groups = await db.Groups.AsNoTracking().Include(g => g.Members).Where(g => gids.Contains(g.Id)).ToListAsync(ct);
+            var data = new
+            {
+                exportedAt = clock.GetUtcNow(),
+                about = "Compicasa: everything we hold about you. Others' names appear only where they are part of your own activity.",
+                account = new
+                {
+                    a.Id, a.Email, a.CreatedAt, a.AdultConfirmedAt, a.TermsVersion, a.TermsAcceptedAt, a.OnboardedAt, a.ConductAcceptedAt,
+                    signIn = a.ExternalId is null ? "local" : "Microsoft Entra External ID",
+                    suspension = Moderation.Statement(a),
+                },
+                profile = a.ReadProfile(),
+                likesAndPasses = await Task.WhenAll(given.Select(async r => new { to = await Name(r.ToId), r.Kind, r.At })),
+                likedYou = await Task.WhenAll(received.Select(async r => new { from = await Name(r.FromId), r.At })),
+                groups = await Task.WhenAll(groups.Select(async g => new
+                {
+                    g.Id, g.CreatedAt, proposedByYou = g.CreatedById == a.Id, g.M2Min, g.M2Max,
+                    yourStatus = g.Members.First(m => m.AccountId == a.Id).Status,
+                    members = await Task.WhenAll(g.Members.OrderBy(m => m.Position).Select(async m => new { name = await Name(m.AccountId), m.Status })),
+                })),
+                messagesYouSent = await db.Messages.AsNoTracking().Where(m => m.FromId == a.Id).OrderBy(m => m.Id)
+                    .Select(m => new { conversation = m.Thread, m.Body, m.At }).ToListAsync(ct),
+                notifications = await db.Notifications.AsNoTracking().Where(n => n.AccountId == a.Id).OrderBy(n => n.Id)
+                    .Select(n => new { n.Kind, n.At, n.ReadAt }).ToListAsync(ct),
+                blocked = await Task.WhenAll((await db.Blocks.AsNoTracking().Where(b => b.FromId == a.Id).ToListAsync(ct))
+                    .Select(async b => new { name = await Name(b.ToId), b.At })),
+                reportsYouMade = await Task.WhenAll((await db.Reports.AsNoTracking().Where(r => r.FromId == a.Id).ToListAsync(ct))
+                    .Select(async r => new { about = await Name(r.AboutId), r.Reason, r.Note, r.At, reviewedAt = r.DoneAt, r.Outcome })),
+                savedHomes = await db.SavedHomes.AsNoTracking().Where(s => s.AccountId == a.Id).Select(s => new { s.HomeId, s.At }).ToListAsync(ct),
+                homeVotes = await db.CandidateVotes.AsNoTracking().Where(v => v.AccountId == a.Id)
+                    .Join(db.Candidates.AsNoTracking(), v => v.CandidateId, c => c.Id, (v, c) => new { c.GroupId, c.HomeId, v.Stage, v.Choice, v.Reason, v.Price, v.At }).ToListAsync(ct),
+                contactAndFeedback = await db.ContactMessages.AsNoTracking().Where(m => m.AccountId == a.Id)
+                    .Select(m => new { m.Topic, m.Body, m.Rating, m.At }).ToListAsync(ct),
+            };
+            http.Response.Headers.ContentDisposition = $"attachment; filename=\"compicasa-{clock.GetUtcNow():yyyy-MM-dd}.json\"";
+            http.Response.Headers.CacheControl = "no-store";
+            return Results.Json(data, new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web) { WriteIndented = true });
         });
 
         // The end of the onboarding wizard: from now on they see matches and others can see them.
@@ -104,7 +171,7 @@ public static partial class Api
         me.MapPut("/reactions/{id}", async (string id, ReactionRequest r, HttpContext http, AppDb db, TimeProvider clock) =>
         {
             var (a, stop) = await OnboardedAsync(http, db); if (a is null) return stop!;
-            if (id == a.Id || !await db.Accounts.AnyAsync(x => x.Id == id && (x.Kind != AccountKind.User || x.OnboardedAt != null))) return Error("unknownPerson", 404);
+            if (id == a.Id || !await db.Accounts.AnyAsync(x => x.Id == id && x.SuspendedAt == null && (x.Kind != AccountKind.User || x.OnboardedAt != null))) return Error("unknownPerson", 404);
             // Someone either side has blocked is out of sight, so they can't be liked or passed (and so can't be notified).
             if (await db.Blocks.AnyAsync(b => (b.FromId == a.Id && b.ToId == id) || (b.FromId == id && b.ToId == a.Id))) return Error("unknownPerson", 404);
             var existing = await db.Reactions.FindAsync(a.Id, id);

@@ -61,6 +61,17 @@ namespace Compicasa.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SuspendFacts")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("SuspendGround")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTimeOffset?>("SuspendedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<DateTimeOffset?>("TermsAcceptedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -519,6 +530,9 @@ namespace Compicasa.Api.Migrations
                     b.Property<DateTimeOffset>("At")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<DateTimeOffset?>("DoneAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("FromId")
                         .IsRequired()
                         .HasMaxLength(40)
@@ -528,10 +542,18 @@ namespace Compicasa.Api.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<string>("Outcome")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("ReviewedById")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
 
                     b.Property<string>("Thread")
                         .HasMaxLength(90)
@@ -560,6 +582,34 @@ namespace Compicasa.Api.Migrations
                     b.HasKey("AccountId", "HomeId");
 
                     b.ToTable("SavedHomes");
+                });
+
+            modelBuilder.Entity("Compicasa.Api.SignInErasure", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Tries")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SignInErasures");
                 });
 
             modelBuilder.Entity("Compicasa.Api.ThreadRead", b =>

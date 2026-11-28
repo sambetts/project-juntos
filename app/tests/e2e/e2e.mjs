@@ -64,7 +64,7 @@ async function homesCheck(tag) {
   await until(`!!document.querySelector('.subtabs [data-gsub="homes"]')`, tag + ': homes tab shows');
   await click('.subtabs [data-gsub="homes"]');
   await until(`/-homes$/.test(location.hash)`, tag + ': homes view has its own address');
-  if (!await until(`document.querySelectorAll('#homes .home').length>0`, tag + ': homes that fit load')) return;
+  if (!await until(`document.querySelectorAll('#homes .home').length>0`, tag + ': homes that fit load', 45000)) return;
   ok(await js(`[...document.querySelectorAll('#homes .home')].every(h=>{const a=h.querySelector('a.btn[rel~="external"]');return a?(a.target==='_blank'&&/noopener/.test(a.rel)&&/^https:/.test(a.href)&&/Ver el anuncio en /.test(a.textContent)):/inventada/.test(h.innerText);})`),
     tag + ': every home links to the agency advert in a new tab, or is marked made-up');
   // B-058: the group's combined budget, never anyone's own figure
@@ -76,7 +76,7 @@ async function homesCheck(tag) {
 // House voting (B-056): add a home to the shortlist, vote yes round by round; when everyone agrees, the pack shows.
 async function voteCheck(tag) {
   await click('.subtabs [data-gsub="homes"]');
-  if (!await until(`!!document.querySelector('#homes [data-action="sl-add"]')`, tag + ': homes offer "Add to shortlist"')) return;
+  if (!await until(`!!document.querySelector('#homes [data-action="sl-add"]')`, tag + ': homes offer "Add to shortlist"', 45000)) return;
   await click('#homes [data-action="sl-add"]');
   await until(`!!document.querySelector('#homes a[href$="-shortlist"]')`, tag + ': the home shows as on the shortlist');
   await click('.subtabs [data-gsub="shortlist"]');
@@ -464,8 +464,25 @@ ok(man.display === 'standalone' && man.icons.some(i => i.sizes === '512x512'), '
 ok((await fetch(base + '/icons/apple-touch-icon.png')).ok, 'iOS icon served');
 ok(await js(`navigator.serviceWorker.getRegistration().then(r=>!!r)`), 'service worker registered');
 
-// Tidy up: delete the test account through the API, as a user would.
-if (!external) await js(`window.__compicasa.api('DELETE','/api/me').then(()=>true)`);
+// Session 39 (B-039): download my data, then delete the account from Profile, as a user would. Deleting needs a sign-in
+// in the last 10 minutes; a long run may be older, so sign in again first (the app's own re-sign-in path has a .NET test).
+if (!external) {
+  await js(`window.__compicasa.api('POST','/api/auth/login',{email:'${user}',password:'e2e long password 2026'}).then(()=>true)`);
+  await js(`location.hash='#profile'`);
+  await until(`!!document.querySelector('a[href="/api/me/export"][download]')`, 'Profile offers "Download my data"');
+  const exp = await js(`fetch('/api/me/export').then(r=>r.ok&&/attachment/.test(r.headers.get('content-disposition')||'')?r.json():null).then(d=>d&&d.account.email)`);
+  ok(exp === user, 'the data download is a file with the account in it');
+  await click('[data-action="delete-open"]');
+  await until(`!!document.getElementById('delete-form')`, 'the delete box opens');
+  ok(await js(`document.querySelectorAll('#delete-form li').length===5`), 'the delete box lists what is deleted');
+  await fill('del-word', 'borra');
+  await js(`document.querySelector('#delete-form button[type=submit]').click()`);
+  await until(`/BORRAR/.test(document.getElementById('delete-error').textContent)`, 'the wrong word is refused');
+  await fill('del-word', 'borrar');
+  await js(`document.querySelector('#delete-form button[type=submit]').click()`);
+  await until(`!window.__compicasa.S.me`, 'deleting signs you out');
+  ok(await js(`fetch('/api/me').then(r=>r.status===401)`), 'the account is gone');
+}
 
 ok(errors.length === 0, 'no script errors: ' + errors.join(' | '));
 console.log(`e2e: ${pass} passed, ${fail} failed`);

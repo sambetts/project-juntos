@@ -46,13 +46,17 @@ if ($Infra) {
   # Keep the External ID settings that external-id.ps1 wrote (D-033).
   # Keep any agencies the crawler was told to leave alone (D-035).
   # Keep who may see the release funnel (B-074).
-  $authority = $ExternalIdAuthority; $clientId = $ExternalIdClientId; $stopped = ''; $admins = ''
+  # Keep the sign-in record removal settings that erase-signins.ps1 wrote (B-039).
+  $authority = $ExternalIdAuthority; $clientId = $ExternalIdClientId; $stopped = ''; $admins = ''; $tenantId = ''; $eraseId = ''; $eraseSecret = ''
   if ($existingWeb) {
     $settings = az webapp config appsettings list -g $rg -n $existingWeb --subscription $Subscription -o json 2>$null | ConvertFrom-Json
     if (-not $authority) { $authority = ($settings | Where-Object name -eq 'Auth__External__Authority').value }
     if (-not $clientId) { $clientId = ($settings | Where-Object name -eq 'Auth__External__ClientId').value }
     $stopped = ($settings | Where-Object name -eq 'Homes__Stopped').value
     $admins = ($settings | Where-Object name -eq 'Admin__AccountIds').value
+    $tenantId = ($settings | Where-Object name -eq 'Auth__External__TenantId').value
+    $eraseId = ($settings | Where-Object name -eq 'Auth__Erase__ClientId').value
+    $eraseSecret = ($settings | Where-Object name -eq 'Auth__Erase__ClientSecret').value
   }
   if (-not $invite) {
     $chars = 'abcdefghjkmnpqrstuvwxyz23456789'.ToCharArray()
@@ -62,7 +66,7 @@ if ($Infra) {
 
   $out = Invoke-Az deployment sub create --subscription $Subscription -l $Location -n compicasa-prod-$Location `
     --template-file (Join-Path $PSScriptRoot 'main.bicep') `
-    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "webAppName=$WebApp" "externalIdAuthority=$authority" "externalIdClientId=$clientId" "homesStopped=$stopped" "adminAccountIds=$admins" $(if ($OwnPlan) { 'planId=' }) `
+    -p sqlAdminObjectId=$($user.id) sqlAdminLogin=$($user.userPrincipalName) inviteCode=$invite "webAppName=$WebApp" "externalIdAuthority=$authority" "externalIdClientId=$clientId" "homesStopped=$stopped" "adminAccountIds=$admins" "externalIdTenantId=$tenantId" "eraseClientId=$eraseId" "eraseClientSecret=$eraseSecret" $(if ($OwnPlan) { 'planId=' }) `
     --query properties.outputs -o json | ConvertFrom-Json
   $web = $out.webAppName.value; $sqlServer = $out.sqlServer.value; $db = $out.database.value; $testDb = $out.testDatabase.value
   Write-Host "Web app: $web  SQL: $sqlServer/$db  Test slot: $($out.testUrl.value) on $testDb"

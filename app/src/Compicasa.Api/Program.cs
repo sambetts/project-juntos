@@ -44,6 +44,10 @@ builder.Services.AddDbContext<AppDb>(o =>
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<DemoData>();
+// Removing External ID sign-in records when an account is deleted (B-039).
+builder.Services.AddHttpClient("graph", c => c.Timeout = TimeSpan.FromSeconds(20));
+builder.Services.AddSingleton<SignInEraser>();
+if (cfg.GetValue("Auth:Erase:Worker", true)) builder.Services.AddHostedService<SignInErasureWorker>();
 if (cfg.GetValue("Demo:RefreshDaily", true) && DemoData.Enabled(cfg)) builder.Services.AddHostedService<DemoRefreshWorker>();
 
 builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
@@ -118,6 +122,7 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+Moderation.UseSuspensions(app);
 
 app.MapGet("/healthz", () => Results.Text("ok"));
 app.MapGet("/healthz/ready", async (AppDb db, CancellationToken ct) =>
@@ -130,6 +135,7 @@ Funnel.Map(app);
 Contact.Map(app);
 Feedback.Map(app);
 Browse.Map(app);
+Moderation.Map(app);
 // What our crawler does and how to block it (D-035); named in its user agent.
 app.MapGet("/bot", (IWebHostEnvironment env) => Results.File(Path.Combine(env.WebRootPath, "bot.html"), "text/html; charset=utf-8"));
 app.MapFallbackToFile("index.html");

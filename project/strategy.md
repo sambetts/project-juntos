@@ -53,9 +53,9 @@ So the free release must produce the evidence nobody has: how many people, once 
 | 2 | Sam runs it as an individual (D-050); the operator notice that follows | F-037, B-072 |
 | 3 | No paid lawyer before interest is proven (D-050). Instead, conservative defaults from our own research (`research/2026-11-24-free-launch-rules.md`): free, no fees, no advice, no filtering people by protected characteristics, household or money. The lawyer comes back before charging, or if a question blocks the release | D-050 |
 | 4 | No household-type filter on real people (done, B-042); the budget filters homes only, never people (D-044) | B-042 |
-| 5 | Privacy notice and data map for everything we now hold; a short DPIA; record of processing | B-052, B-027 |
-| 6 | DSA basics: reports reviewed by a person, reasons given, a contact point, final terms | B-041, B-072 |
-| 7 | Delete an account fully (including the sign-in record); download your data | B-039 |
+| 5 | Privacy notice and data map for everything we now hold; a short DPIA; record of processing. **Drafted 2026-11-28** (`research/2026-11-28-dpia.md`); Sam signs off (F-055) | B-052, B-027 (done) |
+| 6 | DSA basics: reports reviewed by a person, reasons given, a contact point, final terms. **Done 2026-11-28** (D-062) except the operator notice (F-037) | B-041, B-072 (done) |
+| 7 | Delete an account fully (including the sign-in record); download your data. **Done 2026-11-28** (D-062); the sign-in record removal needs Sam to run one script (F-054) | B-039 (done) |
 | 8 | Safety: named responder (Sam), code of conduct (built), safety guidance | F-033 |
 | 9 | Measurement of the funnel, counts only, no tracking cookies | B-074 |
 | 10 | A native speaker's review of the Spanish | B-031 |

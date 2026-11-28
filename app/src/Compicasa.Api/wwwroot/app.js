@@ -96,6 +96,8 @@ async function api(method,path,body){
   if(!r.ok){
     const code=(data&&data.error)||(r.status===429?'rateLimited':(r.status===401?'unauthorised':(r.status>=500?'server':'generic')));
     if(r.status===401&&S.me){S.me=null;render();}
+    /* Suspended while using the app (B-041): fetch the statement of reasons and show it instead */
+    if(r.status===403&&code==='suspended'&&S.me&&!S.me.suspension)api('GET','/api/me').then(m=>{S.me=m;S.view=null;render();focusHeading();},()=>{});
     throw {status:r.status,code:code,issues:data&&data.issues};
   }
   return data;
@@ -306,7 +308,7 @@ function viewFunnel(){
   return back+`<section class="card legal"><h2>${esc(t('fnH'))}</h2><p class="lead">${esc(t('fnLead'))}</p>
 <table class="mt"><thead><tr><th></th><th scope="col">${esc(t('fnAll'))}</th><th scope="col">${esc(t('fnMadrid'))}</th></tr></thead><tbody>${table}</tbody></table>
 <h3>${esc(t('fnWeeksH'))}</h3><table><thead><tr><th scope="col">${esc(t('fnWeek'))}</th><th scope="col">${esc(rows.signedUp)}</th><th scope="col">${esc(rows.onboarded)}</th><th scope="col">${esc(rows.matched)}</th></tr></thead><tbody>${weeks}</tbody></table>
-<p class="hint">${esc(t('fnAt',new Date(d.at).toLocaleString(locale(),{timeZone:'Europe/Madrid'})))}</p><p class="links"><a href="#inbox">${esc(t('ibH'))}</a></p></section>`;
+<p class="hint">${esc(t('fnAt',new Date(d.at).toLocaleString(locale(),{timeZone:'Europe/Madrid'})))}</p><p class="links"><a href="#inbox">${esc(t('ibH'))}</a> · <a href="#reports">${esc(t('mdH'))}</a></p></section>`;
 }
 /* The contact form (B-078): open to anyone, signed in or not. Stored for the admins' #inbox; nothing is emailed yet */
 function viewContact(){
@@ -315,7 +317,7 @@ function viewContact(){
   const me=S.me||{},topics=t('ctTopics');
   return back+`<section class="card legal"><h2>${esc(t('ctH'))}</h2><p class="lead">${esc(t('ctLead'))}</p>
 <form id="contact-form" class="mt" novalidate>
-<div class="field"><label for="ct-topic">${esc(t('ctTopic'))}</label><select id="ct-topic" name="topic">${Object.keys(topics).map(k=>`<option value="${k}">${esc(topics[k])}</option>`).join('')}</select></div>
+<div class="field"><label for="ct-topic">${esc(t('ctTopic'))}</label><select id="ct-topic" name="topic">${Object.keys(topics).map(k=>`<option value="${k}"${k==='appeal'&&me.suspension?' selected':''}>${esc(topics[k])}</option>`).join('')}</select></div>
 <div class="field"><label for="ct-name">${esc(t('ctName'))}</label><input id="ct-name" name="name" maxlength="80" autocomplete="name" value="${esc((S.profile&&S.profile.name)||me.name||'')}"></div>
 <div class="field"><label for="ct-email">${esc(t('ctEmail'))}</label><input id="ct-email" name="email" type="email" maxlength="254" autocomplete="email" value="${esc(me.email||'')}"></div>
 <div class="field"><label for="ct-body">${esc(t('ctBody'))}</label><textarea id="ct-body" name="body" rows="6" maxlength="3000"></textarea></div>
@@ -368,7 +370,83 @@ function viewInbox(){
   const items=shown.map(m=>`<article class="card ct-msg${m.doneAt?' done':''}"><p class="hint">${esc(topics[m.topic]||m.topic)} · ${esc(when(m.at))} · ${esc(m.lang)}${m.accountId?` · ${esc(m.accountId)}`:''}${m.page?` · ${esc(t('ibPage',m.page))}`:''}${m.rating?` · ${esc(t('ibRating',m.rating))}`:''}</p>
 <p>${m.feedback?esc(m.email||t('ibGone')):`<strong>${esc(m.name||t('ibNoName'))}</strong> · ${esc(m.email)}`}</p><p class="ct-body">${esc(m.body)}</p>
 ${m.doneAt?`<p class="hint">${esc(t('ibDoneAt',when(m.doneAt)))}</p>`:`<p><button type="button" class="btn small" data-action="inbox-done" data-id="${m.id}">${esc(t('ibDone'))}</button></p>`}</article>`).join('');
-  return back+`<section class="card legal"><h2>${esc(t('ibH'))}</h2><p class="lead">${esc(t('ibLead',open))}</p>${rt.count?`<p>${esc(t('ibAvg',rt.average,rt.count))}</p>`:''}${filters}<p class="links"><a href="#funnel">${esc(t('fnH'))}</a></p></section>${items||`<p class="hint">${esc(t('ibEmpty'))}</p>`}`;
+  return back+`<section class="card legal"><h2>${esc(t('ibH'))}</h2><p class="lead">${esc(t('ibLead',open))}</p>${rt.count?`<p>${esc(t('ibAvg',rt.average,rt.count))}</p>`:''}${filters}<p class="links"><a href="#funnel">${esc(t('fnH'))}</a> · <a href="#reports">${esc(t('mdH'))}</a></p></section>${items||`<p class="hint">${esc(t('ibEmpty'))}</p>`}`;
+}
+/* ---------- Session 39: your data, deleting the account (B-039), suspensions and the back office (B-041) ---------- */
+const DEL_KEY='compicasa.deleteAfter';
+function signedOut(){S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.inbox=null;S.chats=null;S.chat=null;S.chatKey=null;S.blocks=null;S.dashHomes=null;S.sl=null;S.br=null;S.delOpen=false;S.delReauthed=false;S.counts={alerts:0,messages:0,invites:0};}
+/* Download my data, change of password or email, and deleting the account: in Profile and on the suspended screen */
+function accountTools(){
+  const ext=S.config&&S.config.auth==='external';
+  const form=S.delOpen?`<form id="delete-form" class="card dangerbox mt" novalidate aria-labelledby="del-h"><h4 id="del-h">${esc(t('delH'))}</h4>
+<p>${esc(t('delLead'))}</p><ul>${t('delWhat').map(x=>`<li>${esc(x)}</li>`).join('')}</ul><p class="hint">${esc(t('delKeep'))}</p>
+${S.delReauthed?`<p class="hint" role="status">${esc(t('delReauthed'))}</p>`:`<p class="hint">${esc(t('delAgain'))}</p>`}
+<div class="field"><label for="del-word">${esc(t('delType',t('delWord')))}</label><input id="del-word" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+<p class="error" id="delete-error" role="alert"></p>
+<div class="presets"><button type="submit" class="btn small danger">${esc(t('delGo'))}</button><button type="button" class="btn small ghost" data-action="delete-cancel">${esc(t('cancel'))}</button></div></form>`:'';
+  return `<div class="presets mt"><a class="btn small" href="/api/me/export" download>${esc(t('exportBtn'))}</a>${S.delOpen?'':`<button type="button" class="btn small ghost danger" data-action="delete-open">${esc(t('deleteAccount'))}</button>`}</div>
+<p class="hint">${esc(t('exportHint'))}</p>${ext?`<p class="hint">${esc(t('pwChange'))}</p>`:''}<p class="hint">${esc(t('emailChange'))} <a href="#contact">${esc(t('ctLink'))}</a></p>${form}`;
+}
+async function sendDelete(f){
+  const err=document.getElementById('delete-error'),btn=f.querySelector('button[type=submit]'),w=(f.querySelector('#del-word').value||'').trim().toUpperCase();
+  err.textContent='';
+  if(w!==t('delWord')){err.textContent=t('delWrongWord',t('delWord'));return;}
+  btn.disabled=true;
+  try{await api('DELETE','/api/me');signedOut();S.view=null;render();window.scrollTo(0,0);toast(t('tDeleted'));}
+  catch(e){
+    btn.disabled=false;
+    if(e.code!=='reauthNeeded'){err.textContent=errText(e);return;}
+    /* Sign in again first; the box opens again on the way back (enter) */
+    try{localStorage.setItem(DEL_KEY,String(Date.now()));}catch(x){}
+    if(S.config&&S.config.auth==='external'){location.href='/auth/external?reauth=true&lang='+LANG;return;}
+    try{await api('POST','/api/auth/logout');}catch(x){}
+    signedOut();S.authMode='signin';S.authError=t('delSignInAgain');render();
+    const c=document.getElementById('auth-card');if(c)c.scrollIntoView({block:'start'});
+  }
+}
+/* What a suspended person sees (DSA art. 17): what, when, why, under which rule, decided by a person, how to appeal */
+function viewSuspended(){
+  const s=S.me.suspension,g=(t('grounds')||{})[s.ground]||s.ground;
+  const d=new Date(s.at).toLocaleDateString(locale(),{day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Madrid'});
+  return `<section class="card legal"><h2>${esc(t('susH'))}</h2><p class="lead">${esc(t('susLead'))}</p>
+<dl class="facts mt"><dt>${esc(t('susWhat'))}</dt><dd>${esc(t('susWhatText'))}</dd><dt>${esc(t('susWhen'))}</dt><dd>${esc(d)}</dd>
+<dt>${esc(t('susWhy'))}</dt><dd>${esc(s.facts)}</dd><dt>${esc(t('susRule'))}</dt><dd>${esc(g)}</dd>
+<dt>${esc(t('susHow'))}</dt><dd>${esc(t('susHuman'))}</dd><dt>${esc(t('susAppealH'))}</dt><dd>${esc(t('susAppeal'))} <a href="#contact">${esc(t('susAppealLink'))}</a></dd></dl>
+<h3 class="mt">${esc(t('account'))}</h3>${accountTools()}
+<p class="mt"><button type="button" class="btn small" data-action="logout">${esc(t('signOut'))}</button></p></section>`;
+}
+/* The back office (#reports, B-041): reports reviewed by a person, suspensions with reasons. Same allow-list as #funnel */
+function viewReports(){
+  if(!S.mod){S.mod={loading:true};api('GET','/api/admin/reports').then(d=>{S.mod=d.allowed?{data:d}:{denied:true};if(S.view==='reports')rerender();},()=>{S.mod={denied:true};if(S.view==='reports')rerender();});}
+  const r=S.mod,back=`<p><button type="button" class="btn small ghost" data-action="legal-back">← ${esc(t('legalBack'))}</button></p>`;
+  if(r.loading||r.denied)return back+`<section class="card legal"><h2>${esc(t('mdH'))}</h2><p class="hint">${esc(t(r.loading?'fnLoading':'fnDenied'))}</p></section>`;
+  const d=r.data,at=x=>new Date(x).toLocaleString(locale(),{timeZone:'Europe/Madrid'}),day=x=>new Date(x).toLocaleDateString(locale(),{timeZone:'Europe/Madrid'});
+  const grounds=t('grounds'),open=d.reports.filter(x=>!x.doneAt).length;
+  const who=p=>p.name?`${esc(p.name)}${p.email?` · ${esc(p.email)}`:''}`:esc(t('mdGone'));
+  const form=(rep)=>`<form id="suspend-form" class="card dangerbox mt" data-id="${esc(rep.about.id)}" novalidate>
+<div class="field"><label for="sus-ground">${esc(t('mdGround'))}</label><select id="sus-ground" name="ground">${Object.keys(grounds).map(k=>`<option value="${k}"${k===rep.reason?' selected':''}>${esc(grounds[k])}</option>`).join('')}</select></div>
+<div class="field"><label for="sus-facts">${esc(t('mdFacts'))}</label><textarea id="sus-facts" name="facts" rows="4" maxlength="1000"></textarea><p class="hint">${esc(t('mdFactsHint'))}</p></div>
+<p class="error" id="suspend-error" role="alert"></p>
+<div class="presets"><button type="submit" class="btn small danger">${esc(t('mdSuspendGo'))}</button><button type="button" class="btn small ghost" data-action="mod-suspend-cancel">${esc(t('cancel'))}</button></div></form>`;
+  const items=d.reports.map(x=>`<article class="card ct-msg${x.doneAt?' done':''}"><p class="hint">${esc(t('rr_'+x.reason))} · ${esc(at(x.at))}${x.doneAt?` · ${esc(t('mdOutcome_'+x.outcome))} ${esc(at(x.doneAt))}`:''}</p>
+<p><strong>${esc(t('mdAbout'))}</strong> ${who(x.about)}${x.about.createdAt?` · ${esc(t('mdSince',day(x.about.createdAt)))}`:''} · ${esc(t('mdReportsN',x.about.reports))}${x.about.suspended?` · <b>${esc(t('mdSuspendedTag'))}</b>`:''}</p>
+<p class="hint">${esc(t('mdFrom'))} ${who(x.from)}</p>${x.note?`<p class="ct-body">${esc(x.note)}</p>`:''}
+${x.messages&&x.messages.length?`<details><summary>${esc(t('mdMsgs',x.messages.length))}</summary><ul class="clean modmsgs">${x.messages.map(m=>`<li><b>${esc(t('mdWho_'+m.from))}</b> <span class="hint">${esc(at(m.at))}</span><br>${esc(m.body)}</li>`).join('')}</ul></details>`:''}
+${x.doneAt?'':`<div class="presets"><button type="button" class="btn small" data-action="mod-nobreach" data-id="${x.id}">${esc(t('mdNoBreach'))}</button>${x.about.real&&!x.about.suspended?`<button type="button" class="btn small ghost danger" data-action="mod-suspend-open" data-id="${esc(x.about.id)}">${esc(t('mdSuspend'))}</button>`:''}</div>
+${S.modSuspend===x.about.id?form(x):''}`}</article>`).join('');
+  const sus=d.suspended.map(a=>`<li><div><b>${esc(a.name||a.id)}</b>${a.email?` · ${esc(a.email)}`:''} · ${esc(day(a.at))} · ${esc(grounds[a.ground]||a.ground)}<br><span class="hint">${esc(a.facts)}</span></div><button type="button" class="btn small ghost" data-action="mod-restore" data-id="${esc(a.id)}">${esc(t('mdRestore'))}</button></li>`).join('');
+  return back+`<section class="card legal"><h2>${esc(t('mdH'))}</h2><p class="lead">${esc(t('mdLead',open))}</p><p class="hint">${esc(t('mdRules'))}</p>
+<p class="hint">${esc(d.erasures.configured?t('mdErase',d.erasures.waiting):t('mdEraseOff',d.erasures.waiting))}</p>
+<p class="links"><a href="#inbox">${esc(t('ibH'))}</a> · <a href="#funnel">${esc(t('fnH'))}</a></p></section>
+${items||`<p class="hint">${esc(t('mdNone'))}</p>`}
+<section class="card legal mt"><h3>${esc(t('mdSuspendedH'))}</h3>${sus?`<ul class="clean">${sus}</ul>`:`<p class="hint">${esc(t('mdNoneSuspended'))}</p>`}</section>`;
+}
+async function sendSuspend(f){
+  const err=document.getElementById('suspend-error'),btn=f.querySelector('button[type=submit]'),id=f.getAttribute('data-id');
+  err.textContent='';btn.disabled=true;
+  try{await api('POST','/api/admin/accounts/'+encodeURIComponent(id)+'/suspend',{ground:f.querySelector('[name=ground]').value,facts:f.querySelector('[name=facts]').value});
+    S.modSuspend=null;S.mod=null;rerender();toast(t('mdSuspendedToast'));}
+  catch(e){btn.disabled=false;err.textContent=errText(e);}
 }
 function viewLegal(kind){
   const body=t(kind+'Body');
@@ -441,7 +519,8 @@ ${sec(t('needsH'),'needs')}
 <details class="quietbox mt"><summary>${String(t('startFrom')).replace(/:\s*$/,'')}</summary><p class="hint">${esc(t('presetWarn'))}</p><div class="presets">${presetButtons()}</div></details>
 <section class="account mt"><h3>${esc(t('account'))}</h3>
 <p class="hint">${esc(t('signedInAs',S.me.email||''))}</p>
-<div class="presets"><button type="button" class="btn small" data-action="logout">${esc(t('signOut'))}</button><button type="button" class="btn small ghost danger" data-action="delete-account">${esc(t('deleteAccount'))}</button></div>
+<div class="presets"><button type="button" class="btn small" data-action="logout">${esc(t('signOut'))}</button></div>
+${accountTools()}
 <h4 class="mt">${esc(t('blockedH'))}</h4>
 ${!S.blocks?`<p class="hint">${esc(t('loading'))}</p>`:(S.blocks.length?`<ul class="clean">${S.blocks.map(b=>`<li>${avatar(b.id,28,b.color,b.name)}<div><b>${esc(b.name)}</b></div><button type="button" class="btn small ghost" data-action="unblock" data-id="${esc(b.id)}">${esc(t('unblock'))}</button></li>`).join('')}</ul>`:`<p class="hint">${esc(t('blockedNone'))}</p>`)}
 </section>`;
@@ -1437,7 +1516,7 @@ function renderChrome(){
   document.body.classList.toggle('has-nav',inApp());
 }
 /* The tabs show once someone is signed in and onboarded, and not on a legal page */
-function inApp(){return !!(S.me&&S.me.onboarded&&!S.view);}
+function inApp(){return !!(S.me&&S.me.onboarded&&!S.me.suspension&&!S.view);}
 function renderTabs(){
   app.setAttribute('role','main');
   if(!inApp()){tabsEl.innerHTML='';return;}
@@ -1540,7 +1619,7 @@ function render(){
   renderChrome();
   renderTabs();
   const views={browse:viewBrowse,home:viewDash,you:viewYou,matches:viewMatches,groups:viewGroups,messages:viewMessages,alerts:viewAlerts};
-  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():S.view==='contact'?viewContact():S.view==='inbox'?viewInbox():S.view==='feedback'?viewFeedback():viewLegal(S.view)):(!S.me?viewLanding():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)()));
+  app.innerHTML=S.view?(S.view==='help'?viewHelp():S.view==='sources'?viewSources():S.view==='funnel'?viewFunnel():S.view==='contact'?viewContact():S.view==='inbox'?viewInbox():S.view==='reports'?viewReports():S.view==='feedback'?viewFeedback():viewLegal(S.view)):(!S.me?viewLanding():(S.me.suspension?viewSuspended():(!S.me.onboarded?viewWizard():(views[S.tab]||viewGroups)())));
   applyStyles(app);
   if(window.Story)Story.mount(app);
   if(document.getElementById('hx-results'))updateHomes();
@@ -1645,7 +1724,13 @@ async function go(tab,sub){
 async function enter(me){
   S.me=me;S.authError='';
   PEOPLE[S.me.id]={name:S.me.name,color:ME_COLOR};
+  /* Back from signing in again to delete the account (B-039): open the delete box straight away */
+  let delAt=0;try{delAt=+(localStorage.getItem(DEL_KEY)||0);localStorage.removeItem(DEL_KEY);}catch(e){}
+  if(delAt&&Date.now()-delAt<15*60*1000){S.delOpen=true;S.delReauthed=true;S.startRoute=null;}
+  /* A suspended account sees only its statement of reasons, its data and the way out (B-041) */
+  if(S.me.suspension){S.view=null;render();focusHeading();return;}
   try{S.profile=await api('GET','/api/profile');}catch(e){toast(errText(e));}
+  if(S.me.onboarded&&S.delOpen){S.tab='you';render();focusHeading();refresh();const f=document.getElementById('delete-form');if(f)f.scrollIntoView({block:'center'});return;}
   if(S.me.onboarded){S.tab=S.tab||'home';
     /* Opening the app at an address: applyRoute sees the same tab as before and skips loading, so always load here (found in Session 19) */
     if(S.startRoute&&applyRoute(S.startRoute)){S.startRoute=null;refresh();return;}render();focusHeading();refresh();}
@@ -1664,8 +1749,9 @@ async function start(){
 function readHash(){
   const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
   const prev=S.view,from=routeHash(); // the app screen being left, before the view changes
-  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':(h.has('funnel')?'funnel':(h.has('contact')?'contact':(h.has('inbox')?'inbox':(h.has('feedback')?'feedback':null)))))));
+  S.view=h.has('terms')?'terms':(h.has('privacy')?'privacy':(h.has('help')?'help':(h.has('sources')?'sources':(h.has('funnel')?'funnel':(h.has('contact')?'contact':(h.has('inbox')?'inbox':(h.has('reports')?'reports':(h.has('feedback')?'feedback':null))))))));
   if(S.view==='funnel'&&prev!=='funnel')S.funnel=null; // fresh counts each visit
+  if(S.view==='reports'&&prev!=='reports'){S.mod=null;S.modSuspend=null;}
   if(S.view==='inbox'&&prev!=='inbox')S.ctInbox=null;
   if(S.view==='contact'&&prev!=='contact')S.contactSent=false;
   if(S.view==='feedback'&&prev!=='feedback'){S.fbSent=false;S.fbFrom=prev?'':from;} // the screen it was sent from
@@ -1774,6 +1860,8 @@ app.addEventListener('submit',async e=>{
   if(e.target.id==='chat-form'){e.preventDefault();sendChat();return;}
   if(e.target.id==='contact-form'){e.preventDefault();sendContact(e.target);return;}
   if(e.target.id==='feedback-form'){e.preventDefault();sendFeedback(e.target);return;}
+  if(e.target.id==='delete-form'){e.preventDefault();sendDelete(e.target);return;}
+  if(e.target.id==='suspend-form'){e.preventDefault();sendSuspend(e.target);return;}
   if(e.target.id!=='auth-form')return;
   e.preventDefault();
   const f=e.target,data={},errEl=document.getElementById('auth-error'),btn=f.querySelector('button[type=submit]');
@@ -1904,8 +1992,13 @@ document.addEventListener('click',async e=>{
     case 'more-people':{mfState().show+=12;updateMatches();break;}
     case 'mf-chart':{const f=mfState();f.chart=!f.chart;el.setAttribute('aria-pressed',String(f.chart));updateMatches();break;}
     case 'score-bin':{const f=mfState();f.min=+el.getAttribute('data-lo');const r=document.getElementById('mf-min');if(r)r.value=f.min;const o=document.getElementById('mf-min-out');if(o)o.textContent=f.min?f.min+' %':t('hxAny');updateMatches();break;}
-    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}S.me=null;S.profile=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];S.inbox=null;S.chats=null;S.chat=null;S.chatKey=null;S.blocks=null;S.dashHomes=null;S.sl=null;S.br=null;S.counts={alerts:0,messages:0,invites:0};S.authMode='signin';render();break;}
-    case 'delete-account':if(window.confirm(t('deleteConfirm'))){try{await api('DELETE','/api/me');S.me=null;S.matches=null;S.groups=null;S.home=null;S.draft=[];render();}catch(err){toast(errText(err));}}break;
+    case 'logout':{let r=null;try{r=await api('POST','/api/auth/logout');}catch(err){}if(r&&r.next){location.href=r.next;break;}signedOut();S.authMode='signin';render();break;}
+    case 'delete-open':S.delOpen=true;S.delReauthed=false;rerender();{const w=document.getElementById('del-word');if(w)w.focus();}break;
+    case 'delete-cancel':S.delOpen=false;S.delReauthed=false;rerender();break;
+    case 'mod-nobreach':el.disabled=true;try{await api('POST','/api/admin/reports/'+encodeURIComponent(id)+'/close',{outcome:'noBreach'});toast(t('mdClosed'));S.mod=null;rerender();}catch(err){el.disabled=false;toast(errText(err));}break;
+    case 'mod-suspend-open':S.modSuspend=id;rerender();{const g=document.getElementById('sus-facts');if(g)g.focus();}break;
+    case 'mod-suspend-cancel':S.modSuspend=null;rerender();break;
+    case 'mod-restore':el.disabled=true;try{await api('POST','/api/admin/accounts/'+encodeURIComponent(id)+'/restore');toast(t('mdRestored'));S.mod=null;rerender();}catch(err){el.disabled=false;toast(errText(err));}break;
   }
 });
 /* ---------- start: the viewer's saved choice, else the browser's languages (Spanish, Catalan, Galician or Basque

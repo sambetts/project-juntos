@@ -2,6 +2,27 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-28 · Session 39 (continued): moderation, full deletion, data download, terms and DPIA
+**Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; the Builder for code and infrastructure; Legal & Compliance for the terms, privacy notice and DPIA; the Tester for the browser test; the CEO for D-062
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
+**Started from:** the Session 39 entry below. Sam: "Fix and implement everything", read as the release-checklist items agents can do (B-100, B-039, B-041, B-072, B-052 with B-027, B-101). The session ran out of context once and carried on from its summary; "Session in progress" in STATE.md listed the goals, and every output was checked on disk afterwards.
+**Goals:** 1. B-039 full deletion and a data download. 2. B-041 back office with statements of reasons. 3. B-072, B-052, B-027 terms, privacy notice, DPIA. (Plus B-100 and B-101, both small.)
+**Needs Sam:** F-056 (push and deploy this work), F-054 (run `erase-signins.ps1` so deleted accounts' sign-in records go), F-055 (sign off the terms, privacy notice and DPIA).
+**Did**
+- B-039 (Builder): `GET /api/me/export` returns everything held about the person as one JSON file; deletion needs a sign-in in the last 10 minutes (`signed_in_at` claim; External ID asked for `prompt=login`) and a typed word in a proper box, and now also deletes contact messages and feedback and queues the External ID object id; `Erasure.cs` deletes it through Graph (client credentials) at once and retries hourly. `app/infra/erase-signins.ps1` creates the app registration, grants User.ReadWrite.All and writes a 12-month secret straight into the web app and test slot settings; `main.bicep`, `resources.bicep` and `deploy.ps1` carry the three settings across deploys. Not run: it needs Sam's MFA sign-in (F-054).
+- B-041 (Builder): `Moderation.cs` and migration `Moderation`: `#reports` for admins; "No breach" or a suspension with one of seven grounds and 20 to 1,000 characters of facts; the suspended account is hidden, leaves its groups and is stopped at every API call except a short list; it sees a statement of reasons with an appeal through the contact form's new "Appeal" topic; reporters are notified; restore. Reports about deleted accounts are purged after 2 years.
+- B-072, B-052, B-027 (Legal & Compliance): terms rewritten (not allowed, how we moderate, what we can do, reasons and appeals, contact point, data download; version `2026-11-28-draft`; existing accounts aren't asked again, since the version is checked at sign-up only); privacy notice rewritten for everything the app holds; the guide's "nobody reviews reports" line corrected and moved; `research/2026-11-28-dpia.md` with the data map, DPIA and record of processing. Cookies checked live: none for signed-out visitors, affinity cookies off (Verified 2026-11-28).
+- B-100: no change needed (a later override already had the right text). B-101: the two homes waits are 45 s.
+- Tests: 130 .NET tests (6 new in `ModerationTests.cs`); browser test 126 of 126 on a fresh local database, twice, now ending by downloading the data and deleting the account; a separate headless Edge check (scratch script) of `#reports`, a suspension, the suspended screen, the appeal topic, the reporter's notice and a restore, with no script errors. The suspended screen showed the tab bar, so `inApp()` now treats a suspended account as outside the app.
+- Records: D-062; F-054, F-055, F-056; backlog rows B-039, B-041, B-052, B-027, B-072, B-100, B-101 done; B-103 and B-104 proposed; strategy checklist items 5 to 7; `app/README.md` section on reports, suspensions and deletion; STATE.md rewritten.
+
+**Decided:** D-062 moderation by a person with reasons, full deletion with a recent sign-in, a data download, 2-year retention for reports about deleted accounts.
+**Approvals used:** none new. Sam's "Fix and implement everything" (2026-11-28) covers building and committing; it doesn't cover pushing or deploying, which F-053 covered only for the earlier work, so F-056 asks.
+**Learned:** `Transactions.RunAsync` clears the change tracker, so work inside it must re-read what it changes. Azure.Identity's `ClientSecretCredential` clashed with Azure.Core's here (CS0433), so the token request is written by hand. Three retention facts in the DPIA are Assumptions (telemetry, IP masking, backups): B-104.
+**Open or blocked:** F-056, F-054, F-055 with Sam; F-037 (operator notice) still blocks the rest of B-072; email change is by hand (B-103).
+**Saved and checked:** `git status` and `git diff --stat` reviewed (25 changed and 7 new files, no secrets found by a pattern scan); BACKLOG, DECISIONS, FOUNDER-QUEUE, STATE, strategy and README changes compared with what was written. This entry and the commit are confirmed in the closing report.
+**Next session should start with:** 1. If Sam says go (F-056): push, check the test slot, deploy production and check it live. 2. After F-054, check `#reports` says the removal is set up. 3. B-075 bring your own co-buyers.
+
 ## 2026-11-28 · Session 39: production is real people only
 **Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; Brand & Marketing for the wording; the Builder for code and Azure; the CEO for D-061
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
