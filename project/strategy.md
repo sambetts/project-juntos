@@ -60,7 +60,7 @@ So the free release must produce the evidence nobody has: how many people, once 
 | 9 | Measurement of the funnel, counts only, no tracking cookies | B-074 |
 | 10 | A native speaker's review of the Spanish | B-031 |
 | 11 | Remove the invite code and `noindex`; a domain is optional (about €33 a year; the free `azurewebsites.net` address works) | Sam (F-014), at release |
-| 12 | Made-up people off (`People:Demo=false`, D-059) and the preview's wording about them replaced | B-097 (done), B-098 |
+| 12 | Made-up people off (`People:Demo=false`, D-059) and the preview's wording about them replaced. **Done on production 2026-11-28 (D-061)**; the test slot keeps them | B-097, B-098 (both done) |
 
 **Stage 2: open, free, one place first.** The app already covers all of Spain; keep it open everywhere, but put promotion into Madrid, buying to live in (D-008's first group), so matches have enough people nearby. Be honest with newcomers about how many people there are: no made-up people, no padded numbers; while few compatible people are near them, say it's early days and tell them when someone joins, rather than lead with a count (D-059, `product/2026-11-27-early-days.md`). Every public step (posts, press, groups, ads) is Sam's to approve. Low-cost channels, roughly in order: press (buying with strangers is already a news story, and a free tool is a hook); a public, indexable cost calculator per region (a search magnet no rival has); Spanish and expat community groups; and people inviting the co-buyers they already know (B-075).
 

@@ -2,6 +2,28 @@
 
 Newest first. Add an entry at the end of every session (`templates/session-handoff.md`). Don't edit old entries; correct them in a new one.
 
+## 2026-11-28 · Session 39: production is real people only
+**Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; Brand & Marketing for the wording; the Builder for code and Azure; the CEO for D-061
+**Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
+**Started from:** STATE.md "Last updated 2026-11-27 after Session 38" and the Session 38 (continued) entry. Sam asked whether https://compicasa.azurewebsites.net had the made-up people switched on (the ribbon said everyone is made up). It had: production had no `People__Demo` setting, which means on, and was still running Session 37's code. Told what turning them off would take, Sam replied "Do it all. I want prod slot to be as close as possible to ready for real use."
+**Goals:** 1. F-053 put Session 38 live on production. 2. B-098 real-people wording. 3. `People__Demo=false` on production and in the Bicep.
+**Needs Sam:** Nothing new. F-053 closed. What's left before real use is his already: F-033, F-037, F-014, removing the invite code and `noindex`, his account id for `Admin__AccountIds`.
+**Did**
+- Recorded Sam's words and their scope in FOUNDER-QUEUE.md (F-053) and DECISIONS.md (D-061) before acting.
+- B-098 (Brand & Marketing, Builder): `/api/config` now returns `demo` (`Accounts.cs`); `t()` in `wwwroot/i18n.js` uses a key's `_r` version when made-up people are off; real-people versions of the ribbon, footnote, `authLead`, `lNote`, `legalDraft`, `tProposed`, `matchesLead2`, the terms' first line and the guide (both built from the originals, removing or rewording only the made-up lines); a neutral meta description in `index.html`; service worker `session39`. The footnote's real-people version also drops two stale claims (real listings "come later"; household type "being checked with a lawyer", since B-042 and D-050). New test `Config_tells_the_front_end_whether_made_up_people_are_on`.
+- `People__Demo=false` for production in `app/infra/resources.bicep`, so `deploy.ps1 -Infra` keeps it.
+- Tests: 124 .NET tests passed; browser test 123 of 123 against a local copy with made-up people on; a headless Edge check against a local copy with them off showed the new ribbon, note and footnote in Spanish and English and no made-up wording on `#help` or `#terms`.
+- Committed 4d0cf3b and pushed `main`: run 46156894880 deployed the test slot (success; `/api/config` there says `demo: true`). Ran the App workflow with target production: run 46157184191, success.
+- Set `People__Demo=false` on the production web app as a slot setting. After the restart `/api/config` says `demo: false`, and the same headless check against the live site passed in both languages. The test slot still says `demo: true`.
+- B-098 marked done in BACKLOG.md; release checklist item 12 marked done in `project/strategy.md`; STATE.md rewritten for this session.
+
+**Decided:** D-061 production goes to real people only now, with the invite code kept; B-098's wording approved by Sam's instruction.
+**Approvals used:** F-053, Sam 2026-11-28 in Claude Code: push `main`, the production run, B-098's wording, `People__Demo=false` on production and in the Bicep, that day only.
+**Learned:** production sends only warnings and above to Application Insights, so the start-up line with the number of made-up profiles removed couldn't be read there. The removal runs before the app takes traffic and the app is serving, so it finished (Reported, from the code in `Program.cs`), but the count isn't confirmed. The terms' version (`Legal.TermsVersion`) wasn't bumped: only the first line's description changes with the setting.
+**Open or blocked:** release checklist items for Sam (F-033, F-037, F-014, item 11); B-039, B-041, B-052/B-027, B-072 for agents.
+**Saved and checked:** `git status` and `git diff` reviewed before the records commit; DECISIONS, FOUNDER-QUEUE, BACKLOG, strategy and STATE changes compared with what was written. The commit is confirmed in the closing report.
+**Next session should start with:** 1. B-039 full account deletion. 2. B-041 the back office for reports. 3. B-052 with B-027 privacy notice and DPIA.
+
 ## 2026-11-27 · Session 38 (continued): a test slot, and production deploys by hand
 **Who:** Sam with Claude Code (Claude Opus 5.5), as Chief of Staff; the Builder for Azure and the workflow; the CEO for D-060
 **Mode:** Build (D-023), within D-027 · **Copy used:** canonical repository (D-022), `main`
